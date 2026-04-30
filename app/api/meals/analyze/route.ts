@@ -1,0 +1,317 @@
+import { GoogleGenAI } from "@google/genai";
+import {
+  MAX_IMAGE_BYTES,
+  MealAnalysisSchema,
+  getDailyAnalysisLimit,
+  getTodayRangeInJapan,
+  toConfidence,
+  toInteger,
+} from "@/lib/meal-analysis";
+import { getAuthenticatedUser } from "@/lib/supabase/server";
+import { getSupabaseAdminClient } from "@/lib/supabase/admin";
+import type { Plan } from "@/lib/supabase/database.types";
+
+export const runtime = "nodejs";
+
+const mealAnalysisJsonSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "total_calories",
+    "protein",
+    "fat",
+    "carbs",
+    "ai_confidence",
+    "memo",
+    "items",
+  ],
+  properties: {
+    total_calories: { type: "number" },
+    protein: { type: "number" },
+    fat: { type: "number" },
+    carbs: { type: "number" },
+    ai_confidence: { type: "number" },
+    memo: { type: "string" },
+    items: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: [
+          "name",
+          "estimated_amount",
+          "calories",
+          "protein",
+          "fat",
+          "carbs",
+          "confidence",
+        ],
+        properties: {
+          name: { type: "string" },
+          estimated_amount: { type: "string" },
+          calories: { type: "number" },
+          protein: { type: "number" },
+          fat: { type: "number" },
+          carbs: { type: "number" },
+          confidence: { type: "number" },
+        },
+      },
+    },
+  },
+};
+
+function errorResponse(message: string, status: number, code: string) {
+  return Response.json({ error: { message, code } }, { status });
+}
+
+async function getProfilePlan(userId: string) {
+  const { supabase } = await getAuthenticatedUser();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("plan")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  if (data?.plan) {
+    return data.plan;
+  }
+
+  const { data: created, error: insertError } = await supabase
+    .from("profiles")
+    .insert({ id: userId, plan: "free" })
+    .select("plan")
+    .single();
+
+  if (insertError) {
+    throw insertError;
+  }
+
+  return created.plan;
+}
+
+async function getTodayUsage(userId: string, plan: Plan) {
+  const { supabase } = await getAuthenticatedUser();
+  const dailyLimit = getDailyAnalysisLimit(plan);
+  const { start, end } = getTodayRangeInJapan();
+
+  const { count, error } = await supabase
+    .from("ai_analysis_logs")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("success", true)
+    .gte("analyzed_at", start)
+    .lte("analyzed_at", end);
+
+  if (error) {
+    throw error;
+  }
+
+  const used = count ?? 0;
+  return {
+    used,
+    limit: dailyLimit,
+    remaining: Math.max(0, dailyLimit - used),
+  };
+}
+
+export async function GET() {
+  const { user } = await getAuthenticatedUser();
+  if (!user) {
+    return errorResponse("ログインが必要です。", 401, "UNAUTHENTICATED");
+  }
+
+  try {
+    const plan = (await getProfilePlan(user.id)) as Plan;
+    const usage = await getTodayUsage(user.id, plan);
+    return Response.json({ plan, usage });
+  } catch {
+    return errorResponse("利用状況を取得できません。", 500, "USAGE_FETCH_FAILED");
+  }
+}
+
+export async function POST(request: Request) {
+  const { supabase, user } = await getAuthenticatedUser();
+
+  if (!user) {
+    return errorResponse("ログインが必要です。", 401, "UNAUTHENTICATED");
+  }
+
+  if (!process.env.GEMINI_API_KEY) {
+    return errorResponse(
+      "GEMINI_API_KEY が設定されていません。",
+      500,
+      "GEMINI_NOT_CONFIGURED",
+    );
+  }
+
+  let supabaseAdmin: ReturnType<typeof getSupabaseAdminClient>;
+  try {
+    supabaseAdmin = getSupabaseAdminClient();
+  } catch {
+    return errorResponse(
+      "SUPABASE_SECRET_KEY が設定されていません。",
+      500,
+      "SUPABASE_ADMIN_NOT_CONFIGURED",
+    );
+  }
+
+  let file: File | null = null;
+
+  try {
+    const formData = await request.formData();
+    const maybeFile = formData.get("image");
+    file = maybeFile instanceof File ? maybeFile : null;
+  } catch {
+    return errorResponse("画像フォームを読み取れません。", 400, "BAD_FORM_DATA");
+  }
+
+  if (!file) {
+    return errorResponse("画像を選択してください。", 400, "IMAGE_REQUIRED");
+  }
+
+  if (!file.type.startsWith("image/")) {
+    return errorResponse("画像ファイルを選択してください。", 400, "INVALID_IMAGE");
+  }
+
+  if (file.size > MAX_IMAGE_BYTES) {
+    return errorResponse("画像サイズは5MB以下にしてください。", 413, "IMAGE_TOO_LARGE");
+  }
+
+  const plan = (await getProfilePlan(user.id)) as Plan;
+  let usage;
+  try {
+    usage = await getTodayUsage(user.id, plan);
+  } catch {
+    return errorResponse("解析回数を確認できません。", 500, "LIMIT_CHECK_FAILED");
+  }
+
+  if (usage.used >= usage.limit) {
+    return errorResponse(
+      `本日の解析上限に達しました。${plan === "paid" ? "有料" : "無料"}プランは1日${usage.limit}回までです。`,
+      429,
+      "ANALYSIS_LIMIT_EXCEEDED",
+    );
+  }
+
+  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+  let logId: string | null = null;
+
+  const { start, end } = getTodayRangeInJapan();
+  const { data: claim, error: claimError } = await supabase.rpc(
+    "claim_ai_analysis_slot",
+    {
+      p_user_id: user.id,
+      p_model: model,
+      p_daily_limit: usage.limit,
+      p_day_start: start,
+      p_day_end: end,
+    },
+  );
+
+  if (claimError) {
+    return errorResponse("解析枠を確保できません。", 500, "LOG_CREATE_FAILED");
+  }
+
+  const claimedSlot = claim?.[0];
+  if (!claimedSlot) {
+    return errorResponse(
+      `本日の解析上限に達しました。${plan === "paid" ? "有料" : "無料"}プランは1日${usage.limit}回までです。`,
+      429,
+      "ANALYSIS_LIMIT_EXCEEDED",
+    );
+  }
+
+  logId = claimedSlot.log_id;
+
+  try {
+    const ai = new GoogleGenAI({
+      apiKey: process.env.GEMINI_API_KEY,
+    });
+    const bytes = Buffer.from(await file.arrayBuffer());
+
+    const response = await ai.models.generateContent({
+      model,
+      contents: [
+        {
+          inlineData: {
+            mimeType: file.type,
+            data: bytes.toString("base64"),
+          },
+        },
+        {
+          text: [
+            "You estimate nutrition from meal photos.",
+            "Return JSON only, matching the supplied schema.",
+            "If unsure, make a conservative estimate and reflect uncertainty in confidence values.",
+            "食事写真から料理ごとの名称、推定量、カロリー、PFC、信頼度を推定してください。",
+            "値は日本語の一般的な食事管理アプリで修正しやすい単位にしてください。",
+          ].join("\n"),
+        },
+      ],
+      config: {
+        temperature: 0.2,
+        responseMimeType: "application/json",
+        responseJsonSchema: mealAnalysisJsonSchema,
+      },
+    });
+
+    if (!response.text) {
+      throw new Error("Gemini response was empty.");
+    }
+
+    const parsed = MealAnalysisSchema.parse(JSON.parse(response.text));
+    const normalized = {
+      total_calories: toInteger(parsed.total_calories),
+      protein: Number(parsed.protein.toFixed(1)),
+      fat: Number(parsed.fat.toFixed(1)),
+      carbs: Number(parsed.carbs.toFixed(1)),
+      ai_confidence: toConfidence(parsed.ai_confidence),
+      memo: parsed.memo,
+      items: parsed.items.map((item) => ({
+        name: item.name,
+        estimated_amount: item.estimated_amount,
+        calories: toInteger(item.calories),
+        protein: Number(item.protein.toFixed(1)),
+        fat: Number(item.fat.toFixed(1)),
+        carbs: Number(item.carbs.toFixed(1)),
+        confidence: toConfidence(item.confidence),
+      })),
+    };
+
+    const { error: markSuccessError } = await supabaseAdmin
+      .from("ai_analysis_logs")
+      .update({ success: true })
+      .eq("id", logId)
+      .eq("user_id", user.id);
+    if (markSuccessError) {
+      return errorResponse("解析結果の記録に失敗しました。", 500, "LOG_UPDATE_FAILED");
+    }
+
+    return Response.json({
+      analysis: normalized,
+      plan,
+      usage: {
+        used: claimedSlot.used,
+        limit: claimedSlot.daily_limit,
+      },
+    });
+  } catch (error) {
+    const { error: releaseSlotError } = await supabaseAdmin
+      .from("ai_analysis_logs")
+      .delete()
+      .eq("id", logId)
+      .eq("user_id", user.id);
+    if (releaseSlotError) {
+      return errorResponse("解析枠の解放に失敗しました。", 500, "LOG_RELEASE_FAILED");
+    }
+
+    const message =
+      error instanceof Error ? error.message : "AI解析に失敗しました。";
+
+    return errorResponse(message, 502, "AI_ANALYSIS_FAILED");
+  }
+}

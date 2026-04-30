@@ -1,0 +1,39 @@
+description: フロントエンド規約 - レイヤー説明
+globs: "**/src/**/*.{ts,tsx}"
+alwaysApply: true
+---
+
+# レイヤー説明
+
+### ページレイヤー（`/app`）
+
+Next.js App Router による CSR 前提のページとレイアウトを定義する。各ディレクトリは URL パスに対応し、クライアントサイドで遷移を完結させる。
+
+**主要コンポーネント**:
+
+- `layout.tsx`: 共通レイアウト。Client Component を既定とし、必要に応じて Server Component を併用する。
+- `page.tsx`: ルートの主コンテンツ。認証状態に基づくガードや初期データ取得は NextAuth セッションとクライアント fetch を利用。
+- Client Components: 画面固有 UI とインタラクションを担う。
+
+**特徴**:
+
+- ファイルベースルーティング
+- クライアントサイドナビゲーション（`next/link`, `useRouter` など）
+- NextAuth セッションに基づくアクセス制御
+
+**ルートの種類**:
+
+- 機能ルート: `ai-assistant`, `approvals`, `expenses`, `receipt-scan`
+- API ルート: `app/api` 配下（例: `ai-assistant`, `approvals`, `expenses`, `files`, `receipts`, `user`）
+- `(public)` や `(shared)` といったルートグループを必要に応じて追加可能
+
+### サーバーサイド（server actions と Route Handlers）
+
+CSR を補完する最小限のサーバーレイヤー。認証トークンの受け渡しやバックエンドとの連携を担う。
+
+**特徴**:
+
+- NextAuth によるセッション API（`/api/auth/*`）
+- `app/api` 配下の Route Handlers（FastAPI とのプロキシや補助処理）
+- server actions は必要時のみ利用し、基本はクライアント側から直接 FastAPI を呼び出す
+- Firebase Admin SDK と連携した認証処理は NextAuth 側で実装（詳細は `docs/design_docs/認証アーキテクチャ.md`）

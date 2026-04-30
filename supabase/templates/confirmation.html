@@ -1,0 +1,9 @@
+<h2>ユーザー登録の確認</h2>
+<p>以下のリンクを開いて、メールアドレスの確認を完了してください。</p>
+<p>
+  <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup&next=/dashboard">
+    ログインして登録を完了する
+  </a>
+</p>
+<p>リンクが開けない場合は、次の URL をブラウザに貼り付けてください。</p>
+<p>{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup&next=/dashboard</p>

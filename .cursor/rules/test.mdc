@@ -1,0 +1,79 @@
+description: "Vitest 使用ルール"
+globs:
+  - "**/*.ts"
+  - "tests/**/*.ts"
+alwaysApply: true
+---
+
+# 目的
+- 既存の Vitest 環境の範囲で、テストを「壊さずに素早く」書く。  
+- 仕様変更に強い「読みやすいテストテンプレート」を提供する。  
+- 新しい依存関係の追加や設定の新規作成はしない。  
+
+# 基本方針
+- **共存の尊重**: 既存の設定・スクリプト・CI は変更しない（最小限の差分のみ提案）。  
+- **近接配置**: 単体テストは同一ディレクトリに `*.test.ts(x)` として置く。横断的なテストは `tests/` 配下。  
+- **命名**: 常に `*.test.ts` または `*.test.tsx` を使用。  
+
+# AI支援テスト生成に関する方針
+- ChatGPTなどのAIアシスタントがテストコードを生成するのは、**明示的な指示（例：「この関数のテストを作成して」）を受けた場合のみ** とする。  
+- AIが自動的にテストを追加・変更・提案することは禁止。  
+
+# 実行と環境
+- ランタイム: Next.js 15 / React 19 / TS 5 / Vitest 3  
+- 実行: `npm run test`  
+- 既定は Node 環境。DOM が必要な場合はテスト先頭に以下を追加:  
+  ```ts
+  /* @vitest-environment jsdom */
+  ```
+
+# テスト作成ガイド
+- 未テストのモジュールには、以下の最小テンプレートを提案（既存に追記）:  
+  ```ts
+  import { describe, it, expect } from "vitest";
+  // import { fn } from "./module";
+  describe("<ModuleName>", () => {
+    it("正常系: 代表的な入力で期待値を返す", () => {
+      // arrange/act/assert
+      expect(true).toBe(true);
+    });
+    it("異常系: 不正入力で例外/フォールバックを確認", () => {
+      // Exception: expect(() => fn(badInput)).toThrow(/invalid/i)
+      // Fallback: expect(fn(badInput)).toEqual(defaultValue)
+    });
+  });
+  ```
+
+# カテゴリ別ガイド
+
+## 1) コンポーネント（Server/Client）
+- Server Component: Node 環境で `react-dom/server` による静的レンダリングを推奨。  
+- Client Component: DOM が必要な場合は `/* @vitest-environment jsdom */` を付け、最小限のレンダリングに留める。  
+- 追加ライブラリ（例: Testing Library）は使わない前提。  
+
+## 2) ルートハンドラ / サーバーアクション
+- `app/api/**/route.ts` の HTTP 関数（`GET` / `POST` など）を直接呼び出す。Node 環境を使用。  
+
+例（GET ハンドラ）:  
+```ts
+import { describe, it, expect } from "vitest";
+import { GET } from "../../app/api/user/route";
+
+describe("GET /api/user", () => {
+  it("200 を返す", async () => {
+    const req = new Request("http://localhost/api/user", { method: "GET" });
+    const res = await GET(req);
+    expect(res.ok).toBe(true);
+  });
+});
+```
+
+## 3) フック（例: SWR）
+- まずロジックを純粋関数に抽出してテストする。`fetch` はグローバルにモックする。  
+
+# モックとスナップショット
+- グローバルモックは明示的に実施。  
+  （例: `vi.stubGlobal("fetch", fn)` / `vi.spyOn(globalThis, "fetch")`）  
+- モジュールモックは最小限に（例: `vi.mock("next/navigation", ...)`）。  
+- 制御されたタイミングのためフェイクタイマーを使用（例: `vi.useFakeTimers()` → `vi.runAllTimers()`）。  
+- スナップショットテストは最小限にし、明示的な `expect` を優先。  

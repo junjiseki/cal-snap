@@ -1,0 +1,36 @@
+# Lefthook configuration for Git hooks
+# See: https://github.com/evilmartians/lefthook
+
+pre-commit:
+  parallel: true
+  commands:
+    format:
+      run: |
+        files=$(echo {staged_files} | tr " " "\n" | grep -Ev '(^|/)(.*\.ya?ml$|.*\.md$|.*\.mdc$|\.biomeignore$|Dockerfile$|\.nvmrc$|\.prettierrc$|.*\.cjs$)' || true)
+        [ -z "$files" ] && exit 0
+        ./node_modules/.bin/biome format --write $files
+      stage_fixed: true
+    lint:
+      run: |
+        files=$(echo {staged_files} | tr " " "\n" | grep -Ev '(^|/)(.*\.ya?ml$|.*\.md$|.*\.mdc$|\.biomeignore$|Dockerfile$|\.nvmrc$|\.prettierrc$|.*\.cjs$)' || true)
+        [ -z "$files" ] && exit 0
+        ./node_modules/.bin/biome lint --write $files
+      stage_fixed: true
+
+pre-push:
+  parallel: false
+  commands:
+    lint:
+      run: |
+        files=$(echo {push_files} | tr " " "\n" | grep -Ev '(^|/)(.*\.ya?ml$|.*\.md$|.*\.mdc$|\.biomeignore$|Dockerfile$|\.nvmrc$|\.prettierrc$|.*\.cjs$)' || true)
+        [ -z "$files" ] && exit 0
+        ./node_modules/.bin/biome lint $files
+      fail_text: "Lintチェックに失敗しました。エラーを修正してください。"
+    typecheck:
+      skip: true
+      run: ./node_modules/.bin/tsc --noEmit
+      fail_text: "型チェックに失敗しました。エラーを修正してください。"
+    test:
+      skip: true
+      run: ./node_modules/.bin/vitest --run
+      fail_text: "単体テストに失敗しました。エラーを修正してください。"

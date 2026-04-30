@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["public", "auth"]
+}
+
+enum PlanType {
+  free
+  paid
+
+  @@map("plan_type")
+  @@schema("public")
+}
+
+model Profile {
+  id        String   @id @db.Uuid
+  plan      PlanType @default(free)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("profiles")
+  @@schema("public")
+}
+
+model Meal {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String     @map("user_id") @db.Uuid
+  eatenAt       DateTime   @map("eaten_at") @db.Timestamptz(6)
+  totalCalories Int        @map("total_calories")
+  protein       Decimal    @default(0) @db.Decimal(8, 1)
+  fat           Decimal    @default(0) @db.Decimal(8, 1)
+  carbs         Decimal    @default(0) @db.Decimal(8, 1)
+  aiConfidence  Decimal    @default(0) @map("ai_confidence") @db.Decimal(3, 2)
+  memo          String?
+  createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  mealItems     MealItem[]
+
+  @@index([userId, eatenAt(sort: Desc)], map: "meals_user_eaten_at_idx")
+  @@map("meals")
+  @@schema("public")
+}
+
+model MealItem {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mealId          String   @map("meal_id") @db.Uuid
+  name            String
+  estimatedAmount String   @map("estimated_amount")
+  calories        Int
+  protein         Decimal  @default(0) @db.Decimal(8, 1)
+  fat             Decimal  @default(0) @db.Decimal(8, 1)
+  carbs           Decimal  @default(0) @db.Decimal(8, 1)
+  confidence      Decimal  @default(0) @db.Decimal(3, 2)
+  meal            Meal     @relation(fields: [mealId], references: [id], onDelete: Cascade)
+
+  @@index([mealId], map: "meal_items_meal_id_idx")
+  @@map("meal_items")
+  @@schema("public")
+}
+
+model AiAnalysisLog {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  analyzedAt DateTime @default(now()) @map("analyzed_at") @db.Timestamptz(6)
+  model      String
+  success    Boolean  @default(false)
+
+  @@index([userId, analyzedAt(sort: Desc)], map: "ai_analysis_logs_user_analyzed_at_idx")
+  @@map("ai_analysis_logs")
+  @@schema("public")
+}

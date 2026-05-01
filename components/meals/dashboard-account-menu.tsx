@@ -63,13 +63,26 @@ export function DashboardAccountMenu({
 
   if (compact) {
     return (
-      <div className="space-y-4">
-        <div className="rounded-md border border-border bg-muted/30 p-3">
-          <p className="truncate text-xs text-muted-foreground">{email}</p>
-          <p className="mt-2 text-sm font-semibold">プラン: {planLabel}</p>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between gap-3 rounded-md bg-muted/40 px-3 py-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-md bg-background text-muted-foreground">
+              <User className="size-4" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold">アカウント</p>
+              <p className="truncate text-xs text-muted-foreground">{email}</p>
+            </div>
+          </div>
+          <span className="shrink-0 rounded-md bg-background px-2.5 py-1 text-xs font-semibold text-primary">
+            {planLabel}
+          </span>
+        </div>
+        <div className="rounded-md border border-border bg-background p-3">
+          <p className="text-xs font-medium text-muted-foreground">AI解析枠</p>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
             無料は1日{freeDailyAnalysisLimit}回、有料は1日{paidDailyAnalysisLimit}
-            回までAI解析できます。
+            回まで利用できます。
           </p>
           {plan !== "paid" ? (
             <div className="mt-3">
@@ -77,7 +90,7 @@ export function DashboardAccountMenu({
             </div>
           ) : null}
         </div>
-        <div className="rounded-md border border-border bg-muted/30 p-3">
+        <div className="rounded-md border border-border bg-background p-3">
           <p className="text-xs font-medium text-muted-foreground">1日の摂取カロリー</p>
           <div className="mt-3">
             <CalorieGoalForm key={initialGoal} initialGoal={initialGoal} />
@@ -108,7 +121,6 @@ export function DashboardAccountMenu({
         className="gap-2"
       >
         <User className="size-4" />
-        アカウント
       </Button>
       {open ? (
         <div

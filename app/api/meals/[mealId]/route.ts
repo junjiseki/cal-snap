@@ -52,9 +52,15 @@ export async function PATCH(
   if (toSafeNumber(body.total_calories) !== null) {
     payload.total_calories = Math.max(0, Math.round(body.total_calories as number));
   }
-  if (toSafeNumber(body.protein) !== null) payload.protein = Number((body.protein as number).toFixed(1));
-  if (toSafeNumber(body.fat) !== null) payload.fat = Number((body.fat as number).toFixed(1));
-  if (toSafeNumber(body.carbs) !== null) payload.carbs = Number((body.carbs as number).toFixed(1));
+  if (toSafeNumber(body.protein) !== null) {
+    payload.protein = Math.max(0, Math.round(body.protein as number));
+  }
+  if (toSafeNumber(body.fat) !== null) {
+    payload.fat = Math.max(0, Math.round(body.fat as number));
+  }
+  if (toSafeNumber(body.carbs) !== null) {
+    payload.carbs = Math.max(0, Math.round(body.carbs as number));
+  }
   if (body.memo !== undefined) payload.memo = body.memo?.trim() ? body.memo.trim() : null;
 
   if (Object.keys(payload).length === 0) {

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BarChart3 } from "lucide-react";
 import { MealPhotoAnalyzer } from "@/components/meals/meal-photo-analyzer";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 
@@ -28,17 +29,30 @@ export default async function NewMealPage() {
 
   return (
     <main className="min-h-0 flex-1 bg-background">
-      <div className="border-b border-border bg-card">
+      <section className="border-b border-border bg-card">
         <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-8 sm:py-6">
-          <p className="text-sm font-semibold text-primary">写真から記録</p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-4xl">
-            食事を記録
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            写真を選び、推定値を確認して保存します。
-          </p>
+          <div>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-primary">食事を記録</p>
+                <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-4xl">
+                  食事を記録
+                </h1>
+              </div>
+              <Link
+                href="/dashboard"
+                className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-semibold shadow-sm hover:bg-muted sm:w-auto"
+              >
+                <BarChart3 className="size-4" />
+                ダッシュボード
+              </Link>
+            </div>
+            <p className="mt-4 max-w-2xl text-sm text-muted-foreground">
+              写真のAI解析でも、数値の手入力でも記録できます。解析回数に達した場合は手入力をご利用ください。
+            </p>
+          </div>
         </div>
-      </div>
+      </section>
       <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-8 sm:py-6">
         <MealPhotoAnalyzer />
       </div>

@@ -27,6 +27,9 @@ export function AppHeaderClient({
   const pathname = usePathname();
   const isDashboardPage = pathname === "/dashboard";
   const isMealAnalyzerPage = pathname === "/meals/new";
+  const closeMobileMenuSoon = () => {
+    window.setTimeout(() => setOpen(false), 120);
+  };
 
   return (
     <header className={cn("sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur", className)}>
@@ -60,27 +63,6 @@ export function AppHeaderClient({
             aria-label="メインナビゲーション"
           >
             {account ? (
-              <>
-                {!isDashboardPage ? (
-                  <Link
-                    href="/dashboard"
-                    className="rounded-md px-2 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-                  >
-                    ダッシュボード
-                  </Link>
-                ) : null}
-                {!isMealAnalyzerPage ? (
-                  <Link
-                    href="/meals/new"
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground"
-                  >
-                    <Camera className="size-4" />
-                    食事写真をAI解析
-                  </Link>
-                ) : null}
-              </>
-            ) : null}
-            {account ? (
               <DashboardAccountMenu
                 email={account.email}
                 plan={account.plan}
@@ -112,81 +94,103 @@ export function AppHeaderClient({
           <button
             type="button"
             aria-label="メニューを閉じる"
-            className="absolute inset-0 bg-foreground/20 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-foreground/15 backdrop-blur-[2px]"
             onClick={() => setOpen(false)}
           />
           <nav
             id="app-header-mobile-nav"
-            className="absolute right-3 top-3 max-h-[calc(100dvh-5.5rem)] w-[min(calc(100vw-1.5rem),23rem)] overflow-y-auto rounded-lg border border-border bg-card p-4 shadow-xl"
+            className="absolute inset-x-0 top-0 max-h-[calc(100dvh-4.25rem)] overflow-y-auto border-b border-border bg-card shadow-lg animate-in fade-in slide-in-from-top-2 duration-150"
             aria-label="モバイルメニュー"
           >
-            <div className="mb-4 flex items-center justify-between">
-              <p className="text-sm font-semibold">メニュー</p>
-              <button
-                type="button"
-                className="inline-flex size-8 items-center justify-center rounded-md border border-border bg-background"
-                onClick={() => setOpen(false)}
-                aria-label="メニューを閉じる"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-
-            {account ? (
-              <div className="space-y-3">
-                <Link
-                  href="/meals/new"
-                  className={cn(
-                    "inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm",
-                    isMealAnalyzerPage && "pointer-events-none opacity-70",
-                  )}
-                  onClick={() => setOpen(false)}
-                >
-                  <Camera className="size-4" />
-                  食事写真をAI解析
-                </Link>
-                <Link
-                  href="/dashboard"
-                  className={cn(
-                    "inline-flex h-11 w-full items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-semibold hover:bg-muted",
-                    isDashboardPage && "pointer-events-none bg-muted text-muted-foreground",
-                  )}
-                  onClick={() => setOpen(false)}
-                >
-                  <BarChart3 className="size-4" />
-                  ダッシュボード
-                </Link>
-                <div className="border-t border-border pt-4">
-                  <DashboardAccountMenu
-                    email={account.email}
-                    plan={account.plan}
-                    initialGoal={account.initialGoal}
-                    freeDailyAnalysisLimit={account.freeDailyAnalysisLimit}
-                    paidDailyAnalysisLimit={account.paidDailyAnalysisLimit}
-                    compact
-                  />
+            <div className="mx-auto w-full max-w-7xl px-4 py-4">
+              <div className="mb-3 flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-primary">Menu</p>
+                  <p className="mt-1 text-sm font-semibold">カロリースナップ</p>
                 </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <Link
-                  href="/signup"
-                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm"
+                <button
+                  type="button"
+                  className="inline-flex size-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground"
                   onClick={() => setOpen(false)}
+                  aria-label="メニューを閉じる"
                 >
-                  <UserPlus className="size-4" />
-                  無料で始める
-                </Link>
-                <Link
-                  href="/login"
-                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-semibold hover:bg-muted"
-                  onClick={() => setOpen(false)}
-                >
-                  <LogIn className="size-4" />
-                  ログイン
-                </Link>
+                  <X className="size-4" />
+                </button>
               </div>
-            )}
+
+              {account ? (
+                <div className="space-y-2">
+                  <Link
+                    href="/meals/new"
+                    className={cn(
+                      "flex min-h-12 w-full items-center gap-3 rounded-md px-3 text-sm font-semibold",
+                      isMealAnalyzerPage
+                        ? "pointer-events-none bg-primary/10 text-primary"
+                        : "bg-primary text-primary-foreground shadow-sm",
+                    )}
+                    onClick={closeMobileMenuSoon}
+                    aria-current={isMealAnalyzerPage ? "page" : undefined}
+                  >
+                    <span
+                      className={cn(
+                        "inline-flex size-9 shrink-0 items-center justify-center rounded-md",
+                        isMealAnalyzerPage ? "bg-primary/15" : "bg-primary-foreground/15",
+                      )}
+                    >
+                      <Camera className="size-4" />
+                    </span>
+                    <span className="min-w-0 flex-1 text-left">食事写真をAI解析</span>
+                  </Link>
+                  <Link
+                    href="/dashboard"
+                    className={cn(
+                      "flex min-h-12 w-full items-center gap-3 rounded-md border border-border bg-background px-3 text-sm font-semibold",
+                      isDashboardPage && "pointer-events-none border-primary/25 bg-primary/10 text-primary",
+                    )}
+                    onClick={closeMobileMenuSoon}
+                    aria-current={isDashboardPage ? "page" : undefined}
+                  >
+                    <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                      <BarChart3 className="size-4" />
+                    </span>
+                    <span className="min-w-0 flex-1 text-left">ダッシュボード</span>
+                  </Link>
+                  <div className="mt-4 border-t border-border pt-4">
+                    <DashboardAccountMenu
+                      email={account.email}
+                      plan={account.plan}
+                      initialGoal={account.initialGoal}
+                      freeDailyAnalysisLimit={account.freeDailyAnalysisLimit}
+                      paidDailyAnalysisLimit={account.paidDailyAnalysisLimit}
+                      compact
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="grid gap-2">
+                  <Link
+                    href="/signup"
+                    className="flex min-h-12 w-full items-center gap-3 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground shadow-sm"
+                    onClick={closeMobileMenuSoon}
+                  >
+                    <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-md bg-primary-foreground/15">
+                      <UserPlus className="size-4" />
+                    </span>
+                    <span className="min-w-0 flex-1 text-left">無料で始める</span>
+                  </Link>
+                  <Link
+                    href="/login"
+                    className="flex min-h-12 w-full items-center gap-3 rounded-md border border-border bg-background px-3 text-sm font-semibold"
+                    onClick={closeMobileMenuSoon}
+                  >
+                    <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                      <LogIn className="size-4" />
+                    </span>
+                    <span className="min-w-0 flex-1 text-left">ログイン</span>
+                  </Link>
+                </div>
+              )}
+            </div>
           </nav>
         </div>
       ) : null}

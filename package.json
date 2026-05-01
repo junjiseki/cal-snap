@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -15,7 +15,7 @@
     "format": "biome format --write .",
     "check": "biome check --write .",
     "ci": "biome ci .",
-    "typecheck": "prisma generate && tsc --noEmit",
+    "typecheck": "prisma generate && tsc --noEmit && tsc --noEmit -p prisma/tsconfig.json",
     "db:seed": "prisma db seed",
     "db:types": "prisma generate",
     "db:migrate:new": "supabase migration new",

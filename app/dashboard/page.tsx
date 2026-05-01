@@ -227,7 +227,7 @@ export default async function DashboardPage({
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm sm:w-auto"
               >
                 <Camera className="size-4" />
-                食事写真を登録
+                食事を登録
               </Link>
             </div>
             <div className="mt-5 max-w-3xl">

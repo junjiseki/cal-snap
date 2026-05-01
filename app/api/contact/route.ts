@@ -5,14 +5,56 @@ import { getAuthenticatedUser } from "@/lib/supabase/server";
 export const runtime = "nodejs";
 
 const ContactSchema = z.object({
-  name: z.string().trim().min(1).max(80),
+  name: z
+    .string()
+    .trim()
+    .min(1)
+    .max(80)
+    .regex(
+      /^[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}々〆ヶー・　\s]+$/u,
+      "お名前は日本語で入力してください。",
+    ),
   email: z.string().trim().email().max(160),
   category: z.enum(["support", "billing", "bug", "privacy", "other"]),
   message: z.string().trim().min(10).max(2000),
+  submittedAt: z.number().int().positive(),
+  website: z.string().max(200).optional().default(""),
 });
+
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+const RATE_LIMIT_MAX_REQUESTS = 3;
+const MIN_SUBMIT_ELAPSED_MS = 2500;
+const MAX_SUBMIT_ELAPSED_MS = 2 * 60 * 60 * 1000;
+const requestHistory = new Map<string, number[]>();
+const urlPattern = /https?:\/\/|www\.|[a-z0-9-]+\.[a-z]{2,}/gi;
 
 function errorResponse(message: string, status: number, code: string) {
   return Response.json({ error: { message, code } }, { status });
+}
+
+function getClientKey(request: Request, email?: string) {
+  const forwardedFor = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  const realIp = request.headers.get("x-real-ip")?.trim();
+  const ip = forwardedFor || realIp || "unknown";
+  return `${ip}:${email?.toLowerCase() ?? "anonymous"}`;
+}
+
+function isRateLimited(key: string) {
+  const now = Date.now();
+  const recent = (requestHistory.get(key) ?? []).filter(
+    (timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS,
+  );
+  if (recent.length >= RATE_LIMIT_MAX_REQUESTS) {
+    requestHistory.set(key, recent);
+    return true;
+  }
+  recent.push(now);
+  requestHistory.set(key, recent);
+  return false;
+}
+
+function countUrls(text: string) {
+  return text.match(urlPattern)?.length ?? 0;
 }
 
 export async function POST(request: Request) {
@@ -27,6 +69,28 @@ export async function POST(request: Request) {
   const parsed = ContactSchema.safeParse(body);
   if (!parsed.success) {
     return errorResponse("入力内容を確認してください。", 400, "VALIDATION_FAILED");
+  }
+
+  if (parsed.data.website) {
+    return Response.json({ ok: true });
+  }
+
+  const elapsed = Date.now() - parsed.data.submittedAt;
+  if (elapsed < MIN_SUBMIT_ELAPSED_MS || elapsed > MAX_SUBMIT_ELAPSED_MS) {
+    return errorResponse("時間をおいてから再度送信してください。", 429, "SPAM_DETECTED");
+  }
+
+  if (countUrls(parsed.data.message) > 2) {
+    return errorResponse("URLが多すぎます。内容を確認してください。", 400, "TOO_MANY_LINKS");
+  }
+
+  const clientKey = getClientKey(request, parsed.data.email);
+  if (isRateLimited(clientKey)) {
+    return errorResponse(
+      "短時間に送信できる回数を超えました。時間をおいてから再度送信してください。",
+      429,
+      "RATE_LIMITED",
+    );
   }
 
   let supabaseAdmin: ReturnType<typeof getSupabaseAdminClient>;

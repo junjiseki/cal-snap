@@ -16,17 +16,26 @@ type FormState = {
   email: string;
   category: (typeof categories)[number]["value"];
   message: string;
+  website: string;
+  submittedAt: number;
 };
 
-const initialForm: FormState = {
-  name: "",
-  email: "",
-  category: "support",
-  message: "",
-};
+function createInitialForm(): FormState {
+  return {
+    name: "",
+    email: "",
+    category: "support",
+    message: "",
+    website: "",
+    submittedAt: Date.now(),
+  };
+}
+
+const japaneseNamePattern =
+  /^[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}々〆ヶー・　\s]+$/u;
 
 export function ContactForm() {
-  const [form, setForm] = useState<FormState>(initialForm);
+  const [form, setForm] = useState<FormState>(() => createInitialForm());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
@@ -35,6 +44,11 @@ export function ContactForm() {
     event.preventDefault();
     setError(null);
     setSent(false);
+
+    if (!japaneseNamePattern.test(form.name.trim())) {
+      setError("お名前は日本語で入力してください。");
+      return;
+    }
 
     if (form.message.trim().length < 10) {
       setError("お問い合わせ内容は10文字以上で入力してください。");
@@ -52,7 +66,7 @@ export function ContactForm() {
         const data = await response.json().catch(() => null);
         throw new Error(data?.error?.message ?? "お問い合わせを送信できませんでした。");
       }
-      setForm(initialForm);
+      setForm(createInitialForm());
       setSent(true);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "お問い合わせを送信できませんでした。");
@@ -77,6 +91,18 @@ export function ContactForm() {
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
+        <label className="absolute left-[-9999px] top-auto h-px w-px overflow-hidden">
+          会社URL
+          <input
+            type="text"
+            value={form.website}
+            onChange={(event) => setForm({ ...form, website: event.target.value })}
+            tabIndex={-1}
+            autoComplete="off"
+          />
+        </label>
+        <input type="hidden" value={form.submittedAt} readOnly />
+
         <label className="text-sm font-medium">
           お名前
           <input
@@ -85,9 +111,14 @@ export function ContactForm() {
             onChange={(event) => setForm({ ...form, name: event.target.value })}
             required
             maxLength={80}
+            pattern="[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF々〆ヶー・　\s]+"
+            title="お名前は日本語で入力してください。"
             autoComplete="name"
             className="mt-2 h-11 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:border-primary"
           />
+          <span className="mt-1 block text-xs font-normal text-muted-foreground">
+            ひらがな・カタカナ・漢字
+          </span>
         </label>
 
         <label className="text-sm font-medium">

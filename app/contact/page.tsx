@@ -33,17 +33,21 @@ export default function ContactPage() {
           <div className="border border-border bg-card p-5">
             <h2 className="font-semibold">送信前に確認</h2>
             <p className="mt-3 text-sm leading-7 text-muted-foreground">
-              食事写真は保存されません。お問い合わせに写真や個人情報を含める必要がある場合は、内容を確認してから送信してください。
+              食事写真は保存されません。
+              <br />
+              お問い合わせに写真や個人情報を含める必要がある場合は、内容を確認してから送信してください。
             </p>
           </div>
           <div className="border border-border bg-card p-5">
             <h2 className="font-semibold">個人情報の扱い</h2>
             <p className="mt-3 text-sm leading-7 text-muted-foreground">
               お問い合わせ内容の取り扱いは
+              <br />
               <Link href="/privacy" className="font-semibold text-primary hover:underline">
                 プライバシーポリシー
               </Link>
-              を確認してください。
+              <br />
+              をご確認ください。
             </p>
           </div>
         </aside>

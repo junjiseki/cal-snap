@@ -1,4 +1,4 @@
-create table if not exists public.contact_messages (
+create table public.contact_messages (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete set null,
   name text not null,
@@ -15,10 +15,12 @@ create table if not exists public.contact_messages (
   )
 );
 
-create index if not exists contact_messages_created_at_idx
+drop index if exists public.contact_messages_created_at_idx;
+create index contact_messages_created_at_idx
   on public.contact_messages(created_at desc);
 
-create index if not exists contact_messages_user_id_idx
+drop index if exists public.contact_messages_user_id_idx;
+create index contact_messages_user_id_idx
   on public.contact_messages(user_id);
 
 alter table public.contact_messages enable row level security;

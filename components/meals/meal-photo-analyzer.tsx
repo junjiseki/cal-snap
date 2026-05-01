@@ -741,7 +741,7 @@ export function MealPhotoAnalyzer() {
             className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-foreground px-4 text-sm font-semibold text-background shadow-sm disabled:opacity-50 sm:w-auto"
           >
             {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-            今日の食事に記録
+            食事を記録
           </button>
         </div>
 

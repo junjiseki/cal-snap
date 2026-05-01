@@ -1,5 +1,3 @@
-drop policy if exists "ai_logs_update_own" on public.ai_analysis_logs;
-
 create or replace function public.claim_ai_analysis_slot(
   p_user_id uuid,
   p_model text,

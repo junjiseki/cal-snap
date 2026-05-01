@@ -25,6 +25,8 @@ const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 3;
 const MIN_SUBMIT_ELAPSED_MS = 2500;
 const MAX_SUBMIT_ELAPSED_MS = 2 * 60 * 60 * 1000;
+/** プロセス内レート制限用。ユニークキー増加でメモリが伸びないよう TTL 相当の整理と件数上限をかける */
+const MAX_TRACKED_CLIENT_KEYS = 8192;
 const requestHistory = new Map<string, number[]>();
 const urlPattern = /https?:\/\/|www\.|[a-z0-9-]+\.[a-z]{2,}/gi;
 
@@ -39,8 +41,25 @@ function getClientKey(request: Request, email?: string) {
   return `${ip}:${email?.toLowerCase() ?? "anonymous"}`;
 }
 
+function pruneRequestHistory(now: number) {
+  for (const [k, timestamps] of requestHistory) {
+    const recent = timestamps.filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
+    if (recent.length === 0) {
+      requestHistory.delete(k);
+    } else if (recent.length !== timestamps.length) {
+      requestHistory.set(k, recent);
+    }
+  }
+  while (requestHistory.size > MAX_TRACKED_CLIENT_KEYS) {
+    const first = requestHistory.keys().next().value;
+    if (first === undefined) break;
+    requestHistory.delete(first);
+  }
+}
+
 function isRateLimited(key: string) {
   const now = Date.now();
+  pruneRequestHistory(now);
   const recent = (requestHistory.get(key) ?? []).filter(
     (timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS,
   );

@@ -52,9 +52,33 @@ function todayInputValue() {
   return `${date}T${time}`;
 }
 
+function round2(n: number) {
+  if (!Number.isFinite(n)) return 0;
+  return Math.round(n * 100) / 100;
+}
+
 function numberValue(value: string) {
   const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
+  return Number.isFinite(parsed) ? round2(parsed) : 0;
+}
+
+function normalizeMealAnalysis(analysis: MealAnalysis): MealAnalysis {
+  return {
+    ...analysis,
+    total_calories: round2(analysis.total_calories),
+    protein: round2(analysis.protein),
+    fat: round2(analysis.fat),
+    carbs: round2(analysis.carbs),
+    ai_confidence: round2(analysis.ai_confidence),
+    items: analysis.items.map((item) => ({
+      ...item,
+      calories: round2(item.calories),
+      protein: round2(Number(item.protein)),
+      fat: round2(Number(item.fat)),
+      carbs: round2(Number(item.carbs)),
+      confidence: round2(item.confidence),
+    })),
+  };
 }
 
 async function readError(response: Response) {
@@ -142,6 +166,8 @@ function MacroNumberField({
       </span>
       <input
         type="number"
+        step={0.01}
+        min={0}
         value={value}
         onChange={(e) => onChange(numberValue(e.target.value))}
         className="mt-2 h-10 w-full shrink-0 rounded-md border border-transparent bg-background/80 px-2 text-sm tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -280,7 +306,7 @@ export function MealPhotoAnalyzer() {
         analysis: MealAnalysis;
         usage: { used: number; limit: number };
       };
-      setAnalysis(data.analysis);
+      setAnalysis(normalizeMealAnalysis(data.analysis));
       setUsage({
         used: data.usage.used,
         limit: data.usage.limit,
@@ -310,7 +336,7 @@ export function MealPhotoAnalyzer() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...payload,
+          ...normalizeMealAnalysis(payload),
           eaten_at: new Date(eatenAt).toISOString(),
         }),
       });
@@ -329,7 +355,46 @@ export function MealPhotoAnalyzer() {
   }
 
   function updateMeal<K extends keyof MealAnalysis>(key: K, value: MealAnalysis[K]) {
-    setAnalysis((current) => (current ? { ...current, [key]: value } : current));
+    setAnalysis((current) => {
+      if (!current) return current;
+      if (key === "total_calories" || key === "protein" || key === "fat" || key === "carbs") {
+        return { ...current, [key]: round2(value as number) };
+      }
+      if (key === "ai_confidence") {
+        return { ...current, [key]: round2(value as number) };
+      }
+      if (key === "items" && Array.isArray(value)) {
+        return {
+          ...current,
+          items: (value as MealAnalysis["items"]).map((item) => ({
+            ...item,
+            calories: round2(item.calories),
+            protein: round2(Number(item.protein)),
+            fat: round2(Number(item.fat)),
+            carbs: round2(Number(item.carbs)),
+            confidence: round2(item.confidence),
+          })),
+        };
+      }
+      return { ...current, [key]: value };
+    });
+  }
+
+  function removeMealItemAt(index: number) {
+    setAnalysis((current) => {
+      if (!current) return current;
+      const removed = current.items[index];
+      if (!removed) return current;
+      const nextItems = current.items.filter((_, i) => i !== index);
+      return {
+        ...current,
+        items: nextItems,
+        total_calories: round2(Math.max(0, current.total_calories - removed.calories)),
+        protein: round2(Math.max(0, current.protein - Number(removed.protein))),
+        fat: round2(Math.max(0, current.fat - Number(removed.fat))),
+        carbs: round2(Math.max(0, current.carbs - Number(removed.carbs))),
+      };
+    });
   }
 
   return (
@@ -577,12 +642,7 @@ export function MealPhotoAnalyzer() {
                       <button
                         type="button"
                         aria-label="この料理を削除"
-                        onClick={() => {
-                          updateMeal(
-                            "items",
-                            analysis.items.filter((_, itemIndex) => itemIndex !== index),
-                          );
-                        }}
+                        onClick={() => removeMealItemAt(index)}
                         className="flex h-full w-full min-h-10 items-center justify-center rounded-md border border-border bg-background hover:bg-muted"
                       >
                         <Trash2 className="size-4" />

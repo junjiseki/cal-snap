@@ -32,10 +32,18 @@ type MealRow = {
   }[];
 };
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+/** YYYY-MM-DD（日本の暦）を diffDays だけずらす。UTC の日付と混ぜない（前日が二日分ずれる原因になる） */
 function shiftJapanDate(date: string, diffDays: number) {
-  const base = new Date(`${date}T00:00:00+09:00`);
-  base.setUTCDate(base.getUTCDate() + diffDays);
-  return base.toISOString().slice(0, 10);
+  const base = new Date(`${date}T12:00:00+09:00`);
+  const shifted = new Date(base.getTime() + diffDays * MS_PER_DAY);
+  return new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(shifted);
 }
 
 /** YYYY-MM-DD を日本語の日付表記に（その日の表示用。正午 JST で解釈） */

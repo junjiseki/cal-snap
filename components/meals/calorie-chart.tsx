@@ -25,14 +25,14 @@ const chartConfig = {
     },
   },
   caloriesOverWarn: {
-    label: "摂取カロリー（基準+300kcal以内超過）",
+    label: `摂取カロリー（基準+${OVER_WARN_KCAL}kcal以内超過）`,
     theme: {
       light: "oklch(0.88 0.14 95)",
       dark: "oklch(0.9 0.13 95)",
     },
   },
   caloriesOver: {
-    label: "摂取カロリー（基準+300kcal超過）",
+    label: `摂取カロリー（基準+${OVER_WARN_KCAL}kcal超過）`,
     theme: {
       light: "oklch(0.78 0.16 28)",
       dark: "oklch(0.8 0.14 28)",

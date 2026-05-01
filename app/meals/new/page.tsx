@@ -32,7 +32,7 @@ export default async function NewMealPage() {
         <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-8 sm:py-6">
           <p className="text-sm font-semibold text-primary">写真から記録</p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-4xl">
-            食事を1件登録
+            食事を記録
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             写真を選び、推定値を確認して保存します。

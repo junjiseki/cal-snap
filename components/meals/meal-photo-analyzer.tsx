@@ -308,7 +308,7 @@ export function MealPhotoAnalyzer() {
       <section className="space-y-5 border border-border bg-card p-4 shadow-sm sm:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h2 className="text-xl font-semibold">確認して登録</h2>
+            <h2 className="text-xl font-semibold">確認して記録</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               推定値は変更できます。登録後、今日の合計に反映されます。
             </p>
@@ -320,7 +320,7 @@ export function MealPhotoAnalyzer() {
             className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-foreground px-4 text-sm font-semibold text-background shadow-sm disabled:opacity-50 sm:w-auto"
           >
             {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-            今日の食事に登録
+            今日の食事に記録
           </button>
         </div>
 

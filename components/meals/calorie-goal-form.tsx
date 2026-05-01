@@ -52,7 +52,7 @@ export function CalorieGoalForm({ initialGoal }: { initialGoal: number }) {
           disabled={isSaving}
           className="h-10 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50"
         >
-          {isSaving ? "保存中..." : "摂取カロリーを保存"}
+          {isSaving ? "保存中..." : "摂取カロリーを設定"}
         </button>
       </div>
       {error ? <p className="text-sm text-destructive">{error}</p> : null}

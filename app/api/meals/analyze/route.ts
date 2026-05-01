@@ -266,18 +266,18 @@ export async function POST(request: Request) {
     const parsed = MealAnalysisSchema.parse(JSON.parse(response.text));
     const normalized = {
       total_calories: toInteger(parsed.total_calories),
-      protein: Number(parsed.protein.toFixed(1)),
-      fat: Number(parsed.fat.toFixed(1)),
-      carbs: Number(parsed.carbs.toFixed(1)),
+      protein: toInteger(parsed.protein),
+      fat: toInteger(parsed.fat),
+      carbs: toInteger(parsed.carbs),
       ai_confidence: toConfidence(parsed.ai_confidence),
       memo: parsed.memo,
       items: parsed.items.map((item) => ({
         name: item.name,
         estimated_amount: item.estimated_amount,
         calories: toInteger(item.calories),
-        protein: Number(item.protein.toFixed(1)),
-        fat: Number(item.fat.toFixed(1)),
-        carbs: Number(item.carbs.toFixed(1)),
+        protein: toInteger(item.protein),
+        fat: toInteger(item.fat),
+        carbs: toInteger(item.carbs),
         confidence: toConfidence(item.confidence),
       })),
     };

@@ -197,8 +197,8 @@ export function MealList({ meals }: { meals: MealRow[] }) {
               </div>
               <div className="flex flex-col items-start gap-2 sm:items-end">
                 <p className="text-sm text-muted-foreground">
-                  P {Number(meal.protein).toFixed(1)}g / F {Number(meal.fat).toFixed(1)}g / C{" "}
-                  {Number(meal.carbs).toFixed(1)}g
+                  P {Math.round(Number(meal.protein))}g / F {Math.round(Number(meal.fat))}g / C{" "}
+                  {Math.round(Number(meal.carbs))}g
                 </p>
                 <div className="flex w-full gap-2 sm:w-auto">
                   <button
@@ -257,7 +257,7 @@ export function MealList({ meals }: { meals: MealRow[] }) {
                   <input
                     type="number"
                     min={0}
-                    step="0.1"
+                    step={1}
                     value={form.protein}
                     onChange={(e) => setForm({ ...form, protein: e.target.value })}
                     className="mt-1 h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
@@ -268,7 +268,7 @@ export function MealList({ meals }: { meals: MealRow[] }) {
                   <input
                     type="number"
                     min={0}
-                    step="0.1"
+                    step={1}
                     value={form.fat}
                     onChange={(e) => setForm({ ...form, fat: e.target.value })}
                     className="mt-1 h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
@@ -279,7 +279,7 @@ export function MealList({ meals }: { meals: MealRow[] }) {
                   <input
                     type="number"
                     min={0}
-                    step="0.1"
+                    step={1}
                     value={form.carbs}
                     onChange={(e) => setForm({ ...form, carbs: e.target.value })}
                     className="mt-1 h-9 w-full rounded-md border border-input bg-background px-2 text-sm"

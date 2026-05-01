@@ -20,7 +20,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import type { MealAnalysis } from "@/lib/meal-analysis";
+import { type MealAnalysis, toConfidence, toInteger } from "@/lib/meal-analysis";
 
 type MacroInput = number | "";
 
@@ -58,11 +58,6 @@ function todayInputValue() {
   });
   const [date, time] = formatter.format(new Date()).split(" ");
   return `${date}T${time}`;
-}
-
-function round2(n: number) {
-  if (!Number.isFinite(n)) return 0;
-  return Math.round(n * 100) / 100;
 }
 
 function macroNum(v: MacroInput): number {
@@ -111,10 +106,10 @@ function mealAnalysisToForm(analysis: MealAnalysis): MealAnalysisForm {
 
 function sumItemsMacros(items: MealItemForm[]) {
   return {
-    total_calories: round2(items.reduce((s, i) => s + macroNum(i.calories), 0)),
-    protein: round2(items.reduce((s, i) => s + macroNum(i.protein), 0)),
-    fat: round2(items.reduce((s, i) => s + macroNum(i.fat), 0)),
-    carbs: round2(items.reduce((s, i) => s + macroNum(i.carbs), 0)),
+    total_calories: toInteger(items.reduce((s, i) => s + macroNum(i.calories), 0)),
+    protein: toInteger(items.reduce((s, i) => s + macroNum(i.protein), 0)),
+    fat: toInteger(items.reduce((s, i) => s + macroNum(i.fat), 0)),
+    carbs: toInteger(items.reduce((s, i) => s + macroNum(i.carbs), 0)),
   };
 }
 
@@ -139,7 +134,7 @@ function isMealFormMacroComplete(form: MealAnalysisForm, entryMode: EntryMode): 
 }
 
 function mealFormToMealAnalysis(form: MealAnalysisForm, entryMode: EntryMode): MealAnalysis {
-  const num = (m: MacroInput): number => round2(Number(m));
+  const num = (m: MacroInput): number => toInteger(Number(m));
   const totals =
     entryMode === "manual"
       ? sumItemsMacros(form.items)
@@ -155,7 +150,7 @@ function mealFormToMealAnalysis(form: MealAnalysisForm, entryMode: EntryMode): M
     protein: totals.protein,
     fat: totals.fat,
     carbs: totals.carbs,
-    ai_confidence: round2(form.ai_confidence),
+    ai_confidence: toConfidence(form.ai_confidence),
     items: form.items.map((item) => ({
       name: item.name,
       estimated_amount: item.estimated_amount,
@@ -163,7 +158,7 @@ function mealFormToMealAnalysis(form: MealAnalysisForm, entryMode: EntryMode): M
       protein: num(item.protein),
       fat: num(item.fat),
       carbs: num(item.carbs),
-      confidence: round2(item.confidence),
+      confidence: toConfidence(item.confidence),
     })),
   };
 }
@@ -171,18 +166,18 @@ function mealFormToMealAnalysis(form: MealAnalysisForm, entryMode: EntryMode): M
 function normalizeMealAnalysis(analysis: MealAnalysis): MealAnalysis {
   return {
     ...analysis,
-    total_calories: round2(analysis.total_calories),
-    protein: round2(analysis.protein),
-    fat: round2(analysis.fat),
-    carbs: round2(analysis.carbs),
-    ai_confidence: round2(analysis.ai_confidence),
+    total_calories: toInteger(analysis.total_calories),
+    protein: toInteger(Number(analysis.protein)),
+    fat: toInteger(Number(analysis.fat)),
+    carbs: toInteger(Number(analysis.carbs)),
+    ai_confidence: toConfidence(analysis.ai_confidence),
     items: analysis.items.map((item) => ({
       ...item,
-      calories: round2(item.calories),
-      protein: round2(Number(item.protein)),
-      fat: round2(Number(item.fat)),
-      carbs: round2(Number(item.carbs)),
-      confidence: round2(item.confidence),
+      calories: toInteger(item.calories),
+      protein: toInteger(Number(item.protein)),
+      fat: toInteger(Number(item.fat)),
+      carbs: toInteger(Number(item.carbs)),
+      confidence: toConfidence(item.confidence),
     })),
   };
 }
@@ -272,7 +267,7 @@ function MacroNumberField({
       </span>
       <input
         type="number"
-        step={0.01}
+        step={1}
         min={0}
         value={value === "" ? "" : value}
         onChange={(e) => {
@@ -283,7 +278,7 @@ function MacroNumberField({
           }
           const parsed = Number(raw);
           if (!Number.isFinite(parsed)) return;
-          onChange(round2(parsed));
+          onChange(toInteger(parsed));
         }}
         className="mt-2 h-10 w-full shrink-0 rounded-md border border-transparent bg-background/80 px-2 text-sm tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-ring"
       />
@@ -316,7 +311,7 @@ function MacroReadOnlyField({
         className="mt-2 flex h-10 w-full shrink-0 items-center rounded-md border border-transparent bg-background/80 px-2 text-sm tabular-nums text-foreground"
         aria-readonly="true"
       >
-        {round2(value).toFixed(2)}
+        {toInteger(value)}
       </div>
     </div>
   );
@@ -528,21 +523,21 @@ export function MealPhotoAnalyzer() {
       if (!current) return current;
       if (key === "total_calories" || key === "protein" || key === "fat" || key === "carbs") {
         const v = value as MacroInput;
-        return { ...current, [key]: v === "" ? "" : round2(Number(v)) };
+        return { ...current, [key]: v === "" ? "" : toInteger(Number(v)) };
       }
       if (key === "ai_confidence") {
-        return { ...current, [key]: round2(value as number) };
+        return { ...current, [key]: toConfidence(value as number) };
       }
       if (key === "items" && Array.isArray(value)) {
         return {
           ...current,
           items: (value as MealItemForm[]).map((item) => ({
             ...item,
-            calories: item.calories === "" ? "" : round2(Number(item.calories)),
-            protein: item.protein === "" ? "" : round2(Number(item.protein)),
-            fat: item.fat === "" ? "" : round2(Number(item.fat)),
-            carbs: item.carbs === "" ? "" : round2(Number(item.carbs)),
-            confidence: round2(item.confidence),
+            calories: item.calories === "" ? "" : toInteger(Number(item.calories)),
+            protein: item.protein === "" ? "" : toInteger(Number(item.protein)),
+            fat: item.fat === "" ? "" : toInteger(Number(item.fat)),
+            carbs: item.carbs === "" ? "" : toInteger(Number(item.carbs)),
+            confidence: toConfidence(item.confidence),
           })),
         };
       }
@@ -565,19 +560,19 @@ export function MealPhotoAnalyzer() {
         total_calories:
           current.total_calories === ""
             ? ""
-            : round2(Math.max(0, macroNum(current.total_calories) - macroNum(removed.calories))),
+            : toInteger(Math.max(0, macroNum(current.total_calories) - macroNum(removed.calories))),
         protein:
           current.protein === ""
             ? ""
-            : round2(Math.max(0, macroNum(current.protein) - macroNum(removed.protein))),
+            : toInteger(Math.max(0, macroNum(current.protein) - macroNum(removed.protein))),
         fat:
           current.fat === ""
             ? ""
-            : round2(Math.max(0, macroNum(current.fat) - macroNum(removed.fat))),
+            : toInteger(Math.max(0, macroNum(current.fat) - macroNum(removed.fat))),
         carbs:
           current.carbs === ""
             ? ""
-            : round2(Math.max(0, macroNum(current.carbs) - macroNum(removed.carbs))),
+            : toInteger(Math.max(0, macroNum(current.carbs) - macroNum(removed.carbs))),
       };
     });
   }

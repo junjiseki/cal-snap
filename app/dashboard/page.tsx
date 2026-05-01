@@ -288,15 +288,15 @@ export default async function DashboardPage({
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
             <div className="border border-border bg-card p-4 sm:p-5">
               <p className="text-sm text-muted-foreground">たんぱく質</p>
-              <p className="mt-2 text-2xl font-semibold sm:text-3xl">{total.protein.toFixed(1)} g</p>
+              <p className="mt-2 text-2xl font-semibold sm:text-3xl">{Math.round(total.protein)} g</p>
             </div>
             <div className="border border-border bg-card p-4 sm:p-5">
               <p className="text-sm text-muted-foreground">脂質</p>
-              <p className="mt-2 text-2xl font-semibold sm:text-3xl">{total.fat.toFixed(1)} g</p>
+              <p className="mt-2 text-2xl font-semibold sm:text-3xl">{Math.round(total.fat)} g</p>
             </div>
             <div className="border border-border bg-card p-4 sm:p-5">
               <p className="text-sm text-muted-foreground">炭水化物</p>
-              <p className="mt-2 text-2xl font-semibold sm:text-3xl">{total.carbs.toFixed(1)} g</p>
+              <p className="mt-2 text-2xl font-semibold sm:text-3xl">{Math.round(total.carbs)} g</p>
             </div>
           </div>
         </section>

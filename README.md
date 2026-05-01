@@ -17,10 +17,10 @@
 
 Supabase migration:
 
-- [supabase/migrations/202604300001_ai_meal_mvp.sql](/Users/jun/Desktop/my/cal-snap/supabase/migrations/202604300001_ai_meal_mvp.sql)
-- [supabase/migrations/20260430195000_add_daily_calorie_goal_to_profiles.sql](/Users/jun/Desktop/my/cal-snap/supabase/migrations/20260430195000_add_daily_calorie_goal_to_profiles.sql)
-- [supabase/migrations/20260501061000_fix_atomic_meal_workflows.sql](/Users/jun/Desktop/my/cal-snap/supabase/migrations/20260501061000_fix_atomic_meal_workflows.sql)
-- [supabase/migrations/20260501072000_create_contact_messages.sql](/Users/jun/Desktop/my/cal-snap/supabase/migrations/20260501072000_create_contact_messages.sql)
+- [supabase/migrations/202604300001_ai_meal_mvp.sql](/supabase/migrations/202604300001_ai_meal_mvp.sql)
+- [supabase/migrations/20260430195000_add_daily_calorie_goal_to_profiles.sql](/supabase/migrations/20260430195000_add_daily_calorie_goal_to_profiles.sql)
+- [supabase/migrations/20260501061000_fix_atomic_meal_workflows.sql](/supabase/migrations/20260501061000_fix_atomic_meal_workflows.sql)
+- [supabase/migrations/20260501072000_create_contact_messages.sql](/supabase/migrations/20260501072000_create_contact_messages.sql)
 
 主なテーブル:
 

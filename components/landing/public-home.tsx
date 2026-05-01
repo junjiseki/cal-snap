@@ -12,8 +12,8 @@ import {
 const valueProps = [
   {
     icon: Camera,
-    title: "撮るだけで始まる",
-    body: "食事名を探す手間をなくし、写真からカロリーとPFCのたたき台を作ります。",
+    title: "撮るだけでカロリーを記録",
+    body: "入力の手間をなくし、写真からカロリーとPFCの記録ができます。",
   },
   {
     icon: Edit3,
@@ -22,7 +22,7 @@ const valueProps = [
   },
   {
     icon: BarChart3,
-    title: "今日の残りが見える",
+    title: "今日の目標を達成",
     body: "ダッシュボードで摂取カロリー、PFC、推移をすぐ確認できます。",
   },
   {
@@ -43,7 +43,7 @@ export function PublicHome() {
               スマホで食後すぐ記録
             </p>
             <h1 className="mt-5 text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
-              撮ってその場で
+              撮ったその場で
               <br />
               カロリー管理。
             </h1>

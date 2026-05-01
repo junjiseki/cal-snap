@@ -118,9 +118,10 @@ export function DashboardAccountMenu({
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-haspopup="true"
+        aria-label={open ? "アカウントメニューを閉じる" : "アカウントメニューを開く"}
         className="gap-2"
       >
-        <User className="size-4" />
+        <User className="size-4" aria-hidden />
       </Button>
       {open ? (
         <div

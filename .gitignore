@@ -39,9 +39,6 @@ yarn-error.log*
 # prisma
 prisma/migrations
 
-# supabase
-supabase/migrations
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts

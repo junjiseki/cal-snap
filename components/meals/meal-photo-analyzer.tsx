@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   Camera,
@@ -10,6 +10,7 @@ import {
   Save,
   Sparkles,
   Trash2,
+  X,
 } from "lucide-react";
 import type { MealAnalysis } from "@/lib/meal-analysis";
 
@@ -95,6 +96,7 @@ function StepDot({
 
 export function MealPhotoAnalyzer() {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [analysis, setAnalysis] = useState<MealAnalysis | null>(null);
   const [eatenAt, setEatenAt] = useState(todayInputValue());
@@ -112,6 +114,12 @@ export function MealPhotoAnalyzer() {
   }, [file]);
   const limitBlocked = (usage?.remaining ?? 1) <= 0;
   const activeStep = analysis ? 3 : file ? 2 : 1;
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   useEffect(() => {
     let mounted = true;
@@ -139,6 +147,14 @@ export function MealPhotoAnalyzer() {
     setNotice(null);
     setAnalysis(null);
     setFile(selected);
+  }
+
+  function clearSelectedImage() {
+    setFile(null);
+    setAnalysis(null);
+    setError(null);
+    setNotice(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
   async function analyze() {
@@ -255,12 +271,26 @@ export function MealPhotoAnalyzer() {
 
         <label className="group flex min-h-64 cursor-pointer flex-col items-center justify-center gap-3 rounded-md border border-dashed border-border bg-muted/20 p-4 text-center transition-colors hover:border-primary hover:bg-primary/5">
           {previewUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={previewUrl}
-              alt="選択した食事写真"
-              className="max-h-64 max-w-full rounded-md object-contain"
-            />
+            <div className="relative inline-block max-h-64 max-w-full">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={previewUrl}
+                alt="選択した食事写真"
+                className="max-h-64 max-w-full rounded-md object-contain"
+              />
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  clearSelectedImage();
+                }}
+                aria-label="画像を取り消し"
+                className="absolute right-1 top-1 z-10 inline-flex size-7 items-center justify-center rounded-full border border-border bg-background/95 text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-destructive/15 hover:text-destructive"
+              >
+                <X className="size-3.5" strokeWidth={2.5} />
+              </button>
+            </div>
           ) : (
             <>
               <span className="inline-flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -271,6 +301,7 @@ export function MealPhotoAnalyzer() {
             </>
           )}
           <input
+            ref={fileInputRef}
             type="file"
             accept="image/*"
             capture="environment"
@@ -290,7 +321,7 @@ export function MealPhotoAnalyzer() {
           ) : (
             <Sparkles className="size-4" />
           )}
-          {limitBlocked ? "本日の上限に達しました" : file ? "この写真を解析" : "写真を選んで解析"}
+          {limitBlocked ? "本日の上限に達しました" : file ? "この写真を解析" : "食事写真を解析"}
         </button>
 
         {notice ? (
@@ -308,7 +339,7 @@ export function MealPhotoAnalyzer() {
       <section className="space-y-5 border border-border bg-card p-4 shadow-sm sm:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h2 className="text-xl font-semibold">確認して登録</h2>
+            <h2 className="text-xl font-semibold">確認して記録</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               推定値は変更できます。登録後、今日の合計に反映されます。
             </p>
@@ -320,7 +351,7 @@ export function MealPhotoAnalyzer() {
             className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-foreground px-4 text-sm font-semibold text-background shadow-sm disabled:opacity-50 sm:w-auto"
           >
             {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-            今日の食事に登録
+            今日の食事に記録
           </button>
         </div>
 

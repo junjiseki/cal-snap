@@ -116,6 +116,31 @@ export type Database = {
         };
         Relationships: [];
       };
+      contact_messages: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          name: string;
+          email: string;
+          category: "support" | "billing" | "bug" | "privacy" | "other";
+          message: string;
+          status: "new" | "in_progress" | "closed";
+          created_at: string;
+        };
+        Insert: {
+          user_id?: string | null;
+          name: string;
+          email: string;
+          category: "support" | "billing" | "bug" | "privacy" | "other";
+          message: string;
+          status?: "new" | "in_progress" | "closed";
+          created_at?: string;
+        };
+        Update: {
+          status?: "new" | "in_progress" | "closed";
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {

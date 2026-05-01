@@ -63,27 +63,6 @@ export function AppHeaderClient({
             aria-label="メインナビゲーション"
           >
             {account ? (
-              <>
-                {!isDashboardPage ? (
-                  <Link
-                    href="/dashboard"
-                    className="rounded-md px-2 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-                  >
-                    ダッシュボード
-                  </Link>
-                ) : null}
-                {!isMealAnalyzerPage ? (
-                  <Link
-                    href="/meals/new"
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground"
-                  >
-                    <Camera className="size-4" />
-                    食事写真をAI解析
-                  </Link>
-                ) : null}
-              </>
-            ) : null}
-            {account ? (
               <DashboardAccountMenu
                 email={account.email}
                 plan={account.plan}

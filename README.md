@@ -17,9 +17,10 @@
 
 Supabase migration:
 
-- [supabase/migrations/202604300001_ai_meal_mvp.sql](/Users/jun/Desktop/my/diet-app/supabase/migrations/202604300001_ai_meal_mvp.sql)
-- [supabase/migrations/20260430195000_add_daily_calorie_goal_to_profiles.sql](/Users/jun/Desktop/my/diet-app/supabase/migrations/20260430195000_add_daily_calorie_goal_to_profiles.sql)
-- [supabase/migrations/20260501061000_fix_atomic_meal_workflows.sql](/Users/jun/Desktop/my/diet-app/supabase/migrations/20260501061000_fix_atomic_meal_workflows.sql)
+- [supabase/migrations/202604300001_ai_meal_mvp.sql](/Users/jun/Desktop/my/cal-snap/supabase/migrations/202604300001_ai_meal_mvp.sql)
+- [supabase/migrations/20260430195000_add_daily_calorie_goal_to_profiles.sql](/Users/jun/Desktop/my/cal-snap/supabase/migrations/20260430195000_add_daily_calorie_goal_to_profiles.sql)
+- [supabase/migrations/20260501061000_fix_atomic_meal_workflows.sql](/Users/jun/Desktop/my/cal-snap/supabase/migrations/20260501061000_fix_atomic_meal_workflows.sql)
+- [supabase/migrations/20260501072000_create_contact_messages.sql](/Users/jun/Desktop/my/cal-snap/supabase/migrations/20260501072000_create_contact_messages.sql)
 
 主なテーブル:
 
@@ -54,6 +55,15 @@ Supabase migration:
   - `analyzed_at`
   - `model`
   - `success`
+- `contact_messages`
+  - `id`
+  - `user_id`
+  - `name`
+  - `email`
+  - `category`
+  - `message`
+  - `status`
+  - `created_at`
 
 RLS は有効化済みで、自分のデータだけ参照・更新できます。
 
@@ -142,6 +152,7 @@ Supabase SQL Editor または migration SQL でスキーマを適用します。
 supabase/migrations/202604300001_ai_meal_mvp.sql
 supabase/migrations/20260430195000_add_daily_calorie_goal_to_profiles.sql
 supabase/migrations/20260501061000_fix_atomic_meal_workflows.sql
+supabase/migrations/20260501072000_create_contact_messages.sql
 ```
 
 Supabase 構成では `prisma db push` は使用しません。スキーマ変更は migration SQL を適用し、Prisma は `prisma generate` と `prisma db seed` のみ実行してください。
@@ -225,6 +236,11 @@ AI の推定結果はすぐには DB 保存されません。画面上の確認�
 - `POST /api/meals`
   - ユーザー修正後の JSON を受け取る
   - `meals` と `meal_items` に保存
+
+- `POST /api/contact`
+  - お問い合わせフォームの JSON を受け取る
+  - Zod で入力値を検証
+  - `contact_messages` に保存
 
 ## 動作確認手順
 

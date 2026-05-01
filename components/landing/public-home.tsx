@@ -7,13 +7,7 @@ import {
   CheckCircle2,
   Edit3,
   Smartphone,
-  ShieldCheck,
-  Sparkles,
 } from "lucide-react";
-import {
-  FREE_DAILY_ANALYSIS_LIMIT,
-  PAID_DAILY_ANALYSIS_LIMIT,
-} from "@/lib/meal-analysis";
 
 const valueProps = [
   {
@@ -33,15 +27,9 @@ const valueProps = [
   },
   {
     icon: Smartphone,
-    title: "スマホでその場記録",
-    body: "外食後や移動中でも、スマホで写真を撮ってすぐ登録できます。",
+    title: "スマホで完結",
+    body: "外食後や移動中でも、撮影から登録まで短い導線で進められます。",
   },
-] as const;
-
-const behaviorBenefits = [
-  "写真を撮った直後に記録できるので、思い出す負担が少ない",
-  "数字はAIが先に入れるので、ユーザーは確認と微調整だけ",
-  "今日の残りカロリーを先に見せて、次の食事選びを助ける",
 ] as const;
 
 export function PublicHome() {
@@ -79,14 +67,10 @@ export function PublicHome() {
               </Link>
             </div>
 
-            <div className="mt-6 grid gap-2 text-sm text-muted-foreground">
-              {behaviorBenefits.map((benefit) => (
-                <p key={benefit} className="flex gap-2">
-                  <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" />
-                  <span>{benefit}</span>
-                </p>
-              ))}
-            </div>
+            <p className="mt-6 flex gap-2 text-sm text-muted-foreground">
+              <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" />
+              写真は保存せず、DBには確認後の数値とメモだけを残します。
+            </p>
           </div>
 
           <div className="relative min-w-0">
@@ -125,59 +109,20 @@ export function PublicHome() {
       </section>
 
       <section className="border-b border-border bg-background">
-        <div className="mx-auto grid w-full max-w-7xl gap-4 px-4 py-8 sm:grid-cols-2 sm:px-8 lg:grid-cols-4">
+        <div className="mx-auto grid w-full max-w-7xl gap-5 px-4 py-8 sm:grid-cols-2 sm:px-8 lg:grid-cols-4">
           {valueProps.map(({ icon: Icon, title, body }) => (
-            <article key={title} className="border border-border bg-card p-5">
+            <article key={title} className="flex gap-3">
               <div className="flex items-center gap-3">
-                <span className="inline-flex size-10 items-center justify-center rounded-md bg-primary/10 text-primary">
-                  <Icon className="size-5" />
+                <span className="inline-flex size-9 items-center justify-center rounded-md bg-primary/10 text-primary">
+                  <Icon className="size-4" />
                 </span>
-                <h2 className="font-semibold">{title}</h2>
               </div>
-              <p className="mt-3 text-sm leading-7 text-muted-foreground">{body}</p>
+              <div>
+                <h2 className="font-semibold">{title}</h2>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">{body}</p>
+              </div>
             </article>
           ))}
-        </div>
-      </section>
-
-      <section className="border-b border-border bg-card">
-        <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-10 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
-          <div>
-            <p className="text-sm font-semibold text-primary">続けやすさの設計</p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-              記録の失敗ポイントを先回りします。
-            </h2>
-          </div>
-          <div className="grid gap-3">
-            <div className="flex gap-3 border border-border bg-background p-4">
-              <Sparkles className="mt-0.5 size-5 shrink-0 text-primary" />
-              <div>
-                <p className="font-semibold">スマホ前提の導線</p>
-                <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                  食事後の短い時間でも、写真を撮る、確認する、登録する流れを片手で進められます。
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3 border border-border bg-background p-4">
-              <ShieldCheck className="mt-0.5 size-5 shrink-0 text-primary" />
-              <div>
-                <p className="font-semibold">写真は保存しない</p>
-                <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                  画像は解析時だけ扱い、DBには修正後の数値とメモだけを残します。
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3 border border-border bg-background p-4">
-              <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-primary" />
-              <div>
-                <p className="font-semibold">無料でも試しやすい</p>
-                <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                  無料プランは1日{FREE_DAILY_ANALYSIS_LIMIT}回、有料プランは1日
-                  {PAID_DAILY_ANALYSIS_LIMIT}回までAI解析できます。
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 

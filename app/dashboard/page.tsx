@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Camera, Target, TrendingDown, TrendingUp } from "lucide-react";
+import { Camera, TrendingDown, TrendingUp } from "lucide-react";
 import { getDayRangeInJapan } from "@/lib/meal-analysis";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 import { MealList } from "@/components/meals/meal-list";
@@ -213,14 +213,25 @@ export default async function DashboardPage({
   return (
     <main className="min-h-0 flex-1 bg-background">
       <section className="border-b border-border bg-card">
-        <div className="mx-auto grid w-full max-w-7xl gap-5 px-4 py-5 sm:px-8 sm:py-6 lg:grid-cols-[1fr_340px] lg:items-center">
+        <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-8 sm:py-6">
           <div>
-            <p className="text-sm font-semibold text-primary">{dateLabelJa}</p>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-4xl">
-              {isToday ? "今日の状態" : "選択日の状態"}
-            </h1>
-            <div className="mt-5 max-w-2xl rounded-md border border-border bg-background p-4">
-              <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-primary">{dateLabelJa}</p>
+                <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-4xl">
+                  {isToday ? "今日の状態" : "選択日の状態"}
+                </h1>
+              </div>
+              <Link
+                href="/meals/new"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm sm:w-auto"
+              >
+                <Camera className="size-4" />
+                食事写真を登録
+              </Link>
+            </div>
+            <div className="mt-5 max-w-3xl">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">摂取カロリー</p>
                   <p className="mt-1 text-4xl font-semibold tracking-tight">
@@ -258,23 +269,6 @@ export default async function DashboardPage({
               </p>
             </div>
           </div>
-
-          <div className="space-y-3 rounded-md border border-border bg-background p-4">
-            <div className="flex items-center gap-2">
-              <Target className="size-5 text-primary" />
-              <p className="font-semibold">次の行動</p>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              食事後すぐに写真を登録すると、記憶に頼らず記録できます。
-            </p>
-            <Link
-              href="/meals/new"
-              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm"
-            >
-              <Camera className="size-4" />
-              食事写真を登録
-            </Link>
-          </div>
         </div>
       </section>
 
@@ -289,11 +283,8 @@ export default async function DashboardPage({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 className="text-sm font-semibold text-foreground">PFC 合計</h2>
-              <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
-                食事一覧の合計値です。
-              </p>
             </div>
-            <div className="rounded-md border border-border bg-card p-3">
+            <div className="border-t border-border pt-3 sm:border-t-0 sm:pt-0">
               <CalorieGoalForm key={goalCalories} initialGoal={goalCalories} />
             </div>
           </div>

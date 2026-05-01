@@ -244,28 +244,29 @@ export function MealPhotoAnalyzer() {
   return (
     <div className="grid gap-4 sm:gap-6 lg:grid-cols-[minmax(0,390px)_1fr]">
       <section className="space-y-4 border border-border bg-card p-4 shadow-sm sm:p-5">
-        <div className="grid grid-cols-3 gap-2 rounded-md border border-border bg-muted/30 p-3">
-          <StepDot done={Boolean(file)} active={activeStep === 1} label="写真" />
-          <StepDot done={Boolean(analysis)} active={activeStep === 2} label="解析" />
-          <StepDot done={false} active={activeStep === 3} label="確認" />
-        </div>
-
-        <div className="rounded-md border border-border bg-background p-3">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold">今日の解析</p>
-            <p className="text-sm font-semibold text-primary">
-              {usage ? `残り ${usage.remaining} / ${usage.limit}` : "確認中"}
-            </p>
+        <div className="flex flex-col gap-3 border-b border-border pb-4">
+          <div className="grid grid-cols-3 gap-2">
+            <StepDot done={Boolean(file)} active={activeStep === 1} label="写真" />
+            <StepDot done={Boolean(analysis)} active={activeStep === 2} label="解析" />
+            <StepDot done={false} active={activeStep === 3} label="確認" />
           </div>
-          <div className="mt-3 h-2 rounded-full bg-muted">
-            <div
-              className="h-2 rounded-full bg-primary transition-all"
-              style={{
-                width: usage
-                  ? `${Math.min(100, Math.max(0, (usage.used / usage.limit) * 100))}%`
-                  : "0%",
-              }}
-            />
+          <div>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-medium text-muted-foreground">今日の解析枠</p>
+              <p className="text-xs font-semibold text-primary">
+                {usage ? `残り ${usage.remaining} / ${usage.limit}` : "確認中"}
+              </p>
+            </div>
+            <div className="mt-2 h-1.5 rounded-full bg-muted">
+              <div
+                className="h-1.5 rounded-full bg-primary transition-all"
+                style={{
+                  width: usage
+                    ? `${Math.min(100, Math.max(0, (usage.used / usage.limit) * 100))}%`
+                    : "0%",
+                }}
+              />
+            </div>
           </div>
         </div>
 
@@ -340,9 +341,7 @@ export function MealPhotoAnalyzer() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h2 className="text-xl font-semibold">確認して記録</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              推定値は変更できます。登録後、今日の合計に反映されます。
-            </p>
+            <p className="mt-1 text-sm text-muted-foreground">推定値は保存前に変更できます。</p>
           </div>
           <button
             type="button"
@@ -356,8 +355,8 @@ export function MealPhotoAnalyzer() {
         </div>
 
         {!analysis ? (
-          <div className="rounded-md border border-border bg-muted/30 p-6 text-sm text-muted-foreground">
-            写真を解析すると、ここに推定値が表示されます。
+          <div className="border-t border-border pt-5 text-sm text-muted-foreground">
+            写真を解析すると、推定値が表示されます。
           </div>
         ) : (
           <div className="space-y-5">

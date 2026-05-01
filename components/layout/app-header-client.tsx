@@ -27,6 +27,9 @@ export function AppHeaderClient({
   const pathname = usePathname();
   const isDashboardPage = pathname === "/dashboard";
   const isMealAnalyzerPage = pathname === "/meals/new";
+  const closeMobileMenuSoon = () => {
+    window.setTimeout(() => setOpen(false), 120);
+  };
 
   return (
     <header className={cn("sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur", className)}>
@@ -140,7 +143,7 @@ export function AppHeaderClient({
                     "inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm",
                     isMealAnalyzerPage && "pointer-events-none opacity-70",
                   )}
-                  onClick={() => setOpen(false)}
+                  onClick={closeMobileMenuSoon}
                 >
                   <Camera className="size-4" />
                   食事写真をAI解析
@@ -151,7 +154,7 @@ export function AppHeaderClient({
                     "inline-flex h-11 w-full items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-semibold hover:bg-muted",
                     isDashboardPage && "pointer-events-none bg-muted text-muted-foreground",
                   )}
-                  onClick={() => setOpen(false)}
+                  onClick={closeMobileMenuSoon}
                 >
                   <BarChart3 className="size-4" />
                   ダッシュボード
@@ -172,7 +175,7 @@ export function AppHeaderClient({
                 <Link
                   href="/signup"
                   className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm"
-                  onClick={() => setOpen(false)}
+                  onClick={closeMobileMenuSoon}
                 >
                   <UserPlus className="size-4" />
                   無料で始める
@@ -180,7 +183,7 @@ export function AppHeaderClient({
                 <Link
                   href="/login"
                   className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-semibold hover:bg-muted"
-                  onClick={() => setOpen(false)}
+                  onClick={closeMobileMenuSoon}
                 >
                   <LogIn className="size-4" />
                   ログイン

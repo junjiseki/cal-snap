@@ -121,6 +121,34 @@
   * {
     @apply border-border outline-ring/50;
   }
+  button,
+  a[href],
+  label[for],
+  label.cursor-pointer {
+    -webkit-tap-highlight-color: transparent;
+  }
+  button,
+  a[href][class*="inline-flex"],
+  a[href][class*="rounded-md"],
+  label.cursor-pointer {
+    touch-action: manipulation;
+    transition-duration: 140ms;
+    transition-property: background-color, border-color, color, box-shadow, filter, opacity, transform;
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+  button:not(:disabled):active,
+  a[href][class*="inline-flex"]:active,
+  a[href][class*="rounded-md"]:active,
+  label.cursor-pointer:active {
+    filter: brightness(0.96);
+    transform: translateY(1px) scale(0.985);
+  }
+  a[href]:not([class*="inline-flex"]):not([class*="rounded-md"]):active {
+    opacity: 0.65;
+  }
+  button:disabled {
+    transform: none;
+  }
   body {
     @apply bg-background text-foreground;
   }

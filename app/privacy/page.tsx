@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "プライバシーポリシー | カロリースナップ",
@@ -89,13 +90,13 @@ const policySections = [
       "重要な変更がある場合は、サービス上での表示など適切な方法により周知します。",
     ],
   },
-  // {
-  //   title: "12. お問い合わせ",
-  //   body: [
-  //     "本ポリシーまたは個人情報の取り扱いに関するお問い合わせは、運営者がサービス上で指定する連絡先までお願いします。",
-  //     "公開前に、実際に利用する問い合わせ先、事業者名、所在地などを必要に応じて追記してください。",
-  //   ],
-  // },
+  {
+    title: "12. お問い合わせ",
+    body: [
+      "本ポリシーまたは個人情報の取り扱いに関するお問い合わせは、お問い合わせフォームからご連絡ください。",
+      "公開前に、実際に利用する事業者名、所在地などを必要に応じて追記してください。",
+    ],
+  },
 ] as const;
 
 export default function PrivacyPage() {
@@ -110,6 +111,12 @@ export default function PrivacyPage() {
           <p className="mt-4 text-sm leading-7 text-muted-foreground">
             カロリースナップは、食事写真から摂取カロリーとPFCを推定し、ユーザーが確認・修正した食事データを保存するサービスです。本ポリシーでは、本サービスにおける個人情報および関連データの取り扱いを定めます。
           </p>
+          <Link
+            href="/contact"
+            className="mt-5 inline-flex h-10 items-center rounded-md border border-border bg-background px-4 text-sm font-semibold hover:bg-muted"
+          >
+            お問い合わせフォームへ
+          </Link>
           <p className="mt-3 text-sm text-muted-foreground">
             制定日: 2026年5月1日
           </p>

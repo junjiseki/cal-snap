@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
 import {
   Camera,
@@ -57,6 +64,90 @@ async function readError(response: Response) {
   } catch {
     return "処理に失敗しました。";
   }
+}
+
+const macroFieldStyle = {
+  calories: {
+    label: "カロリー",
+    unit: "kcal",
+    bar: "border-l-violet-500",
+    tint: "bg-violet-50/60 dark:bg-violet-950/25",
+    labelClass: "text-violet-900 dark:text-violet-200",
+  },
+  protein: {
+    label: "たんぱく質",
+    unit: "g",
+    bar: "border-l-sky-600",
+    tint: "bg-sky-50/70 dark:bg-sky-950/30",
+    labelClass: "text-sky-900 dark:text-sky-200",
+  },
+  fat: {
+    label: "脂質",
+    unit: "g",
+    bar: "border-l-amber-600",
+    tint: "bg-amber-50/70 dark:bg-amber-950/25",
+    labelClass: "text-amber-950 dark:text-amber-200",
+  },
+  carbs: {
+    label: "炭水化物",
+    unit: "g",
+    bar: "border-l-orange-600",
+    tint: "bg-orange-50/70 dark:bg-orange-950/25",
+    labelClass: "text-orange-950 dark:text-orange-200",
+  },
+} as const;
+
+/** 料理行・合計行で同じボックス高さに揃える（ラベル帯 + h-10 入力） */
+const METRIC_BOX = "flex min-h-23 h-full flex-col rounded-md border border-input p-2.5";
+
+function TextMetricField({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className={`${METRIC_BOX} h-full bg-background`}>
+      <span className="flex min-h-8 shrink-0 items-center text-xs font-semibold text-muted-foreground">
+        {label}
+      </span>
+      <div className="mt-2 flex min-h-10 flex-1 flex-col justify-end">{children}</div>
+    </div>
+  );
+}
+
+function MacroNumberField({
+  fieldKey,
+  value,
+  onChange,
+}: {
+  fieldKey: keyof typeof macroFieldStyle;
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  const meta = macroFieldStyle[fieldKey];
+  return (
+    <label
+      className={[
+        METRIC_BOX,
+        "h-full border-l-4 bg-background",
+        meta.bar,
+        meta.tint,
+      ].join(" ")}
+    >
+      <span className="flex min-h-8 shrink-0 items-center justify-between gap-1 text-xs leading-tight">
+        <span className={["font-semibold", meta.labelClass].join(" ")}>{meta.label}</span>
+        <span className="shrink-0 text-muted-foreground">({meta.unit})</span>
+      </span>
+      <input
+        type="number"
+        value={value}
+        onChange={(e) => onChange(numberValue(e.target.value))}
+        className="mt-2 h-10 w-full shrink-0 rounded-md border border-transparent bg-background/80 px-2 text-sm tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      />
+    </label>
+  );
 }
 
 function StepDot({
@@ -360,54 +451,44 @@ export function MealPhotoAnalyzer() {
           </div>
         ) : (
           <div className="space-y-5">
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
-              <label className="col-span-2 block text-sm font-medium">
+            <div className="space-y-3">
+              <label className="block text-sm font-medium">
                 食事日時
                 <input
                   type="datetime-local"
                   value={eatenAt}
                   onChange={(event) => setEatenAt(event.target.value)}
-                  className="mt-2 h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
+                  className="mt-2 h-11 w-full max-w-md rounded-md border border-input bg-background px-3 text-sm"
                 />
               </label>
-              <label className="block text-sm font-medium">
-                kcal
-                <input
-                  type="number"
-                  value={analysis.total_calories}
-                  onChange={(event) =>
-                    updateMeal("total_calories", numberValue(event.target.value))
-                  }
-                  className="mt-2 h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
-                />
-              </label>
-              <label className="block text-sm font-medium">
-                P
-                <input
-                  type="number"
-                  value={analysis.protein}
-                  onChange={(event) => updateMeal("protein", numberValue(event.target.value))}
-                  className="mt-2 h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
-                />
-              </label>
-              <label className="block text-sm font-medium">
-                F
-                <input
-                  type="number"
-                  value={analysis.fat}
-                  onChange={(event) => updateMeal("fat", numberValue(event.target.value))}
-                  className="mt-2 h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
-                />
-              </label>
-              <label className="block text-sm font-medium">
-                C
-                <input
-                  type="number"
-                  value={analysis.carbs}
-                  onChange={(event) => updateMeal("carbs", numberValue(event.target.value))}
-                  className="mt-2 h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
-                />
-              </label>
+              <div>
+                <p className="text-sm font-semibold">1食あたりの合計（推定）</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  左の色帯で栄養素を区別しています。PFC はグラム（g）、カロリーは kcal です。
+                </p>
+                <div className="mt-3 grid grid-cols-2 items-stretch gap-3 lg:grid-cols-4">
+                  <MacroNumberField
+                    fieldKey="calories"
+                    value={analysis.total_calories}
+                    onChange={(v) => updateMeal("total_calories", v)}
+                  />
+                  <MacroNumberField
+                    fieldKey="protein"
+                    value={analysis.protein}
+                    onChange={(v) => updateMeal("protein", v)}
+                  />
+                  <MacroNumberField
+                    fieldKey="fat"
+                    value={analysis.fat}
+                    onChange={(v) => updateMeal("fat", v)}
+                  />
+                  <MacroNumberField
+                    fieldKey="carbs"
+                    value={analysis.carbs}
+                    onChange={(v) => updateMeal("carbs", v)}
+                  />
+                </div>
+              </div>
             </div>
 
             <label className="block text-sm font-medium">
@@ -446,56 +527,68 @@ export function MealPhotoAnalyzer() {
               </div>
 
               {analysis.items.map((item, index) => (
-                <div key={index} className="grid gap-3 rounded-md border border-border p-3 lg:grid-cols-8">
-                  <input
-                    value={item.name}
-                    aria-label="料理名"
-                    onChange={(event) => {
-                      const items = [...analysis.items];
-                      items[index] = { ...item, name: event.target.value };
-                      updateMeal("items", items);
-                    }}
-                    className="h-10 rounded-md border border-input bg-background px-3 text-sm lg:col-span-2"
-                    placeholder="料理名"
-                  />
-                  <input
-                    value={item.estimated_amount}
-                    aria-label="推定量"
-                    onChange={(event) => {
-                      const items = [...analysis.items];
-                      items[index] = { ...item, estimated_amount: event.target.value };
-                      updateMeal("items", items);
-                    }}
-                    className="h-10 rounded-md border border-input bg-background px-3 text-sm lg:col-span-2"
-                    placeholder="推定量"
-                  />
-                  {(["calories", "protein", "fat", "carbs"] as const).map((key) => (
-                    <input
-                      key={key}
-                      type="number"
-                      value={item[key]}
-                      aria-label={key}
-                      onChange={(event) => {
-                        const items = [...analysis.items];
-                        items[index] = { ...item, [key]: numberValue(event.target.value) };
-                        updateMeal("items", items);
-                      }}
-                      className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-                    />
-                  ))}
-                  <button
-                    type="button"
-                    aria-label="削除"
-                    onClick={() => {
-                      updateMeal(
-                        "items",
-                        analysis.items.filter((_, itemIndex) => itemIndex !== index),
-                      );
-                    }}
-                    className="inline-flex h-10 items-center justify-center rounded-md border border-border hover:bg-muted"
-                  >
-                    <Trash2 className="size-4" />
-                  </button>
+                <div
+                  key={index}
+                  className="space-y-3 rounded-md border border-border bg-muted/10 p-3 sm:space-y-0"
+                >
+                  <p className="text-xs font-semibold text-muted-foreground sm:hidden">
+                    料理 {index + 1}
+                  </p>
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_repeat(4,minmax(0,6.5rem))_auto] lg:items-stretch">
+                    <TextMetricField label="料理名">
+                      <input
+                        value={item.name}
+                        aria-label="料理名"
+                        onChange={(event) => {
+                          const items = [...analysis.items];
+                          items[index] = { ...item, name: event.target.value };
+                          updateMeal("items", items);
+                        }}
+                        className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                        placeholder="例: カレー"
+                      />
+                    </TextMetricField>
+                    <TextMetricField label="推定量">
+                      <input
+                        value={item.estimated_amount}
+                        aria-label="推定量"
+                        onChange={(event) => {
+                          const items = [...analysis.items];
+                          items[index] = { ...item, estimated_amount: event.target.value };
+                          updateMeal("items", items);
+                        }}
+                        className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                        placeholder="例: 1皿"
+                      />
+                    </TextMetricField>
+                    {(["calories", "protein", "fat", "carbs"] as const).map((key) => (
+                      <MacroNumberField
+                        key={key}
+                        fieldKey={key}
+                        value={item[key]}
+                        onChange={(v) => {
+                          const items = [...analysis.items];
+                          items[index] = { ...item, [key]: v };
+                          updateMeal("items", items);
+                        }}
+                      />
+                    ))}
+                    <div className="flex min-h-23 items-stretch sm:col-span-2 lg:col-span-1">
+                      <button
+                        type="button"
+                        aria-label="この料理を削除"
+                        onClick={() => {
+                          updateMeal(
+                            "items",
+                            analysis.items.filter((_, itemIndex) => itemIndex !== index),
+                          );
+                        }}
+                        className="flex h-full w-full min-h-10 items-center justify-center rounded-md border border-border bg-background hover:bg-muted"
+                      >
+                        <Trash2 className="size-4" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>

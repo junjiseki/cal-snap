@@ -284,9 +284,6 @@ export default async function DashboardPage({
             <div>
               <h2 className="text-sm font-semibold text-foreground">PFC 合計</h2>
             </div>
-            <div className="border-t border-border pt-3 sm:border-t-0 sm:pt-0">
-              <CalorieGoalForm key={goalCalories} initialGoal={goalCalories} />
-            </div>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
             <div className="border border-border bg-card p-4 sm:p-5">

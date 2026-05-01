@@ -91,16 +91,21 @@ export function ContactForm() {
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="absolute left-[-9999px] top-auto h-px w-px overflow-hidden">
-          会社URL
-          <input
-            type="text"
-            value={form.website}
-            onChange={(event) => setForm({ ...form, website: event.target.value })}
-            tabIndex={-1}
-            autoComplete="off"
-          />
-        </label>
+        <div
+          aria-hidden="true"
+          className="absolute left-[-9999px] top-auto h-px w-px overflow-hidden"
+        >
+          <label>
+            会社URL
+            <input
+              type="text"
+              value={form.website}
+              onChange={(event) => setForm({ ...form, website: event.target.value })}
+              tabIndex={-1}
+              autoComplete="off"
+            />
+          </label>
+        </div>
         <input type="hidden" value={form.submittedAt} readOnly />
 
         <label className="text-sm font-medium">

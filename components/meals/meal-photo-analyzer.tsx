@@ -223,7 +223,7 @@ const macroFieldStyle = {
 } as const;
 
 /** 料理行・合計行で同じボックス高さに揃える（ラベル帯 + h-10 入力） */
-const METRIC_BOX = "flex min-h-23 h-full flex-col rounded-md border border-input p-2.5";
+const METRIC_BOX = "flex min-h-24 h-full flex-col rounded-md border border-input p-2.5";
 
 function TextMetricField({
   label,
@@ -307,12 +307,12 @@ function MacroReadOnlyField({
         <span className={["font-semibold", meta.labelClass].join(" ")}>{meta.label}</span>
         <span className="shrink-0 text-muted-foreground">({meta.unit})</span>
       </span>
-      <div
+      <output
         className="mt-2 flex h-10 w-full shrink-0 items-center rounded-md border border-transparent bg-background/80 px-2 text-sm tabular-nums text-foreground"
-        aria-readonly="true"
+        aria-label={`${meta.label}（${meta.unit}）の合計`}
       >
         {toInteger(value)}
-      </div>
+      </output>
     </div>
   );
 }
@@ -898,7 +898,7 @@ export function MealPhotoAnalyzer() {
                         }}
                       />
                     ))}
-                    <div className="flex min-h-23 items-stretch sm:col-span-2 lg:col-span-1">
+                    <div className="flex min-h-24 items-stretch sm:col-span-2 lg:col-span-1">
                       <button
                         type="button"
                         aria-label="この料理を削除"

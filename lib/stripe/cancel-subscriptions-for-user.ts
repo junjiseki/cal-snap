@@ -3,6 +3,14 @@ import { getStripeServer } from "@/lib/stripe/server";
 
 const TERMINAL_STATUSES = new Set<Stripe.Subscription.Status>(["canceled", "incomplete_expired"]);
 
+/** Supabase Auth の user.id 想定。Stripe Search クエリへ埋め込む前に検証し、' 等でクエリが壊れるのを防ぐ。 */
+const AUTH_USER_UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function isAuthUserUuid(userId: string): boolean {
+  return AUTH_USER_UUID_RE.test(userId);
+}
+
 function subscriptionSearchQuery(userId: string) {
   return `metadata['userId']:'${userId}'`;
 }
@@ -17,6 +25,13 @@ export async function cancelStripeSubscriptionsForUser(userId: string): Promise<
   | { ok: false; message: string; code: "STRIPE_SEARCH_FAILED" | "STRIPE_CANCEL_FAILED" }
 > {
   if (!process.env.STRIPE_SECRET_KEY?.trim()) {
+    return { ok: true };
+  }
+
+  if (!isAuthUserUuid(userId)) {
+    console.warn("[stripe-cancel-for-user] skip search: user id is not a UUID", {
+      prefix: userId.slice(0, 12),
+    });
     return { ok: true };
   }
 

@@ -29,6 +29,18 @@ describe("cancelStripeSubscriptionsForUser", () => {
     expect(searchMock).not.toHaveBeenCalled();
   });
 
+  it("skips Stripe search when user id is not a UUID (query injection safe)", async () => {
+    process.env.STRIPE_SECRET_KEY = "sk_test_x";
+    const { cancelStripeSubscriptionsForUser } = await import(
+      "@/lib/stripe/cancel-subscriptions-for-user"
+    );
+    const result = await cancelStripeSubscriptionsForUser("x'; metadata['userId']:'victim");
+
+    expect(result).toEqual({ ok: true });
+    expect(searchMock).not.toHaveBeenCalled();
+    expect(cancelMock).not.toHaveBeenCalled();
+  });
+
   it("cancels non-terminal subscriptions and paginates search", async () => {
     process.env.STRIPE_SECRET_KEY = "sk_test_x";
     searchMock

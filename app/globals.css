@@ -156,3 +156,37 @@
     @apply font-sans;
   }
 }
+
+@keyframes public-home-fade {
+  0% {
+    opacity: 0;
+  }
+  6% {
+    opacity: 1;
+  }
+  25% {
+    opacity: 1;
+  }
+  31% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.public-home-fade-slide {
+  animation: public-home-fade 18s ease-in-out infinite;
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .public-home-fade-slide {
+    animation: none;
+    opacity: 0;
+  }
+
+  .public-home-fade-slide:first-child {
+    opacity: 1;
+  }
+}

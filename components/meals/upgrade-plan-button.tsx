@@ -32,10 +32,10 @@ export function UpgradePlanButton() {
         onClick={checkout}
         disabled={isLoading}
         aria-busy={isLoading}
-        className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition active:scale-[0.99] disabled:opacity-50"
       >
         {isLoading ? <Loader2 className="size-4 animate-spin" /> : null}
-        {isLoading ? "決済ページを準備中..." : "有料プランにアップグレード"}
+        {isLoading ? "決済ページを準備中..." : "月額550円で始める"}
       </button>
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
     </div>

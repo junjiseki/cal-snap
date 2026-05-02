@@ -107,19 +107,11 @@ export function AppHeaderClient({
             aria-label="モバイルメニュー"
           >
             <div className="mx-auto w-full max-w-7xl px-4 py-4">
-              <div className="mb-3 flex items-center justify-between">
+              <div className="mb-3">
                 <div>
                   <p className="text-xs font-semibold text-primary">Menu</p>
                   <p className="mt-1 text-sm font-semibold">カロリースナップ</p>
                 </div>
-                <button
-                  type="button"
-                  className="inline-flex size-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground"
-                  onClick={() => setOpen(false)}
-                  aria-label="メニューを閉じる"
-                >
-                  <X className="size-4" />
-                </button>
               </div>
 
               {account ? (

@@ -40,6 +40,20 @@ export async function proxy(request: NextRequest) {
     await supabase.auth.signOut();
   }
 
+  supabaseResponse.headers.set("X-Content-Type-Options", "nosniff");
+  supabaseResponse.headers.set("X-Frame-Options", "DENY");
+  supabaseResponse.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  supabaseResponse.headers.set(
+    "Permissions-Policy",
+    "camera=(self), microphone=(), geolocation=(), payment=()",
+  );
+  if (request.nextUrl.protocol === "https:") {
+    supabaseResponse.headers.set(
+      "Strict-Transport-Security",
+      "max-age=31536000; includeSubDomains",
+    );
+  }
+
   return supabaseResponse;
 }
 

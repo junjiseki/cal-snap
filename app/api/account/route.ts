@@ -1,3 +1,4 @@
+import { forbiddenOriginResponse, isAllowedOrigin } from "@/lib/security/request";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -6,7 +7,11 @@ function errorResponse(message: string, status: number, code: string) {
   return Response.json({ error: { message, code } }, { status });
 }
 
-export async function DELETE() {
+export async function DELETE(request: Request) {
+  if (!isAllowedOrigin(request)) {
+    return forbiddenOriginResponse();
+  }
+
   const { supabase, user } = await getAuthenticatedUser();
 
   if (!user) {

@@ -1,12 +1,18 @@
+import { forbiddenOriginResponse, isAllowedOrigin } from "@/lib/security/request";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
+const MAX_DAILY_CALORIE_GOAL = 100_000;
 
 function errorResponse(message: string, status: number, code: string) {
   return Response.json({ error: { message, code } }, { status });
 }
 
 export async function PATCH(request: Request) {
+  if (!isAllowedOrigin(request)) {
+    return forbiddenOriginResponse();
+  }
+
   const { supabase, user } = await getAuthenticatedUser();
   if (!user) {
     return errorResponse("ログインが必要です。", 401, "UNAUTHENTICATED");
@@ -20,9 +26,13 @@ export async function PATCH(request: Request) {
   }
 
   const value = body.daily_calorie_goal;
-  if (!Number.isInteger(value) || (value as number) < 0) {
+  if (
+    !Number.isInteger(value) ||
+    (value as number) < 0 ||
+    (value as number) > MAX_DAILY_CALORIE_GOAL
+  ) {
     return errorResponse(
-      "daily_calorie_goal は0以上の整数で指定してください。",
+      "daily_calorie_goal は0以上100000以下の整数で指定してください。",
       400,
       "VALIDATION_FAILED",
     );

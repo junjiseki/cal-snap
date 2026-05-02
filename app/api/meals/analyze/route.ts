@@ -9,9 +9,11 @@ import {
 } from "@/lib/meal-analysis";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
+import { forbiddenOriginResponse, isAllowedOrigin } from "@/lib/security/request";
 import type { Plan } from "@/lib/supabase/database.types";
 
 export const runtime = "nodejs";
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 const mealAnalysisJsonSchema = {
   type: "object",
@@ -62,6 +64,23 @@ const mealAnalysisJsonSchema = {
 
 function errorResponse(message: string, status: number, code: string) {
   return Response.json({ error: { message, code } }, { status });
+}
+
+function hasExpectedImageSignature(type: string, bytes: Buffer) {
+  if (type === "image/jpeg") {
+    return bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  }
+  if (type === "image/png") {
+    return bytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+  }
+  if (type === "image/webp") {
+    return (
+      bytes.length >= 12 &&
+      bytes.subarray(0, 4).toString("ascii") === "RIFF" &&
+      bytes.subarray(8, 12).toString("ascii") === "WEBP"
+    );
+  }
+  return false;
 }
 
 async function getProfilePlan(userId: string) {
@@ -134,6 +153,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!isAllowedOrigin(request)) {
+    return forbiddenOriginResponse();
+  }
+
   const { supabase, user } = await getAuthenticatedUser();
 
   if (!user) {
@@ -173,8 +196,8 @@ export async function POST(request: Request) {
     return errorResponse("画像を選択してください。", 400, "IMAGE_REQUIRED");
   }
 
-  if (!file.type.startsWith("image/")) {
-    return errorResponse("画像ファイルを選択してください。", 400, "INVALID_IMAGE");
+  if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+    return errorResponse("JPEG、PNG、WebP の画像を選択してください。", 400, "INVALID_IMAGE");
   }
 
   if (file.size > MAX_IMAGE_BYTES) {
@@ -232,6 +255,9 @@ export async function POST(request: Request) {
       apiKey: process.env.GEMINI_API_KEY,
     });
     const bytes = Buffer.from(await file.arrayBuffer());
+    if (!hasExpectedImageSignature(file.type, bytes)) {
+      throw new Error("Invalid image signature.");
+    }
 
     const response = await ai.models.generateContent({
       model,
@@ -309,9 +335,8 @@ export async function POST(request: Request) {
       return errorResponse("解析枠の解放に失敗しました。", 500, "LOG_RELEASE_FAILED");
     }
 
-    const message =
-      error instanceof Error ? error.message : "AI解析に失敗しました。";
+    console.error("[meal-analyze]", error);
 
-    return errorResponse(message, 502, "AI_ANALYSIS_FAILED");
+    return errorResponse("AI解析に失敗しました。", 502, "AI_ANALYSIS_FAILED");
   }
 }

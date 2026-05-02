@@ -1,27 +1,29 @@
 import { z } from "zod";
 
+const MAX_NUTRITION_VALUE = 100_000;
+
 export const MealAnalysisItemSchema = z.object({
-  name: z.string(),
-  estimated_amount: z.string(),
-  calories: z.number(),
-  protein: z.number(),
-  fat: z.number(),
-  carbs: z.number(),
-  confidence: z.number(),
+  name: z.string().trim().min(1).max(80),
+  estimated_amount: z.string().trim().min(1).max(80),
+  calories: z.number().min(0).max(MAX_NUTRITION_VALUE),
+  protein: z.number().min(0).max(MAX_NUTRITION_VALUE),
+  fat: z.number().min(0).max(MAX_NUTRITION_VALUE),
+  carbs: z.number().min(0).max(MAX_NUTRITION_VALUE),
+  confidence: z.number().min(0).max(1),
 });
 
 export const MealAnalysisSchema = z.object({
-  total_calories: z.number(),
-  protein: z.number(),
-  fat: z.number(),
-  carbs: z.number(),
-  ai_confidence: z.number(),
-  memo: z.string(),
-  items: z.array(MealAnalysisItemSchema),
+  total_calories: z.number().min(0).max(MAX_NUTRITION_VALUE),
+  protein: z.number().min(0).max(MAX_NUTRITION_VALUE),
+  fat: z.number().min(0).max(MAX_NUTRITION_VALUE),
+  carbs: z.number().min(0).max(MAX_NUTRITION_VALUE),
+  ai_confidence: z.number().min(0).max(1),
+  memo: z.string().trim().max(1000),
+  items: z.array(MealAnalysisItemSchema).min(1).max(30),
 });
 
 export const MealRegistrationSchema = MealAnalysisSchema.extend({
-  eaten_at: z.string(),
+  eaten_at: z.string().datetime(),
 });
 
 export type MealAnalysis = z.infer<typeof MealAnalysisSchema>;

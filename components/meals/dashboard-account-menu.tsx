@@ -64,9 +64,24 @@ export function DashboardAccountMenu({
   const avatar = avatarLabel || <User className="size-4" />;
   const billingLabel = plan === "paid" ? "プラン管理" : "アップグレードプラン";
   const menuLinks = [
-    { href: "/profile", label: "プロフィール編集", icon: User },
-    { href: "/billing", label: billingLabel, icon: CreditCard },
-    { href: "/settings", label: "設定", icon: Settings },
+    {
+      href: "/profile",
+      label: "プロフィール編集",
+      description: "1日の摂取カロリーを設定",
+      icon: User,
+    },
+    {
+      href: "/billing",
+      label: billingLabel,
+      description: "AI解析枠と支払いを管理",
+      icon: CreditCard,
+    },
+    {
+      href: "/settings",
+      label: "設定",
+      description: "ログアウト・アカウント操作",
+      icon: Settings,
+    },
   ] as const;
 
   if (compact) {
@@ -87,16 +102,21 @@ export function DashboardAccountMenu({
           </span>
         </div>
         <div className="grid gap-2">
-          {menuLinks.map(({ href, label, icon: Icon }) => (
+          {menuLinks.map(({ href, label, description, icon: Icon }) => (
             <Link
               key={href}
               href={href}
-              className="flex min-h-11 items-center gap-3 rounded-md border border-border bg-background px-3 text-sm font-semibold"
+              className="flex min-h-14 items-center gap-3 rounded-md border border-border bg-background px-3 py-2"
             >
               <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
                 <Icon className="size-4" />
               </span>
-              <span className="min-w-0 flex-1">{label}</span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold">{label}</span>
+                <span className="mt-0.5 block text-xs leading-5 text-muted-foreground">
+                  {description}
+                </span>
+              </span>
             </Link>
           ))}
         </div>
@@ -149,18 +169,23 @@ export function DashboardAccountMenu({
             </span>
           </div>
           <div className="grid gap-1 border-t border-border pt-2">
-            {menuLinks.map(({ href, label, icon: Icon }) => (
+            {menuLinks.map(({ href, label, description, icon: Icon }) => (
               <Link
                 key={href}
                 href={href}
                 role="menuitem"
-                className="flex min-h-10 items-center gap-3 rounded-md px-2 text-sm font-semibold hover:bg-muted"
+                className="flex min-h-12 items-center gap-3 rounded-md px-2 py-2 hover:bg-muted"
                 onClick={() => setOpen(false)}
               >
                 <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
                   <Icon className="size-4" />
                 </span>
-                <span className="min-w-0 flex-1">{label}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold">{label}</span>
+                  <span className="mt-0.5 block text-xs leading-5 text-muted-foreground">
+                    {description}
+                  </span>
+                </span>
               </Link>
             ))}
           </div>

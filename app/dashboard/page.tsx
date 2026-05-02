@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Camera, TrendingDown, TrendingUp } from "lucide-react";
 import { getDayRangeInJapan } from "@/lib/meal-analysis";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
+import { CalorieGoalOnboardingModal } from "@/components/account/calorie-goal-onboarding-modal";
 import { MealList } from "@/components/meals/meal-list";
 import { CalorieChart } from "@/components/meals/calorie-chart";
 import { getStripeServer } from "@/lib/stripe/server";
@@ -208,9 +209,14 @@ export default async function DashboardPage({
       : `1日の摂取カロリー（目安）を ${Math.abs(calorieDelta)} kcal 超過`;
   const calorieProgress = Math.min(100, Math.round((total.calories / safeGoalCalories) * 100));
   const isOverGoal = calorieDelta < 0;
+  const shouldShowGoalPrompt = user.user_metadata?.calorie_goal_prompt_dismissed !== true;
 
   return (
     <main className="min-h-0 flex-1 bg-background">
+      <CalorieGoalOnboardingModal
+        initialGoal={goalCalories}
+        shouldShow={shouldShowGoalPrompt}
+      />
       <section className="border-b border-border bg-card">
         <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-8 sm:py-6">
           <div>

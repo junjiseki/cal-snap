@@ -210,16 +210,16 @@ export function MealList({ meals }: { meals: MealRow[] }) {
                   >
                     編集
                   </button>
-	                  <button
-	                    type="button"
-	                    onClick={() => removeMeal(meal.id)}
-	                    disabled={isBusy}
-	                    aria-busy={isBusy}
-	                    className="inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-md border border-destructive/40 px-3 text-sm font-semibold text-destructive disabled:opacity-50 sm:h-8 sm:min-h-0 sm:flex-none sm:text-xs"
-	                  >
-	                    {isBusy ? <Loader2 className="size-4 animate-spin sm:size-3" /> : null}
-	                    {isBusy ? "削除中..." : "削除"}
-	                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeMeal(meal.id)}
+                    disabled={isBusy}
+                    aria-busy={isBusy}
+                    className="inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-md border border-destructive/40 px-3 text-sm font-semibold text-destructive disabled:opacity-50 sm:h-8 sm:min-h-0 sm:flex-none sm:text-xs"
+                  >
+                    {isBusy ? <Loader2 className="size-4 animate-spin sm:size-3" /> : null}
+                    {isBusy ? "削除中..." : "削除"}
+                  </button>
                 </div>
               </div>
             </div>
@@ -298,16 +298,16 @@ export function MealList({ meals }: { meals: MealRow[] }) {
                   />
                 </label>
                 <div className="flex gap-2 md:col-span-3">
-	                  <button
-	                    type="button"
-	                    onClick={saveEdit}
-	                    disabled={isBusy}
-	                    aria-busy={isBusy}
-	                    className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50"
-	                  >
-	                    {isBusy ? <Loader2 className="size-4 animate-spin" /> : null}
-	                    {isBusy ? "保存中..." : "保存"}
-	                  </button>
+                  <button
+                    type="button"
+                    onClick={saveEdit}
+                    disabled={isBusy}
+                    aria-busy={isBusy}
+                    className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+                  >
+                    {isBusy ? <Loader2 className="size-4 animate-spin" /> : null}
+                    {isBusy ? "保存中..." : "保存"}
+                  </button>
                   <button
                     type="button"
                     onClick={() => {

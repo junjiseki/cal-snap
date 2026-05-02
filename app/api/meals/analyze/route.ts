@@ -250,14 +250,41 @@ export async function POST(request: Request) {
 
   logId = claimedSlot.log_id;
 
+  let bytes: Buffer;
+  try {
+    bytes = Buffer.from(await file.arrayBuffer());
+  } catch {
+    const { error: releaseSlotError } = await supabaseAdmin
+      .from("ai_analysis_logs")
+      .delete()
+      .eq("id", logId)
+      .eq("user_id", user.id);
+    if (releaseSlotError) {
+      return errorResponse("解析枠の解放に失敗しました。", 500, "LOG_RELEASE_FAILED");
+    }
+    return errorResponse("画像を読み取れません。", 400, "BAD_IMAGE_READ");
+  }
+
+  if (!hasExpectedImageSignature(file.type, bytes)) {
+    const { error: releaseSlotError } = await supabaseAdmin
+      .from("ai_analysis_logs")
+      .delete()
+      .eq("id", logId)
+      .eq("user_id", user.id);
+    if (releaseSlotError) {
+      return errorResponse("解析枠の解放に失敗しました。", 500, "LOG_RELEASE_FAILED");
+    }
+    return errorResponse(
+      "画像の内容が形式と一致しません。JPEG・PNG・WebP の実データを選択してください。",
+      400,
+      "INVALID_IMAGE",
+    );
+  }
+
   try {
     const ai = new GoogleGenAI({
       apiKey: process.env.GEMINI_API_KEY,
     });
-    const bytes = Buffer.from(await file.arrayBuffer());
-    if (!hasExpectedImageSignature(file.type, bytes)) {
-      throw new Error("Invalid image signature.");
-    }
 
     const response = await ai.models.generateContent({
       model,

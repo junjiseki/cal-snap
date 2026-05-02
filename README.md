@@ -274,8 +274,10 @@ pnpm run db:migrate:new -- add_example_change
 pnpm run db:migrate:push
 ```
 ## Local Stripe Webhook
+
 ```bash
 stripe listen --forward-to localhost:3000/api/stripe/webhook
+```
 
 ## TODO
 - TODO: Stripe Webhook と連携して `profiles.plan` を自動更新する

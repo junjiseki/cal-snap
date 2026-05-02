@@ -83,6 +83,11 @@ export default async function BillingPage() {
               : "解析回数を増やしたい場合は、有料プランへ切り替えできます。"}
           </p>
           <div className="mt-4">{isPaid ? <ManageSubscriptionButton /> : <UpgradePlanButton />}</div>
+          {isPaid ? (
+            <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+              アカウントを削除（利用停止）する前に、必ず上記からサブスクリプションを解約してください。削除だけでは Stripe の課金は止まりません。
+            </p>
+          ) : null}
         </section>
       </div>
     </main>

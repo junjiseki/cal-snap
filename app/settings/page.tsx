@@ -6,7 +6,7 @@ import { getAuthenticatedUser } from "@/lib/supabase/server";
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
-  const { user } = await getAuthenticatedUser();
+  const { supabase, user } = await getAuthenticatedUser();
 
   if (!user) {
     return (
@@ -26,6 +26,14 @@ export default async function SettingsPage() {
       </main>
     );
   }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("plan")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const plan = profile?.plan === "paid" ? "paid" : "free";
 
   return (
     <main className="min-h-0 flex-1 bg-background">
@@ -56,8 +64,17 @@ export default async function SettingsPage() {
           <p className="mt-2 text-sm leading-7 text-muted-foreground">
             ログアウトとアカウント削除はこちらで操作します。
           </p>
+          {plan === "paid" ? (
+            <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm leading-relaxed text-amber-950">
+              有料プラン契約中は、アカウント削除前に{" "}
+              <Link href="/billing" className="font-semibold underline underline-offset-2">
+                料金・プラン
+              </Link>{" "}
+              で Stripe のサブスクリプション解約を済ませてください。削除のみでは課金が自動停止しません。
+            </p>
+          ) : null}
           <div className="mt-4">
-            <AccountDangerActions />
+            <AccountDangerActions plan={plan} />
           </div>
         </section>
       </div>

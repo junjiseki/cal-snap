@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { LogOut, User, UserX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CalorieGoalForm } from "@/components/meals/calorie-goal-form";
+import { ManageSubscriptionButton } from "@/components/meals/manage-subscription-button";
 import { UpgradePlanButton } from "@/components/meals/upgrade-plan-button";
 import { createClient } from "@/lib/supabase/client";
 
@@ -118,7 +119,11 @@ export function DashboardAccountMenu({
             <div className="mt-3">
               <UpgradePlanButton />
             </div>
-          ) : null}
+          ) : (
+            <div className="mt-3">
+              <ManageSubscriptionButton />
+            </div>
+          )}
         </div>
         <div className="rounded-md border border-border bg-background p-3">
           <p className="text-xs font-medium text-muted-foreground">1日の摂取カロリー</p>
@@ -180,7 +185,11 @@ export function DashboardAccountMenu({
               <div className="mt-3">
                 <UpgradePlanButton />
               </div>
-            ) : null}
+            ) : (
+              <div className="mt-3">
+                <ManageSubscriptionButton />
+              </div>
+            )}
           </div>
           <div className="mt-5 border-t border-border pt-4">
             <p className="text-xs font-medium text-muted-foreground">1日の摂取カロリー</p>

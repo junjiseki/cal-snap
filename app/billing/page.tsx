@@ -89,7 +89,7 @@ export default async function BillingPage() {
               <p className="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
                 {isPaid
                   ? "支払い方法、請求履歴、解約はStripeの管理画面から確認できます。"
-                  : `月額${PAID_PLAN_PRICE_LABEL}でAI解析枠を1日${PAID_DAILY_ANALYSIS_LIMIT}回に拡張できます。写真からたたき台を作り、確認して保存するだけの流れを続けやすくします。`}
+                  : `月額${PAID_PLAN_PRICE_LABEL}でAI解析枠を1日${PAID_DAILY_ANALYSIS_LIMIT}回利用できます。写真から下書きを自動生成し、確認して保存するだけのシンプルなフローで、継続しやすくします。`}
               </p>
             </div>
           </div>
@@ -104,11 +104,6 @@ export default async function BillingPage() {
             <p className="mt-3 text-sm leading-7 text-muted-foreground">
               無料プランは1日{FREE_DAILY_ANALYSIS_LIMIT}回までAI解析できます。
             </p>
-            {!isPaid ? (
-              <div className="mt-5 rounded-md bg-muted/50 p-3 text-sm leading-7 text-muted-foreground">
-                1日1回だと、外食や間食をまとめて記録したい日に足りなくなりがちです。
-              </div>
-            ) : null}
           </div>
 
           <div className="border-2 border-primary bg-card p-5 shadow-sm">
@@ -125,7 +120,7 @@ export default async function BillingPage() {
               </span>
             </div>
             <p className="mt-4 text-sm leading-7 text-muted-foreground">
-              1日{PAID_DAILY_ANALYSIS_LIMIT}回までAI解析。食事写真を撮って、推定値を確認して、必要なところだけ直せます。
+              1日{PAID_DAILY_ANALYSIS_LIMIT}回までAI解析。食事写真を撮ってカロリーを推定し、保存するだけのシンプルなフローで、継続しやすくします。
             </p>
             <div className="mt-5">
               {isPaid ? <ManageSubscriptionButton /> : <UpgradePlanButton />}

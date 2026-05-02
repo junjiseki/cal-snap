@@ -30,7 +30,11 @@ export async function createClient() {
   });
 }
 
-export async function getAuthenticatedUser() {
+/**
+ * JWT のユーザーのみ返す。`profiles.deleted_at` による強制 signOut はしない。
+ * 論理削除のみ残っているレガシーアカウントの `DELETE /api/account` などで使う。
+ */
+export async function getAuthSessionUser() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -43,6 +47,16 @@ export async function getAuthenticatedUser() {
   }
 
   if (error || !user) {
+    return { supabase, user: null };
+  }
+
+  return { supabase, user };
+}
+
+export async function getAuthenticatedUser() {
+  const { supabase, user } = await getAuthSessionUser();
+
+  if (!user) {
     return { supabase, user: null };
   }
 

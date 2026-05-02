@@ -106,10 +106,11 @@
 
 - **エンドポイント:** `DELETE /api/account`（`app/api/account/route.ts`）
 - **前提:** `isAllowedOrigin`（`lib/security/request.ts`）で変更系リクエストの Origin を検証。
-- **処理:** `auth.admin.deleteUser(userId)` で **Auth ユーザーを削除**。
+- **認可:** `getAuthSessionUser`（`lib/supabase/server.ts`）でセッションを解決する。`profiles.deleted_at` による強制 signOut は**行わない**。論理削除のみ残るレガシーアカウントでも、パスワードログイン直後のセッションで本 API を呼べる。
+- **処理:** `STRIPE_SECRET_KEY` がある場合は先に `cancelStripeSubscriptionsForUser`（`lib/stripe/cancel-subscriptions-for-user.ts`）で `metadata.userId` 一致サブスクを即時解約。その後 `auth.admin.deleteUser(userId)` で **Auth ユーザーを削除**。Stripe 連携が無効な環境では解約処理はスキップ。
 - **データ:** DB の FK（`ON DELETE CASCADE`）により、`profiles`・`meals` 等のユーザー紐づけデータは削除される（`contact_messages.user_id` は `SET NULL` 等、マイグレーション定義に従う）。
 - **メール再利用:** Auth 上のユーザーが消えるため、**同一メールアドレスで再登録可能**。
-- 削除前の Stripe 解約案内は設定画面・料金画面・確認ダイアログの文言で案内（課金は自動停止しない）。
+- Stripe 解約に失敗した場合は **Auth 削除は行わず** 502 を返す。設定・料金画面・確認ダイアログで案内。
 
 ---
 
@@ -147,7 +148,8 @@
 - `profiles.id` は `auth.users.id` と一致。**新規ユーザー**はトリガーで `profiles` 行が作成される（マイグレーション参照）。
 - 過去の **論理削除**（`profiles.deleted_at` のみ設定）と **Auth 削除** が混在し得る：
   - **現行の退会 API** は Auth 削除が主。
-  - **`deleted_at` のみ**残るレガシー行は、`getAuthenticatedUser` / `nextResponseAfterSession` でログインを拒否する用途にまだ参照される。
+  - **`deleted_at` のみ**残るレガシーは、メール＋パスワードでログインした直後に `DELETE /api/account` を呼び出して Auth ユーザーを削除し、**メールを再利用**できる（`components/meals/login-form.tsx`）。
+  - **`deleted_at` のみ**残るレガシー行は、`getAuthenticatedUser` / `nextResponseAfterSession` で通常ログインを拒否する用途にまだ参照される。
 
 ---
 

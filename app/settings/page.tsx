@@ -88,11 +88,11 @@ export default async function SettingsPage() {
           </p>
           {plan === "paid" ? (
             <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm leading-relaxed text-amber-950">
-              有料プラン契約中は、アカウント削除前に{" "}
+              有料プラン契約中でも、アカウント削除時に Stripe のサブスクリプションは自動解約されます。請求履歴やお支払い方法は{" "}
               <Link href="/billing" className="font-semibold underline underline-offset-2">
                 料金・プラン
-              </Link>{" "}
-              で Stripe のサブスクリプション解約を済ませてください。削除のみでは課金が自動停止しません。
+              </Link>
+              からご確認ください。
             </p>
           ) : null}
           <div className="mt-4">

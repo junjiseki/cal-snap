@@ -10,11 +10,12 @@ describe("getAccountDeleteConfirmMessage", () => {
     expect(text).not.toContain("【有料プラン】");
   });
 
-  it("prepends Stripe warning for paid plan", () => {
+  it("prepends Stripe auto-cancel notice for paid plan", () => {
     const text = getAccountDeleteConfirmMessage("paid");
     expect(text).toContain("【有料プラン】");
     expect(text).toContain("Stripe");
-    expect(text).toContain("サブスクの管理・解約");
+    expect(text).toContain("自動解約");
+    expect(text).toContain("料金・プラン");
     expect(text).toContain("同じメールアドレスで新規登録");
     expect(text).toContain("上記を理解したうえで削除しますか？");
   });

@@ -1,6 +1,7 @@
 import { forbiddenOriginResponse, isAllowedOrigin } from "@/lib/security/request";
+import { cancelStripeSubscriptionsForUser } from "@/lib/stripe/cancel-subscriptions-for-user";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
-import { getAuthenticatedUser } from "@/lib/supabase/server";
+import { getAuthSessionUser } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -13,13 +14,18 @@ export async function DELETE(request: Request) {
     return forbiddenOriginResponse();
   }
 
-  const { supabase, user } = await getAuthenticatedUser();
+  const { supabase, user } = await getAuthSessionUser();
 
   if (!user) {
     return errorResponse("ログインが必要です。", 401, "UNAUTHENTICATED");
   }
 
   const userId = user.id;
+
+  const stripeCancel = await cancelStripeSubscriptionsForUser(userId);
+  if (!stripeCancel.ok) {
+    return errorResponse(stripeCancel.message, 502, stripeCancel.code);
+  }
 
   let supabaseAdmin: ReturnType<typeof getSupabaseAdminClient>;
   try {

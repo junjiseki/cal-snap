@@ -85,7 +85,7 @@ export default async function BillingPage() {
           <div className="mt-4">{isPaid ? <ManageSubscriptionButton /> : <UpgradePlanButton />}</div>
           {isPaid ? (
             <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-              アカウントを削除（利用停止）する前に、必ず上記からサブスクリプションを解約してください。削除だけでは Stripe の課金は止まりません。
+              アカウント削除時には Stripe のサブスクリプションも自動解約されます。上記は請求履歴の確認や、解約に失敗した場合の手動対応用です。
             </p>
           ) : null}
         </section>

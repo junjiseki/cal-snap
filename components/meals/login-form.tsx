@@ -23,6 +23,7 @@ export function LoginForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
@@ -52,6 +53,7 @@ export function LoginForm({
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
+    setNotice(null);
     setIsLoggingIn(true);
 
     try {
@@ -81,10 +83,22 @@ export function LoginForm({
         .maybeSingle();
 
       if (profile?.deleted_at) {
+        const res = await fetch("/api/account", { method: "DELETE" });
         await supabase.auth.signOut();
-        setError(
-          "このアカウントは利用停止のためログインできません。再開する場合は登録し直してください。",
-        );
+        if (res.ok) {
+          setNotice(
+            "利用停止されていたアカウントを削除しました。同じメールアドレスで新規登録できます。",
+          );
+          return;
+        }
+        let detail = "アカウントの整理に失敗しました。時間をおいて再度お試しください。";
+        try {
+          const body = (await res.json()) as { error?: { message?: string } };
+          if (body.error?.message) detail = body.error.message;
+        } catch {
+          /* ignore */
+        }
+        setError(detail);
         return;
       }
 
@@ -111,7 +125,7 @@ export function LoginForm({
       ) : null}
       {accountInactive && !accountDeleted ? (
         <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-          このアカウントは利用停止のためログインできません。同じメールアドレスで新規登録し直すか、お困りの場合はお問い合わせください。
+          このアカウントは利用停止のためログインできません。以前メールとパスワードで登録している場合は、下のフォームでログインすると利用停止の整理が行われ、その後同じメールで新規登録できます。Google のみの場合はお問い合わせください。
         </p>
       ) : null}
       {authConfirmFailed && !accountDeleted && !accountInactive ? (
@@ -170,6 +184,11 @@ export function LoginForm({
           新規登録
         </Link>
       </p>
+      {notice ? (
+        <p className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-100">
+          {notice}
+        </p>
+      ) : null}
       {error ? (
         <p className="border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
           {error}

@@ -10,8 +10,8 @@ import { cn } from "@/lib/utils";
 
 export type AppHeaderAccount = {
   email: string;
+  displayName: string;
   plan: string;
-  initialGoal: number;
   freeDailyAnalysisLimit: number;
   paidDailyAnalysisLimit: number;
 };
@@ -65,8 +65,8 @@ export function AppHeaderClient({
             {account ? (
               <DashboardAccountMenu
                 email={account.email}
+                displayName={account.displayName}
                 plan={account.plan}
-                initialGoal={account.initialGoal}
                 freeDailyAnalysisLimit={account.freeDailyAnalysisLimit}
                 paidDailyAnalysisLimit={account.paidDailyAnalysisLimit}
               />
@@ -158,8 +158,8 @@ export function AppHeaderClient({
                   <div className="mt-4 border-t border-border pt-4">
                     <DashboardAccountMenu
                       email={account.email}
+                      displayName={account.displayName}
                       plan={account.plan}
-                      initialGoal={account.initialGoal}
                       freeDailyAnalysisLimit={account.freeDailyAnalysisLimit}
                       paidDailyAnalysisLimit={account.paidDailyAnalysisLimit}
                       compact

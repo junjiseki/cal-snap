@@ -3,7 +3,6 @@ import { Camera, TrendingDown, TrendingUp } from "lucide-react";
 import { getDayRangeInJapan } from "@/lib/meal-analysis";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 import { MealList } from "@/components/meals/meal-list";
-import { CalorieGoalForm } from "@/components/meals/calorie-goal-form";
 import { CalorieChart } from "@/components/meals/calorie-chart";
 import { getStripeServer } from "@/lib/stripe/server";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -284,6 +283,12 @@ export default async function DashboardPage({
             <div>
               <h2 className="text-sm font-semibold text-foreground">PFC 合計</h2>
             </div>
+            <Link
+              href="/profile"
+              className="inline-flex h-9 items-center justify-center rounded-md border border-border px-3 text-sm font-semibold hover:bg-muted"
+            >
+              目標を編集
+            </Link>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
             <div className="border border-border bg-card p-4 sm:p-5">

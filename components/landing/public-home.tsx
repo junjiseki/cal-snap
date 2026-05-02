@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { FavoriteFoodSlideshow } from "@/components/landing/favorite-food-slideshow";
 import {
   ArrowRight,
   BarChart3,
@@ -51,25 +52,6 @@ const goalPromotions = [
     icon: HeartPulse,
     title: "健康のために",
     body: "カロリーだけでなくPFCも確認し、極端に減らしすぎない記録を続けられます。",
-  },
-] as const;
-
-const favoriteFoodSlides = [
-  {
-    src: "/ramen-promo.png",
-    alt: "好きなラーメンもカロリーを把握しながら楽しむイメージ",
-  },
-  {
-    src: "/favorite-food-burger.png",
-    alt: "ハンバーガーも計画に入れて楽しむイメージ",
-  },
-  {
-    src: "/favorite-food-onigiri.png",
-    alt: "おにぎりを食事記録に入れるイメージ",
-  },
-  {
-    src: "/favorite-food-udon.png",
-    alt: "天ぷらうどんもカロリーを把握しながら楽しむイメージ",
   },
 ] as const;
 
@@ -170,23 +152,7 @@ export function PublicHome() {
 
       <section className="border-b border-border bg-background">
         <div className="mx-auto grid w-full max-w-7xl gap-7 px-4 py-10 sm:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
-          <div className="relative aspect-square overflow-hidden border border-border bg-card">
-            {favoriteFoodSlides.map((slide, index) => (
-              <Image
-                key={slide.src}
-                src={slide.src}
-                alt={slide.alt}
-                width={1080}
-                height={1080}
-                sizes="(min-width: 1024px) 36rem, calc(100vw - 2rem)"
-                className="public-home-fade-slide absolute inset-0 h-full w-full object-cover"
-                style={{ animationDelay: `${index * 4.5}s` }}
-              />
-            ))}
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent p-5 text-white">
-              <p className="text-sm font-semibold">好きな物も、記録すれば調整できる</p>
-            </div>
-          </div>
+          <FavoriteFoodSlideshow />
 
           <div className="max-w-2xl lg:pl-4">
             <p className="text-sm font-semibold text-primary">好きな物も、計画に入れる</p>

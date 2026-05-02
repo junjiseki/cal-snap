@@ -100,7 +100,15 @@ async function getProfile(userId: string) {
   return created;
 }
 
-async function getTodayUsage(userId: string) {
+async function getTodayUsage(userId: string, plan: Plan) {
+  if (plan !== "paid") {
+    return {
+      used: 0,
+      limit: 0,
+      remaining: 0,
+    };
+  }
+
   const { supabase } = await getAuthenticatedUser();
   const { start, end } = getTodaySuggestionUsageRange();
   const { count, error } = await supabase
@@ -163,7 +171,7 @@ export async function GET() {
 
   try {
     const profile = await getProfile(user.id);
-    const usage = await getTodayUsage(user.id);
+    const usage = await getTodayUsage(user.id, profile.plan);
     return Response.json({ plan: profile.plan, usage });
   } catch {
     return errorResponse("利用状況を取得できません。", 500, "USAGE_FETCH_FAILED");
@@ -224,7 +232,7 @@ export async function POST(request: Request) {
 
   let usage;
   try {
-    usage = await getTodayUsage(user.id);
+    usage = await getTodayUsage(user.id, profile.plan);
   } catch {
     return errorResponse("提案回数を確認できません。", 500, "LIMIT_CHECK_FAILED");
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader2, Sparkles } from "lucide-react";
 import {
   type MealSuggestionContext,
@@ -27,15 +27,22 @@ export function MealSuggestionPlanner({ initialUsage }: { initialUsage: Usage })
   const [isLoading, setIsLoading] = useState(false);
   const remaining = Math.max(0, usage.limit - usage.used);
 
+  useEffect(() => {
+    setResult(null);
+    setError(null);
+  }, [context, slot]);
+
   async function suggest() {
     setError(null);
     setIsLoading(true);
+    const requestContext = context;
+    const requestSlot = slot;
 
     try {
       const response = await fetch("/api/meal-suggestions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ context, slot }),
+        body: JSON.stringify({ context: requestContext, slot: requestSlot }),
       });
       const body = (await response.json()) as {
         result?: MealSuggestionResponse;
@@ -47,9 +54,17 @@ export function MealSuggestionPlanner({ initialUsage }: { initialUsage: Usage })
         throw new Error(body.error?.message || "食事提案に失敗しました。");
       }
 
+      if (requestContext !== context || requestSlot !== slot) {
+        setUsage(body.usage);
+        return;
+      }
+
       setResult(body.result);
       setUsage(body.usage);
     } catch (caught) {
+      if (requestContext !== context || requestSlot !== slot) {
+        return;
+      }
       setError(caught instanceof Error ? caught.message : "食事提案に失敗しました。");
     } finally {
       setIsLoading(false);
@@ -73,6 +88,7 @@ export function MealSuggestionPlanner({ initialUsage }: { initialUsage: Usage })
                 <button
                   key={item}
                   type="button"
+                  aria-pressed={context === item}
                   onClick={() => setContext(item)}
                   className={[
                     "min-h-11 rounded-md border px-2 text-sm font-semibold",
@@ -94,6 +110,7 @@ export function MealSuggestionPlanner({ initialUsage }: { initialUsage: Usage })
                 <button
                   key={item}
                   type="button"
+                  aria-pressed={slot === item}
                   onClick={() => setSlot(item)}
                   className={[
                     "min-h-11 rounded-md border px-2 text-sm font-semibold",

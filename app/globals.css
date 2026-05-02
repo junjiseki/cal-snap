@@ -180,6 +180,10 @@
   opacity: 0;
 }
 
+.public-home-fade-slide--paused {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .public-home-fade-slide {
     animation: none;
@@ -187,6 +191,10 @@
   }
 
   .public-home-fade-slide:first-child {
+    opacity: 1;
+  }
+
+  .public-home-fade-slide--paused:first-child {
     opacity: 1;
   }
 }

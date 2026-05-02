@@ -32,7 +32,8 @@ security definer
 set search_path = public
 as $$
 declare
-  current_used integer;
+  current_reserved integer;
+  success_count integer;
   inserted_log_id uuid;
 begin
   if auth.uid() is distinct from p_user_id then
@@ -71,14 +72,13 @@ begin
     and suggested_at < now() - interval '15 minutes';
 
   select count(*)::integer
-  into current_used
+  into current_reserved
   from public.meal_suggestion_logs
   where user_id = p_user_id
-    and success = true
     and suggested_at >= p_day_start
     and suggested_at <= p_day_end;
 
-  if current_used >= p_daily_limit then
+  if current_reserved >= p_daily_limit then
     return;
   end if;
 
@@ -86,7 +86,15 @@ begin
   values (p_user_id, p_model, p_context, p_meal_slot, false)
   returning id into inserted_log_id;
 
-  return query select inserted_log_id, current_used + 1, p_daily_limit;
+  select count(*)::integer
+  into success_count
+  from public.meal_suggestion_logs
+  where user_id = p_user_id
+    and success = true
+    and suggested_at >= p_day_start
+    and suggested_at <= p_day_end;
+
+  return query select inserted_log_id, success_count + 1, p_daily_limit;
 end;
 $$;
 

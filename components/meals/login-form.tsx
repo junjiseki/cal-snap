@@ -5,13 +5,20 @@ import { useState } from "react";
 import { Loader2, LogIn } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { GoogleMark } from "@/components/auth/google-mark";
+import { mapSupabaseSignInError } from "@/lib/auth/sign-in-errors";
 
 export function LoginForm({
   next = "/dashboard",
   accountDeleted = false,
+  accountInactive = false,
+  authConfirmFailed = false,
 }: {
   next?: string;
   accountDeleted?: boolean;
+  /** 利用停止アカウントで OAuth などから戻ってきたとき */
+  accountInactive?: boolean;
+  /** メール確認リンクが無効・期限切れなど */
+  authConfirmFailed?: boolean;
 }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -55,7 +62,30 @@ export function LoginForm({
       });
 
       if (signInError) {
-        throw signInError;
+        setError(mapSupabaseSignInError(signInError));
+        return;
+      }
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        setError("ログインに失敗しました。もう一度お試しください。");
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("deleted_at")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (profile?.deleted_at) {
+        await supabase.auth.signOut();
+        setError(
+          "このアカウントは利用停止のためログインできません。再開する場合は登録し直してください。",
+        );
+        return;
       }
 
       window.location.href = next;
@@ -76,7 +106,17 @@ export function LoginForm({
       </div>
       {accountDeleted ? (
         <p className="rounded-md border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
-          アカウントを削除しました。このアカウントではログインできません。新しくご利用になる場合は別のメールアドレスで新規登録してください。
+          アカウントを削除しました。同じメールアドレスで新規登録し直すこともできます。
+        </p>
+      ) : null}
+      {accountInactive && !accountDeleted ? (
+        <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+          このアカウントは利用停止のためログインできません。同じメールアドレスで新規登録し直すか、お困りの場合はお問い合わせください。
+        </p>
+      ) : null}
+      {authConfirmFailed && !accountDeleted && !accountInactive ? (
+        <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+          メールの確認リンクが無効か期限切れです。未登録の場合は新規登録し、既に登録済みの場合は確認メールを再送するか、ログインをお試しください。
         </p>
       ) : null}
       <label className="block text-sm font-medium">

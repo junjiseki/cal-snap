@@ -3,7 +3,7 @@ import type { Plan } from "@/lib/supabase/database.types";
 /** アカウント削除の confirm() 用。有料時は Stripe 解約の案内を先に出す。 */
 export function getAccountDeleteConfirmMessage(plan: Plan | "free" | "paid"): string {
   const base =
-    "アカウントを削除（利用停止）すると、ログインできなくなります。データはサーバー上に残りますが参照できません。この操作は取り消せません。";
+    "アカウントを削除すると、ログインできなくなり、紐づく食事記録などのデータは削除されます（お問い合わせ履歴のうち、メールアドレスのみ残る場合があります）。同じメールアドレスで新規登録し直すことはできます。この操作は取り消せません。";
 
   if (plan === "paid") {
     return [

@@ -5,7 +5,12 @@ import { getAuthenticatedUser } from "@/lib/supabase/server";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; deleted?: string }>;
+  searchParams: Promise<{
+    next?: string;
+    deleted?: string;
+    inactive?: string;
+    error?: string;
+  }>;
 }) {
   const params = await searchParams;
   const { user } = await getAuthenticatedUser();
@@ -18,6 +23,8 @@ export default async function LoginPage({
       <LoginForm
         next={params.next || "/dashboard"}
         accountDeleted={params.deleted === "1"}
+        accountInactive={params.inactive === "1"}
+        authConfirmFailed={params.error === "auth_confirm"}
       />
     </main>
   );

@@ -59,6 +59,15 @@ export async function POST(request: Request) {
   const supabase = getSupabaseAdminClient();
 
   async function updateProfilePlanIfActive(userId: string, plan: "free" | "paid") {
+    const { data: authUser, error: authLookupError } = await supabase.auth.admin.getUserById(userId);
+    if (authLookupError || !authUser?.user) {
+      console.log("[stripe-webhook] skip plan update: auth user not found (deleted?)", {
+        userId,
+        plan,
+      });
+      return;
+    }
+
     const { data: profile, error: selectError } = await supabase
       .from("profiles")
       .select("deleted_at")

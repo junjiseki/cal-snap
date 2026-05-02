@@ -65,9 +65,9 @@
 セッションが付いた直後に実行する。
 
 1. `getUser` でユーザー取得。
-2. `profiles` の **`deleted_at`** が非 null なら **利用停止** とみなし、`signOut` したうえで  
-   **`/login?inactive=1&next=...`** へリダイレクト。
-3. それ以外は **`next`**（相対パス）へリダイレクト。
+2. `profiles` の **`deleted_at`** 取得で **`maybeSingle()` の error** がある場合はログ出力のうえ **`signOut`** し、**`/login?error=profile_fetch&next=...`** へ（取得失敗時は inactive 判定をスキップしない）。
+3. `deleted_at` が非 null なら **利用停止** とみなし、`signOut` したうえで **`/login?inactive=1&next=...`** へリダイレクト。
+4. それ以外は **`next`**（相対パス）へリダイレクト。
 
 **利用箇所:** `app/auth/callback/route.ts`、`app/auth/confirm/route.ts`
 
@@ -99,6 +99,7 @@
 | `deleted=1` | アカウント削除直後。再登録可能である旨の案内 |
 | `inactive=1` | 利用停止アカウントで OAuth/確認フローから弾かれた場合 |
 | `error=auth_confirm` | メール確認リンク無効・期限切れ等 |
+| `error=profile_fetch` | セッション直後の `profiles.deleted_at` 取得失敗（`signOut` 済み・再試行を促す） |
 
 ---
 

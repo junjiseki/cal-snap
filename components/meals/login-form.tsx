@@ -12,6 +12,7 @@ export function LoginForm({
   accountDeleted = false,
   accountInactive = false,
   authConfirmFailed = false,
+  profileFetchFailed = false,
 }: {
   next?: string;
   accountDeleted?: boolean;
@@ -19,6 +20,8 @@ export function LoginForm({
   accountInactive?: boolean;
   /** メール確認リンクが無効・期限切れなど */
   authConfirmFailed?: boolean;
+  /** profiles 取得失敗など（post-login / パスワードログイン時の fail-safe） */
+  profileFetchFailed?: boolean;
 }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -76,11 +79,18 @@ export function LoginForm({
         return;
       }
 
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("deleted_at")
         .eq("id", user.id)
         .maybeSingle();
+
+      if (profileError) {
+        console.error("[login-form] profile deleted_at fetch failed", profileError);
+        await supabase.auth.signOut();
+        setError("アカウント状態の確認に失敗しました。時間をおいて再度お試しください。");
+        return;
+      }
 
       if (profile?.deleted_at) {
         const res = await fetch("/api/account", { method: "DELETE" });
@@ -118,17 +128,19 @@ export function LoginForm({
           メールアドレスとパスワードでログインします。
         </p>
       </div>
-      {accountDeleted ? (
+      {profileFetchFailed ? (
+        <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+          アカウント状態の確認に失敗しました。通信環境をご確認のうえ、時間をおいて再度ログインしてください。
+        </p>
+      ) : accountDeleted ? (
         <p className="rounded-md border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
           アカウントを削除しました。同じメールアドレスで新規登録し直すこともできます。
         </p>
-      ) : null}
-      {accountInactive && !accountDeleted ? (
+      ) : accountInactive ? (
         <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
           このアカウントは利用停止のためログインできません。以前メールとパスワードで登録している場合は、下のフォームでログインすると利用停止の整理が行われ、その後同じメールで新規登録できます。Google のみの場合はお問い合わせください。
         </p>
-      ) : null}
-      {authConfirmFailed && !accountDeleted && !accountInactive ? (
+      ) : authConfirmFailed ? (
         <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
           メールの確認リンクが無効か期限切れです。未登録の場合は新規登録し、既に登録済みの場合は確認メールを再送するか、ログインをお試しください。
         </p>

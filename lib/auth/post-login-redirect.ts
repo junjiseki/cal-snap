@@ -13,11 +13,19 @@ export async function nextResponseAfterSession(
   } = await supabase.auth.getUser();
 
   if (user) {
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("deleted_at")
       .eq("id", user.id)
       .maybeSingle();
+
+    if (profileError) {
+      console.error("[nextResponseAfterSession] profile deleted_at fetch failed", profileError);
+      await supabase.auth.signOut();
+      return NextResponse.redirect(
+        new URL(`/login?error=profile_fetch&next=${encodeURIComponent(nextPath)}`, requestUrl.origin),
+      );
+    }
 
     if (profile?.deleted_at) {
       await supabase.auth.signOut();

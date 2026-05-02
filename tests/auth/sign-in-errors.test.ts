@@ -20,4 +20,16 @@ describe("mapSupabaseSignInError", () => {
     );
     expect(text).toContain("確認が完了していません");
   });
+
+  it("maps user not found", () => {
+    const text = mapSupabaseSignInError(
+      err({ message: "User not found", code: "user_not_found", status: 400 }),
+    );
+    expect(text).toContain("登録されていません");
+  });
+
+  it("falls back to generic message for unknown errors", () => {
+    const text = mapSupabaseSignInError(err({ message: "Something weird", status: 500 }));
+    expect(text).toContain("ログインに失敗しました");
+  });
 });

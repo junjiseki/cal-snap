@@ -158,7 +158,7 @@ export default async function BillingPage() {
                 過去の食事から、次に食べる候補を作成。
               </h2>
               <p className="mt-3 text-sm leading-7 text-muted-foreground">
-                外食・自炊・コンビニと、朝ご飯・昼食・夜ご飯を選ぶだけで、Geminiが過去の食事傾向をもとにメニューを提案します。有料プランでは1日{MEAL_SUGGESTION_DAILY_LIMIT}回まで利用できます。
+                外食・自炊・コンビニと、朝ご飯・昼食・夜ご飯を選ぶだけで、AIが過去の食事傾向をもとにメニューを提案します。有料プランでは1日{MEAL_SUGGESTION_DAILY_LIMIT}回まで利用できます。
               </p>
             </div>
             <Link

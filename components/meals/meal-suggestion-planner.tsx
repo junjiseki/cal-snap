@@ -77,7 +77,7 @@ export function MealSuggestionPlanner({ initialUsage }: { initialUsage: Usage })
         <p className="text-sm font-semibold text-primary">有料プラン限定</p>
         <h2 className="mt-2 text-xl font-semibold">食事メニューを提案</h2>
         <p className="mt-2 text-sm leading-7 text-muted-foreground">
-          外食・自炊・コンビニから選び、過去の食事傾向をもとにGeminiが候補を作ります。
+          外食・自炊・コンビニから選び、過去の食事傾向をもとにAIが候補を作ります。
         </p>
 
         <div className="mt-5 space-y-5">

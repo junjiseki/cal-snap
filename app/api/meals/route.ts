@@ -1,4 +1,5 @@
 import { MealRegistrationSchema, toConfidence, toInteger } from "@/lib/meal-analysis";
+import { forbiddenOriginResponse, isAllowedOrigin } from "@/lib/security/request";
 import type { Json } from "@/lib/supabase/database.types";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 
@@ -9,6 +10,10 @@ function errorResponse(message: string, status: number, code: string) {
 }
 
 export async function POST(request: Request) {
+  if (!isAllowedOrigin(request)) {
+    return forbiddenOriginResponse();
+  }
+
   const { supabase, user } = await getAuthenticatedUser();
 
   if (!user) {

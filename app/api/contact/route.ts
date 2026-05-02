@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { forbiddenOriginResponse, isAllowedOrigin } from "@/lib/security/request";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 
@@ -77,6 +78,10 @@ function countUrls(text: string) {
 }
 
 export async function POST(request: Request) {
+  if (!isAllowedOrigin(request)) {
+    return forbiddenOriginResponse();
+  }
+
   let body: unknown;
 
   try {

@@ -1,3 +1,4 @@
+import { forbiddenOriginResponse, isAllowedOrigin } from "@/lib/security/request";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 import { getStripeServer } from "@/lib/stripe/server";
 
@@ -8,6 +9,10 @@ function errorResponse(message: string, status: number, code: string) {
 }
 
 export async function POST(request: Request) {
+  if (!isAllowedOrigin(request)) {
+    return forbiddenOriginResponse();
+  }
+
   const { user } = await getAuthenticatedUser();
   if (!user) {
     return errorResponse("ログインが必要です。", 401, "UNAUTHENTICATED");

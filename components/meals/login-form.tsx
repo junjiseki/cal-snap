@@ -6,7 +6,13 @@ import { Loader2, LogIn } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { GoogleMark } from "@/components/auth/google-mark";
 
-export function LoginForm({ next = "/dashboard" }: { next?: string }) {
+export function LoginForm({
+  next = "/dashboard",
+  accountDeleted = false,
+}: {
+  next?: string;
+  accountDeleted?: boolean;
+}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -68,6 +74,11 @@ export function LoginForm({ next = "/dashboard" }: { next?: string }) {
           メールアドレスとパスワードでログインします。
         </p>
       </div>
+      {accountDeleted ? (
+        <p className="rounded-md border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
+          アカウントを削除しました。このアカウントではログインできません。新しくご利用になる場合は別のメールアドレスで新規登録してください。
+        </p>
+      ) : null}
       <label className="block text-sm font-medium">
         メールアドレス
         <input
@@ -93,15 +104,17 @@ export function LoginForm({ next = "/dashboard" }: { next?: string }) {
       <button
         type="submit"
         disabled={isLoggingIn || isGoogleLoading}
+        aria-busy={isLoggingIn}
         className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50"
       >
         {isLoggingIn ? <Loader2 className="size-4 animate-spin" /> : <LogIn className="size-4" />}
-        ログイン
+        {isLoggingIn ? "ログイン中..." : "ログイン"}
       </button>
       <button
         type="button"
         onClick={signInWithGoogle}
         disabled={isLoggingIn || isGoogleLoading}
+        aria-busy={isGoogleLoading}
         className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-border bg-card px-4 text-sm font-semibold text-foreground disabled:opacity-50"
       >
         {isGoogleLoading ? (
@@ -109,7 +122,7 @@ export function LoginForm({ next = "/dashboard" }: { next?: string }) {
         ) : (
           <GoogleMark />
         )}
-        Google でログイン
+        {isGoogleLoading ? "Googleへ移動中..." : "Google でログイン"}
       </button>
       <p className="text-center text-sm text-muted-foreground">
         アカウントがない場合は{" "}

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 type MealItem = {
   id: string;
@@ -213,9 +214,11 @@ export function MealList({ meals }: { meals: MealRow[] }) {
                     type="button"
                     onClick={() => removeMeal(meal.id)}
                     disabled={isBusy}
-                    className="min-h-10 flex-1 rounded-md border border-destructive/40 px-3 text-sm font-semibold text-destructive disabled:opacity-50 sm:h-8 sm:min-h-0 sm:flex-none sm:text-xs"
+                    aria-busy={isBusy}
+                    className="inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-md border border-destructive/40 px-3 text-sm font-semibold text-destructive disabled:opacity-50 sm:h-8 sm:min-h-0 sm:flex-none sm:text-xs"
                   >
-                    削除
+                    {isBusy ? <Loader2 className="size-4 animate-spin sm:size-3" /> : null}
+                    {isBusy ? "削除中..." : "削除"}
                   </button>
                 </div>
               </div>
@@ -299,9 +302,11 @@ export function MealList({ meals }: { meals: MealRow[] }) {
                     type="button"
                     onClick={saveEdit}
                     disabled={isBusy}
-                    className="h-9 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+                    aria-busy={isBusy}
+                    className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50"
                   >
-                    保存
+                    {isBusy ? <Loader2 className="size-4 animate-spin" /> : null}
+                    {isBusy ? "保存中..." : "保存"}
                   </button>
                   <button
                     type="button"

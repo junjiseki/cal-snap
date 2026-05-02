@@ -1,3 +1,4 @@
+import { forbiddenOriginResponse, isAllowedOrigin } from "@/lib/security/request";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -15,6 +16,10 @@ type MealUpdateBody = {
   memo?: string | null;
 };
 
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const MAX_NUTRITION_VALUE = 100_000;
+const MAX_MEMO_LENGTH = 1000;
+
 function toSafeNumber(value: unknown) {
   if (typeof value !== "number" || Number.isNaN(value)) {
     return null;
@@ -26,11 +31,18 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ mealId: string }> },
 ) {
+  if (!isAllowedOrigin(request)) {
+    return forbiddenOriginResponse();
+  }
+
   const { mealId } = await params;
   const { supabase, user } = await getAuthenticatedUser();
 
   if (!user) {
     return errorResponse("ログインが必要です。", 401, "UNAUTHENTICATED");
+  }
+  if (!uuidPattern.test(mealId)) {
+    return errorResponse("食事IDが不正です。", 400, "INVALID_MEAL_ID");
   }
 
   let body: MealUpdateBody;
@@ -50,18 +62,27 @@ export async function PATCH(
     payload.eaten_at = parsed.toISOString();
   }
   if (toSafeNumber(body.total_calories) !== null) {
-    payload.total_calories = Math.max(0, Math.round(body.total_calories as number));
+    payload.total_calories = Math.min(
+      MAX_NUTRITION_VALUE,
+      Math.max(0, Math.round(body.total_calories as number)),
+    );
   }
   if (toSafeNumber(body.protein) !== null) {
-    payload.protein = Math.max(0, Math.round(body.protein as number));
+    payload.protein = Math.min(MAX_NUTRITION_VALUE, Math.max(0, Math.round(body.protein as number)));
   }
   if (toSafeNumber(body.fat) !== null) {
-    payload.fat = Math.max(0, Math.round(body.fat as number));
+    payload.fat = Math.min(MAX_NUTRITION_VALUE, Math.max(0, Math.round(body.fat as number)));
   }
   if (toSafeNumber(body.carbs) !== null) {
-    payload.carbs = Math.max(0, Math.round(body.carbs as number));
+    payload.carbs = Math.min(MAX_NUTRITION_VALUE, Math.max(0, Math.round(body.carbs as number)));
   }
-  if (body.memo !== undefined) payload.memo = body.memo?.trim() ? body.memo.trim() : null;
+  if (body.memo !== undefined) {
+    const memo = body.memo?.trim() ? body.memo.trim() : null;
+    if (memo && memo.length > MAX_MEMO_LENGTH) {
+      return errorResponse("メモは1000文字以内で入力してください。", 400, "MEMO_TOO_LONG");
+    }
+    payload.memo = memo;
+  }
 
   if (Object.keys(payload).length === 0) {
     return errorResponse("更新内容がありません。", 400, "EMPTY_UPDATE");
@@ -81,14 +102,21 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ mealId: string }> },
 ) {
+  if (!isAllowedOrigin(request)) {
+    return forbiddenOriginResponse();
+  }
+
   const { mealId } = await params;
   const { supabase, user } = await getAuthenticatedUser();
 
   if (!user) {
     return errorResponse("ログインが必要です。", 401, "UNAUTHENTICATED");
+  }
+  if (!uuidPattern.test(mealId)) {
+    return errorResponse("食事IDが不正です。", 400, "INVALID_MEAL_ID");
   }
 
   const { error } = await supabase

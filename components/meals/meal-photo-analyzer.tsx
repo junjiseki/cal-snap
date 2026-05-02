@@ -46,6 +46,9 @@ type ApiError = {
   };
 };
 
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const MAX_CLIENT_IMAGE_BYTES = 5 * 1024 * 1024;
+
 function todayInputValue() {
   const formatter = new Intl.DateTimeFormat("sv-SE", {
     timeZone: "Asia/Tokyo",
@@ -418,6 +421,18 @@ export function MealPhotoAnalyzer() {
     setError(null);
     setNotice(null);
     setAnalysis(null);
+    if (selected && !ALLOWED_IMAGE_TYPES.has(selected.type)) {
+      setFile(null);
+      setError("JPEG、PNG、WebP の画像を選択してください。");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+    if (selected && selected.size > MAX_CLIENT_IMAGE_BYTES) {
+      setFile(null);
+      setError("画像サイズは5MB以下にしてください。");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
     setFile(selected);
   }
 
@@ -688,7 +703,7 @@ export function MealPhotoAnalyzer() {
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp"
             capture="environment"
             className="hidden"
             onChange={handleFileChange}

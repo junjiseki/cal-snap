@@ -17,12 +17,14 @@ export type Database = {
           plan: Plan;
           daily_calorie_goal: number;
           created_at: string;
+          deleted_at: string | null;
         };
         Insert: {
           id: string;
           plan?: Plan;
           daily_calorie_goal?: number;
           created_at?: string;
+          deleted_at?: string | null;
         };
         Update: {
           plan?: Plan;
@@ -144,6 +146,14 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      soft_delete_my_account: {
+        Args: Record<string, never>;
+        Returns: undefined;
+      };
+      current_profile_active: {
+        Args: Record<string, never>;
+        Returns: boolean;
+      };
       claim_ai_analysis_slot: {
         Args: {
           p_user_id: string;
@@ -171,6 +181,19 @@ export type Database = {
           p_items: Json;
         };
         Returns: string;
+      };
+      get_daily_meal_summary: {
+        Args: {
+          p_start: string;
+          p_end: string;
+        };
+        Returns: {
+          meal_count: number;
+          calories: number;
+          protein: number;
+          fat: number;
+          carbs: number;
+        }[];
       };
     };
     Enums: {

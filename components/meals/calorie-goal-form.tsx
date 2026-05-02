@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 export function CalorieGoalForm({ initialGoal }: { initialGoal: number }) {
   const router = useRouter();
@@ -61,8 +62,10 @@ export function CalorieGoalForm({ initialGoal }: { initialGoal: number }) {
           type="button"
           onClick={() => void save()}
           disabled={!canSubmit}
-          className="h-10 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:pointer-events-none disabled:opacity-50"
+          aria-busy={isSaving}
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:pointer-events-none disabled:opacity-50"
         >
+          {isSaving ? <Loader2 className="size-4 animate-spin" /> : null}
           {isSaving ? "保存中..." : "摂取カロリーを設定"}
         </button>
       </div>

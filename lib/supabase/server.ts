@@ -46,5 +46,16 @@ export async function getAuthenticatedUser() {
     return { supabase, user: null };
   }
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("deleted_at")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profile?.deleted_at) {
+    await supabase.auth.signOut();
+    return { supabase, user: null };
+  }
+
   return { supabase, user };
 }

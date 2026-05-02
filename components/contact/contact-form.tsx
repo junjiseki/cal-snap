@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, Send } from "lucide-react";
+import { CheckCircle2, Loader2, Send } from "lucide-react";
 
 const categories = [
   { value: "support", label: "使い方について" },
@@ -180,10 +180,11 @@ export function ContactForm() {
         <button
           type="submit"
           disabled={isSubmitting}
+          aria-busy={isSubmitting}
           className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm disabled:opacity-50"
         >
-          <Send className="size-4" />
-          {isSubmitting ? "送信中" : "送信する"}
+          {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+          {isSubmitting ? "送信中..." : "送信する"}
         </button>
       </div>
     </form>

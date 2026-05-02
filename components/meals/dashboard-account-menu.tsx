@@ -1,24 +1,23 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, User } from "lucide-react";
+import { CreditCard, Loader2, LogOut, Settings, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CalorieGoalForm } from "@/components/meals/calorie-goal-form";
-import { UpgradePlanButton } from "@/components/meals/upgrade-plan-button";
 import { createClient } from "@/lib/supabase/client";
 
 export function DashboardAccountMenu({
   email,
+  displayName,
   plan,
-  initialGoal,
   freeDailyAnalysisLimit,
   paidDailyAnalysisLimit,
   compact = false,
 }: {
   email: string;
+  displayName: string;
   plan: string;
-  initialGoal: number;
   freeDailyAnalysisLimit: number;
   paidDailyAnalysisLimit: number;
   compact?: boolean;
@@ -60,6 +59,30 @@ export function DashboardAccountMenu({
   }, [open]);
 
   const planLabel = plan === "paid" ? "有料" : "無料";
+  const accountName = displayName.trim() || "アカウント";
+  const avatarLabel = displayName.trim().slice(0, 1).toUpperCase();
+  const avatar = avatarLabel || <User className="size-4" />;
+  const billingLabel = plan === "paid" ? "プラン管理" : "アップグレードプラン";
+  const menuLinks = [
+    {
+      href: "/profile",
+      label: "プロフィール編集",
+      description: "1日の摂取カロリーを設定",
+      icon: User,
+    },
+    {
+      href: "/billing",
+      label: billingLabel,
+      description: "AI解析枠と支払いを管理",
+      icon: CreditCard,
+    },
+    {
+      href: "/settings",
+      label: "設定",
+      description: "ログアウト・アカウント操作",
+      icon: Settings,
+    },
+  ] as const;
 
   if (compact) {
     return (
@@ -67,10 +90,10 @@ export function DashboardAccountMenu({
         <div className="flex items-center justify-between gap-3 rounded-md bg-muted/40 px-3 py-3">
           <div className="flex min-w-0 items-center gap-3">
             <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-md bg-background text-muted-foreground">
-              <User className="size-4" />
+              {avatar}
             </span>
             <div className="min-w-0">
-              <p className="text-sm font-semibold">アカウント</p>
+              <p className="truncate text-sm font-semibold">{accountName}</p>
               <p className="truncate text-xs text-muted-foreground">{email}</p>
             </div>
           </div>
@@ -78,32 +101,39 @@ export function DashboardAccountMenu({
             {planLabel}
           </span>
         </div>
-        <div className="rounded-md border border-border bg-background p-3">
-          <p className="text-xs font-medium text-muted-foreground">AI解析枠</p>
-          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-            無料は1日{freeDailyAnalysisLimit}回、有料は1日{paidDailyAnalysisLimit}
-            回まで利用できます。
-          </p>
-          {plan !== "paid" ? (
-            <div className="mt-3">
-              <UpgradePlanButton />
-            </div>
-          ) : null}
+        <div className="grid gap-2">
+          {menuLinks.map(({ href, label, description, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              className="flex min-h-14 items-center gap-3 rounded-md border border-border bg-background px-3 py-2"
+            >
+              <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                <Icon className="size-4" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold">{label}</span>
+                <span className="mt-0.5 block text-xs leading-5 text-muted-foreground">
+                  {description}
+                </span>
+              </span>
+            </Link>
+          ))}
         </div>
-        <div className="rounded-md border border-border bg-background p-3">
-          <p className="text-xs font-medium text-muted-foreground">1日の摂取カロリー</p>
-          <div className="mt-3">
-            <CalorieGoalForm key={initialGoal} initialGoal={initialGoal} />
-          </div>
+        <div className="rounded-md bg-muted/40 px-3 py-2">
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            AI解析枠: 無料 {freeDailyAnalysisLimit}回 / 有料 {paidDailyAnalysisLimit}回
+          </p>
         </div>
         <Button
           type="button"
           variant="outline"
           disabled={signingOut}
           onClick={() => void handleSignOut()}
+          aria-busy={signingOut}
           className="h-11 w-full gap-2 border-destructive/40 text-destructive hover:bg-destructive/10"
         >
-          <LogOut className="size-4" />
+          {signingOut ? <Loader2 className="size-4 animate-spin" /> : <LogOut className="size-4" />}
           {signingOut ? "ログアウト中..." : "ログアウト"}
         </Button>
       </div>
@@ -121,45 +151,59 @@ export function DashboardAccountMenu({
         aria-label={open ? "アカウントメニューを閉じる" : "アカウントメニューを開く"}
         className="gap-2"
       >
-        <User className="size-4" aria-hidden />
+        <span className="text-xs font-semibold" aria-hidden>
+          {avatar}
+        </span>
       </Button>
       {open ? (
         <div
-          className="absolute right-0 z-50 mt-2 w-[min(calc(100vw-2rem),22rem)] rounded-lg border border-border bg-card p-4 shadow-lg"
+          className="absolute right-0 z-50 mt-2 w-[min(calc(100vw-2rem),20rem)] rounded-lg border border-border bg-card p-3 shadow-lg"
           role="menu"
         >
-          <p className="truncate text-xs text-muted-foreground">{email}</p>
-          <div className="mt-4 space-y-1">
-            <p className="text-xs font-medium text-muted-foreground">プラン</p>
-            <p className="text-sm font-semibold">{planLabel}</p>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              無料は1日{freeDailyAnalysisLimit}回、有料は1日{paidDailyAnalysisLimit}
-              回までAI解析できます。
-            </p>
-            {plan !== "paid" ? (
-              <div className="mt-3">
-                <UpgradePlanButton />
-              </div>
-            ) : null}
-          </div>
-          <div className="mt-5 border-t border-border pt-4">
-            <p className="text-xs font-medium text-muted-foreground">1日の摂取カロリー</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              グラフの基準線にも反映されます。
-            </p>
-            <div className="mt-3">
-              <CalorieGoalForm key={initialGoal} initialGoal={initialGoal} />
+          <div className="flex items-center justify-between gap-3 px-1 pb-3">
+            <div className="min-w-0">
+              <p className="truncate text-xs text-muted-foreground">{email}</p>
+              <p className="mt-1 truncate text-sm font-semibold">{accountName}</p>
             </div>
+            <span className="shrink-0 rounded-md bg-muted px-2.5 py-1 text-xs font-semibold text-primary">
+              {planLabel}
+            </span>
           </div>
-          <div className="mt-5 border-t border-border pt-4">
+          <div className="grid gap-1 border-t border-border pt-2">
+            {menuLinks.map(({ href, label, description, icon: Icon }) => (
+              <Link
+                key={href}
+                href={href}
+                role="menuitem"
+                className="flex min-h-12 items-center gap-3 rounded-md px-2 py-2 hover:bg-muted"
+                onClick={() => setOpen(false)}
+              >
+                <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                  <Icon className="size-4" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold">{label}</span>
+                  <span className="mt-0.5 block text-xs leading-5 text-muted-foreground">
+                    {description}
+                  </span>
+                </span>
+              </Link>
+            ))}
+          </div>
+          <div className="mt-2 border-t border-border pt-2">
             <Button
               type="button"
               variant="outline"
               disabled={signingOut}
               onClick={() => void handleSignOut()}
-              className="w-full gap-2 border-destructive/40 text-destructive hover:bg-destructive/10"
+              aria-busy={signingOut}
+              className="h-10 w-full gap-2 border-destructive/40 text-destructive hover:bg-destructive/10"
             >
-              <LogOut className="size-4" />
+              {signingOut ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <LogOut className="size-4" />
+              )}
               {signingOut ? "ログアウト中..." : "ログアウト"}
             </Button>
           </div>

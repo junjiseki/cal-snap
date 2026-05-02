@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 export function DisplayNameForm({ initialName }: { initialName: string }) {
@@ -66,8 +67,10 @@ export function DisplayNameForm({ initialName }: { initialName: string }) {
           type="button"
           onClick={() => void save()}
           disabled={!canSubmit}
-          className="h-10 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:pointer-events-none disabled:opacity-50"
+          aria-busy={isSaving}
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:pointer-events-none disabled:opacity-50"
         >
+          {isSaving ? <Loader2 className="size-4 animate-spin" /> : null}
           {isSaving ? "保存中..." : "表示名を保存"}
         </button>
       </div>

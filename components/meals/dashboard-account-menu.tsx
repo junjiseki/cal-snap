@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CreditCard, LogOut, Settings, User } from "lucide-react";
+import { CreditCard, Loader2, LogOut, Settings, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 
@@ -130,9 +130,10 @@ export function DashboardAccountMenu({
           variant="outline"
           disabled={signingOut}
           onClick={() => void handleSignOut()}
+          aria-busy={signingOut}
           className="h-11 w-full gap-2 border-destructive/40 text-destructive hover:bg-destructive/10"
         >
-          <LogOut className="size-4" />
+          {signingOut ? <Loader2 className="size-4 animate-spin" /> : <LogOut className="size-4" />}
           {signingOut ? "ログアウト中..." : "ログアウト"}
         </Button>
       </div>
@@ -195,9 +196,14 @@ export function DashboardAccountMenu({
               variant="outline"
               disabled={signingOut}
               onClick={() => void handleSignOut()}
+              aria-busy={signingOut}
               className="h-10 w-full gap-2 border-destructive/40 text-destructive hover:bg-destructive/10"
             >
-              <LogOut className="size-4" />
+              {signingOut ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <LogOut className="size-4" />
+              )}
               {signingOut ? "ログアウト中..." : "ログアウト"}
             </Button>
           </div>

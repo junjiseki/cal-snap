@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CreditCard } from "lucide-react";
+import { CreditCard, Loader2 } from "lucide-react";
 
 export function ManageSubscriptionButton({ className }: { className?: string }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -29,13 +29,18 @@ export function ManageSubscriptionButton({ className }: { className?: string }) 
         type="button"
         onClick={() => void openPortal()}
         disabled={isLoading}
+        aria-busy={isLoading}
         className={
           className ??
           "inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-semibold shadow-sm hover:bg-muted disabled:opacity-50"
         }
       >
-        <CreditCard className="size-4 shrink-0" aria-hidden />
-        {isLoading ? "読み込み中..." : "サブスクの管理・解約"}
+        {isLoading ? (
+          <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
+        ) : (
+          <CreditCard className="size-4 shrink-0" aria-hidden />
+        )}
+        {isLoading ? "管理画面を準備中..." : "サブスクの管理・解約"}
       </button>
       <p className="text-xs text-muted-foreground leading-relaxed">
         Stripe の画面で解約・お支払い方法の変更・請求履歴の確認ができます。解約後も請求期間終了までは有料枠が有効な場合があります。

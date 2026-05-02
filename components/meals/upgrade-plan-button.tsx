@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
 export function UpgradePlanButton() {
   const [isLoading, setIsLoading] = useState(false);
@@ -30,9 +31,11 @@ export function UpgradePlanButton() {
         type="button"
         onClick={checkout}
         disabled={isLoading}
-        className="h-10 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+        aria-busy={isLoading}
+        className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50"
       >
-        {isLoading ? "読み込み中..." : "有料プランにアップグレード"}
+        {isLoading ? <Loader2 className="size-4 animate-spin" /> : null}
+        {isLoading ? "決済ページを準備中..." : "有料プランにアップグレード"}
       </button>
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
     </div>

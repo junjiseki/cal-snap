@@ -152,15 +152,17 @@ export function SignupForm({ next = "/dashboard" }: { next?: string }) {
       <button
         type="submit"
         disabled={isSigningUp || isGoogleLoading}
+        aria-busy={isSigningUp}
         className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50"
       >
         {isSigningUp ? <Loader2 className="size-4 animate-spin" /> : null}
-        メールで新規登録
+        {isSigningUp ? "登録中..." : "メールで新規登録"}
       </button>
       <button
         type="button"
         onClick={() => void signUpWithGoogle()}
         disabled={isSigningUp || isGoogleLoading}
+        aria-busy={isGoogleLoading}
         className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-border bg-card px-4 text-sm font-semibold text-foreground disabled:opacity-50"
       >
         {isGoogleLoading ? (
@@ -168,7 +170,7 @@ export function SignupForm({ next = "/dashboard" }: { next?: string }) {
         ) : (
           <GoogleMark />
         )}
-        Google で登録
+        {isGoogleLoading ? "Googleへ移動中..." : "Google で登録"}
       </button>
       <p className="text-center text-sm text-muted-foreground">
         すでにアカウントがある場合は{" "}

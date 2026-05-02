@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Target, X } from "lucide-react";
+import { Loader2, Target, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 export function CalorieGoalOnboardingModal({
@@ -131,16 +131,19 @@ export function CalorieGoalOnboardingModal({
             type="button"
             onClick={() => void saveGoal()}
             disabled={!isValid || isSaving}
-            className="h-11 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:pointer-events-none disabled:opacity-50"
+            aria-busy={isSaving}
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:pointer-events-none disabled:opacity-50"
           >
+            {isSaving ? <Loader2 className="size-4 animate-spin" /> : null}
             {isSaving ? "保存中..." : "設定して始める"}
           </button>
           <button
             type="button"
             onClick={() => void closeForLater()}
             disabled={isSaving}
-            className="h-11 rounded-md border border-border px-4 text-sm font-semibold hover:bg-muted disabled:opacity-50"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-border px-4 text-sm font-semibold hover:bg-muted disabled:opacity-50"
           >
+            {isSaving ? <Loader2 className="size-4 animate-spin" /> : null}
             あとで
           </button>
         </div>

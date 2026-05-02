@@ -104,15 +104,17 @@ export function LoginForm({
       <button
         type="submit"
         disabled={isLoggingIn || isGoogleLoading}
+        aria-busy={isLoggingIn}
         className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50"
       >
         {isLoggingIn ? <Loader2 className="size-4 animate-spin" /> : <LogIn className="size-4" />}
-        ログイン
+        {isLoggingIn ? "ログイン中..." : "ログイン"}
       </button>
       <button
         type="button"
         onClick={signInWithGoogle}
         disabled={isLoggingIn || isGoogleLoading}
+        aria-busy={isGoogleLoading}
         className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-border bg-card px-4 text-sm font-semibold text-foreground disabled:opacity-50"
       >
         {isGoogleLoading ? (
@@ -120,7 +122,7 @@ export function LoginForm({
         ) : (
           <GoogleMark />
         )}
-        Google でログイン
+        {isGoogleLoading ? "Googleへ移動中..." : "Google でログイン"}
       </button>
       <p className="text-center text-sm text-muted-foreground">
         アカウントがない場合は{" "}

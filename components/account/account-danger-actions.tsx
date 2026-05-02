@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, UserX } from "lucide-react";
+import { Loader2, LogOut, UserX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 
@@ -59,9 +59,10 @@ export function AccountDangerActions() {
         variant="outline"
         disabled={signingOut || deletingAccount}
         onClick={() => void handleSignOut()}
+        aria-busy={signingOut}
         className="h-11 gap-2 border-border"
       >
-        <LogOut className="size-4" />
+        {signingOut ? <Loader2 className="size-4 animate-spin" /> : <LogOut className="size-4" />}
         {signingOut ? "ログアウト中..." : "ログアウト"}
       </Button>
       <Button
@@ -69,10 +70,15 @@ export function AccountDangerActions() {
         variant="outline"
         disabled={signingOut || deletingAccount}
         onClick={() => void handleDeleteAccount()}
+        aria-busy={deletingAccount}
         className="h-11 gap-2 border-destructive/50 text-destructive hover:bg-destructive/10"
       >
-        <UserX className="size-4" />
-        {deletingAccount ? "処理中..." : "アカウントを削除"}
+        {deletingAccount ? (
+          <Loader2 className="size-4 animate-spin" />
+        ) : (
+          <UserX className="size-4" />
+        )}
+        {deletingAccount ? "削除処理中..." : "アカウントを削除"}
       </Button>
     </div>
   );

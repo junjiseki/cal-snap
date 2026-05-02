@@ -17,9 +17,10 @@ enum PlanType {
 }
 
 model Profile {
-  id        String   @id @db.Uuid
-  plan      PlanType @default(free)
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  id        String    @id @db.Uuid
+  plan      PlanType  @default(free)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
 
   @@map("profiles")
   @@schema("public")

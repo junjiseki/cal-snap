@@ -6,7 +6,13 @@ import { Loader2, LogIn } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { GoogleMark } from "@/components/auth/google-mark";
 
-export function LoginForm({ next = "/dashboard" }: { next?: string }) {
+export function LoginForm({
+  next = "/dashboard",
+  accountDeleted = false,
+}: {
+  next?: string;
+  accountDeleted?: boolean;
+}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -68,6 +74,11 @@ export function LoginForm({ next = "/dashboard" }: { next?: string }) {
           メールアドレスとパスワードでログインします。
         </p>
       </div>
+      {accountDeleted ? (
+        <p className="rounded-md border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
+          アカウントを削除しました。このアカウントではログインできません。新しくご利用になる場合は別のメールアドレスで新規登録してください。
+        </p>
+      ) : null}
       <label className="block text-sm font-medium">
         メールアドレス
         <input

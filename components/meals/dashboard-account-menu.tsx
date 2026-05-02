@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, UserX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CalorieGoalForm } from "@/components/meals/calorie-goal-form";
 import { UpgradePlanButton } from "@/components/meals/upgrade-plan-button";
@@ -26,6 +26,7 @@ export function DashboardAccountMenu({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   async function handleSignOut() {
@@ -38,6 +39,35 @@ export function DashboardAccountMenu({
       setOpen(false);
       router.refresh();
       router.push("/login");
+    }
+  }
+
+  async function handleDeleteAccount() {
+    const message =
+      "アカウントを削除（利用停止）します。ログインできなくなり、データはサーバー上に残りますが参照できません。この操作は取り消せません。続行しますか？";
+    if (!window.confirm(message)) return;
+
+    setDeletingAccount(true);
+    try {
+      const res = await fetch("/api/account", { method: "DELETE" });
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      setOpen(false);
+      if (res.ok) {
+        router.refresh();
+        router.push("/login?deleted=1");
+        return;
+      }
+      let detail = "アカウントを削除できませんでした。";
+      try {
+        const body = (await res.json()) as { error?: { message?: string } };
+        if (body.error?.message) detail = body.error.message;
+      } catch {
+        /* ignore */
+      }
+      window.alert(detail);
+    } finally {
+      setDeletingAccount(false);
     }
   }
 
@@ -99,12 +129,22 @@ export function DashboardAccountMenu({
         <Button
           type="button"
           variant="outline"
-          disabled={signingOut}
+          disabled={signingOut || deletingAccount}
           onClick={() => void handleSignOut()}
           className="h-11 w-full gap-2 border-destructive/40 text-destructive hover:bg-destructive/10"
         >
           <LogOut className="size-4" />
           {signingOut ? "ログアウト中..." : "ログアウト"}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={signingOut || deletingAccount}
+          onClick={() => void handleDeleteAccount()}
+          className="h-11 w-full gap-2 border-destructive/50 text-destructive hover:bg-destructive/10"
+        >
+          <UserX className="size-4" />
+          {deletingAccount ? "処理中..." : "アカウントを削除"}
         </Button>
       </div>
     );
@@ -151,16 +191,26 @@ export function DashboardAccountMenu({
               <CalorieGoalForm key={initialGoal} initialGoal={initialGoal} />
             </div>
           </div>
-          <div className="mt-5 border-t border-border pt-4">
+          <div className="mt-5 space-y-2 border-t border-border pt-4">
             <Button
               type="button"
               variant="outline"
-              disabled={signingOut}
+              disabled={signingOut || deletingAccount}
               onClick={() => void handleSignOut()}
               className="w-full gap-2 border-destructive/40 text-destructive hover:bg-destructive/10"
             >
               <LogOut className="size-4" />
               {signingOut ? "ログアウト中..." : "ログアウト"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={signingOut || deletingAccount}
+              onClick={() => void handleDeleteAccount()}
+              className="w-full gap-2 border-destructive/50 text-destructive hover:bg-destructive/10"
+            >
+              <UserX className="size-4" />
+              {deletingAccount ? "処理中..." : "アカウントを削除"}
             </Button>
           </div>
         </div>

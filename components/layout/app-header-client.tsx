@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -30,6 +30,10 @@ export function AppHeaderClient({
   const closeMobileMenuSoon = () => {
     window.setTimeout(() => setOpen(false), 120);
   };
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   return (
     <header className={cn("sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur", className)}>
@@ -163,6 +167,7 @@ export function AppHeaderClient({
                       freeDailyAnalysisLimit={account.freeDailyAnalysisLimit}
                       paidDailyAnalysisLimit={account.paidDailyAnalysisLimit}
                       compact
+                      onNavigate={closeMobileMenuSoon}
                     />
                   </div>
                 </div>

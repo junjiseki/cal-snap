@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import {
   Camera,
   CheckCircle2,
+  Images,
   Keyboard,
   Loader2,
   Plus,
@@ -357,7 +358,8 @@ function StepDot({
 
 export function MealPhotoAnalyzer() {
   const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraFileInputRef = useRef<HTMLInputElement>(null);
+  const galleryFileInputRef = useRef<HTMLInputElement>(null);
   const [entryMode, setEntryMode] = useState<EntryMode>("photo");
   const [file, setFile] = useState<File | null>(null);
   const [analysis, setAnalysis] = useState<MealAnalysisForm | null>(null);
@@ -377,11 +379,16 @@ export function MealPhotoAnalyzer() {
   const limitBlocked = (usage?.remaining ?? 1) <= 0;
   const activeStep = analysis ? 3 : file ? 2 : 1;
 
+  function clearFileInputs() {
+    if (cameraFileInputRef.current) cameraFileInputRef.current.value = "";
+    if (galleryFileInputRef.current) galleryFileInputRef.current.value = "";
+  }
+
   function selectEntryMode(mode: EntryMode) {
     setError(null);
     setNotice(null);
     setFile(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    clearFileInputs();
     setEntryMode(mode);
     if (mode === "photo") {
       setAnalysis(null);
@@ -424,13 +431,13 @@ export function MealPhotoAnalyzer() {
     if (selected && !ALLOWED_IMAGE_TYPES.has(selected.type)) {
       setFile(null);
       setError("JPEG、PNG、WebP の画像を選択してください。");
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      clearFileInputs();
       return;
     }
     if (selected && selected.size > MAX_CLIENT_IMAGE_BYTES) {
       setFile(null);
       setError("画像サイズは5MB以下にしてください。");
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      clearFileInputs();
       return;
     }
     setFile(selected);
@@ -441,7 +448,7 @@ export function MealPhotoAnalyzer() {
     setAnalysis(null);
     setError(null);
     setNotice(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    clearFileInputs();
   }
 
   async function analyze() {
@@ -669,46 +676,75 @@ export function MealPhotoAnalyzer() {
         )}
 
         {entryMode === "photo" ? (
-          <label className="group flex min-h-64 cursor-pointer flex-col items-center justify-center gap-3 rounded-md border border-dashed border-border bg-muted/20 p-4 text-center transition-colors hover:border-primary hover:bg-primary/5">
-          {previewUrl ? (
-            <div className="relative inline-block max-h-64 max-w-full">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={previewUrl}
-                alt="選択した食事写真"
-                className="max-h-64 max-w-full rounded-md object-contain"
-              />
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  clearSelectedImage();
-                }}
-                aria-label="画像を取り消し"
-                className="absolute right-1 top-1 z-10 inline-flex size-7 items-center justify-center rounded-full border border-border bg-background/95 text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-destructive/15 hover:text-destructive"
-              >
-                <X className="size-3.5" strokeWidth={2.5} />
-              </button>
-            </div>
-          ) : (
-            <>
-              <span className="inline-flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <Camera className="size-6" />
-              </span>
-              <span className="text-base font-semibold">写真を選択</span>
-              <span className="text-xs text-muted-foreground">5MB以下</span>
-            </>
-          )}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            capture="environment"
-            className="hidden"
-            onChange={handleFileChange}
-          />
-        </label>
+          <div className="flex min-h-64 flex-col items-center justify-center gap-3 rounded-md border border-dashed border-border bg-muted/20 p-4 text-center">
+            {previewUrl ? (
+              <div className="relative inline-block max-h-64 max-w-full">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={previewUrl}
+                  alt="選択した食事写真"
+                  className="max-h-64 max-w-full rounded-md object-contain"
+                />
+                <button
+                  type="button"
+                  onClick={() => clearSelectedImage()}
+                  aria-label="画像を取り消し"
+                  className="absolute right-1 top-1 z-10 inline-flex size-7 items-center justify-center rounded-full border border-border bg-background/95 text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-destructive/15 hover:text-destructive"
+                >
+                  <X className="size-3.5" strokeWidth={2.5} />
+                </button>
+              </div>
+            ) : (
+              <>
+                <span className="inline-flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <Camera className="size-6" />
+                </span>
+                <div>
+                  <p className="text-base font-semibold">食事の写真を追加</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    スマートフォンではカメラ撮影か、保存済みの画像から選べます（5MB以下・JPEG / PNG / WebP）。
+                  </p>
+                </div>
+                <div className="flex w-full max-w-md flex-col gap-2 sm:flex-row sm:justify-center">
+                  <button
+                    type="button"
+                    onClick={() => cameraFileInputRef.current?.click()}
+                    className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-semibold shadow-sm transition-colors hover:border-primary hover:bg-primary/5"
+                  >
+                    <Camera className="size-4 shrink-0" aria-hidden />
+                    カメラで撮る
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => galleryFileInputRef.current?.click()}
+                    className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-semibold shadow-sm transition-colors hover:border-primary hover:bg-primary/5"
+                  >
+                    <Images className="size-4 shrink-0" aria-hidden />
+                    ライブラリから選ぶ
+                  </button>
+                </div>
+                <input
+                  ref={cameraFileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  capture="environment"
+                  className="sr-only"
+                  tabIndex={-1}
+                  aria-hidden
+                  onChange={handleFileChange}
+                />
+                <input
+                  ref={galleryFileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="sr-only"
+                  tabIndex={-1}
+                  aria-hidden
+                  onChange={handleFileChange}
+                />
+              </>
+            )}
+          </div>
         ) : null}
 
         {entryMode === "photo" ? (

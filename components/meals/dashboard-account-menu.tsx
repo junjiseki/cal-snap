@@ -14,6 +14,7 @@ export function DashboardAccountMenu({
   freeDailyAnalysisLimit,
   paidDailyAnalysisLimit,
   compact = false,
+  onNavigate,
 }: {
   email: string;
   displayName: string;
@@ -21,6 +22,7 @@ export function DashboardAccountMenu({
   freeDailyAnalysisLimit: number;
   paidDailyAnalysisLimit: number;
   compact?: boolean;
+  onNavigate?: () => void;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -107,6 +109,7 @@ export function DashboardAccountMenu({
               key={href}
               href={href}
               className="flex min-h-14 items-center gap-3 rounded-md border border-border bg-background px-3 py-2"
+              onClick={onNavigate}
             >
               <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
                 <Icon className="size-4" />
@@ -129,7 +132,10 @@ export function DashboardAccountMenu({
           type="button"
           variant="outline"
           disabled={signingOut}
-          onClick={() => void handleSignOut()}
+          onClick={() => {
+            onNavigate?.();
+            void handleSignOut();
+          }}
           aria-busy={signingOut}
           className="h-11 w-full gap-2 border-destructive/40 text-destructive hover:bg-destructive/10"
         >

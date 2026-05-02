@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -31,7 +31,12 @@ export function AppHeaderClient({
     window.setTimeout(() => setOpen(false), 120);
   };
 
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
   return (
+    <>
     <header className={cn("sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur", className)}>
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-8">
         <div className="flex items-center justify-between gap-3 py-3 sm:py-4">
@@ -103,68 +108,24 @@ export function AppHeaderClient({
             aria-label="モバイルメニュー"
           >
             <div className="mx-auto w-full max-w-7xl px-4 py-4">
-              <div className="mb-3 flex items-center justify-between">
+              <div className="mb-3">
                 <div>
                   <p className="text-xs font-semibold text-primary">Menu</p>
                   <p className="mt-1 text-sm font-semibold">カロリースナップ</p>
                 </div>
-                <button
-                  type="button"
-                  className="inline-flex size-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground"
-                  onClick={() => setOpen(false)}
-                  aria-label="メニューを閉じる"
-                >
-                  <X className="size-4" />
-                </button>
               </div>
 
               {account ? (
                 <div className="space-y-2">
-                  <Link
-                    href="/meals/new"
-                    className={cn(
-                      "flex min-h-12 w-full items-center gap-3 rounded-md px-3 text-sm font-semibold",
-                      isMealAnalyzerPage
-                        ? "pointer-events-none bg-primary/10 text-primary"
-                        : "bg-primary text-primary-foreground shadow-sm",
-                    )}
-                    onClick={closeMobileMenuSoon}
-                    aria-current={isMealAnalyzerPage ? "page" : undefined}
-                  >
-                    <span
-                      className={cn(
-                        "inline-flex size-9 shrink-0 items-center justify-center rounded-md",
-                        isMealAnalyzerPage ? "bg-primary/15" : "bg-primary-foreground/15",
-                      )}
-                    >
-                      <Camera className="size-4" />
-                    </span>
-                    <span className="min-w-0 flex-1 text-left">食事写真をAI解析</span>
-                  </Link>
-                  <Link
-                    href="/dashboard"
-                    className={cn(
-                      "flex min-h-12 w-full items-center gap-3 rounded-md border border-border bg-background px-3 text-sm font-semibold",
-                      isDashboardPage && "pointer-events-none border-primary/25 bg-primary/10 text-primary",
-                    )}
-                    onClick={closeMobileMenuSoon}
-                    aria-current={isDashboardPage ? "page" : undefined}
-                  >
-                    <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-                      <BarChart3 className="size-4" />
-                    </span>
-                    <span className="min-w-0 flex-1 text-left">ダッシュボード</span>
-                  </Link>
-                  <div className="mt-4 border-t border-border pt-4">
-                    <DashboardAccountMenu
-                      email={account.email}
-                      displayName={account.displayName}
-                      plan={account.plan}
-                      freeDailyAnalysisLimit={account.freeDailyAnalysisLimit}
-                      paidDailyAnalysisLimit={account.paidDailyAnalysisLimit}
-                      compact
-                    />
-                  </div>
+                  <DashboardAccountMenu
+                    email={account.email}
+                    displayName={account.displayName}
+                    plan={account.plan}
+                    freeDailyAnalysisLimit={account.freeDailyAnalysisLimit}
+                    paidDailyAnalysisLimit={account.paidDailyAnalysisLimit}
+                    compact
+                    onNavigate={closeMobileMenuSoon}
+                  />
                 </div>
               ) : (
                 <div className="grid gap-2">
@@ -195,5 +156,41 @@ export function AppHeaderClient({
         </div>
       ) : null}
     </header>
+    {account ? (
+      <nav
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 px-4 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur md:hidden"
+        aria-label="ボトムナビゲーション"
+      >
+        <div className="mx-auto grid max-w-md grid-cols-2 gap-2">
+          <Link
+            href="/dashboard"
+            aria-current={isDashboardPage ? "page" : undefined}
+            className={cn(
+              "flex min-h-12 flex-col items-center justify-center gap-1 rounded-md text-xs font-semibold",
+              isDashboardPage
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground active:bg-muted",
+            )}
+          >
+            <BarChart3 className="size-5" />
+            ダッシュボード
+          </Link>
+          <Link
+            href="/meals/new"
+            aria-current={isMealAnalyzerPage ? "page" : undefined}
+            className={cn(
+              "flex min-h-12 flex-col items-center justify-center gap-1 rounded-md text-xs font-semibold",
+              isMealAnalyzerPage
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground active:bg-muted",
+            )}
+          >
+            <Camera className="size-5" />
+            食事解析
+          </Link>
+        </div>
+      </nav>
+    ) : null}
+    </>
   );
 }

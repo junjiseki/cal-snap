@@ -82,7 +82,7 @@ export default async function RootLayout({
         <CleanupStaleSession />
         <AppHeader />
         <div className="flex flex-1 flex-col">{children}</div>
-        <footer className="border-t border-border bg-card">
+        <footer className="border-t border-border bg-card pb-20 md:pb-0">
           <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 px-4 py-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8">
             <p>© {new Date().getFullYear()} カロリースナップ</p>
             <div className="flex gap-4">

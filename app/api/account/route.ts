@@ -1,5 +1,7 @@
 import { forbiddenOriginResponse, isAllowedOrigin } from "@/lib/security/request";
-import { getAuthenticatedUser } from "@/lib/supabase/server";
+import { cancelStripeSubscriptionsForUser } from "@/lib/stripe/cancel-subscriptions-for-user";
+import { getSupabaseAdminClient } from "@/lib/supabase/admin";
+import { getAuthSessionUser } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -12,16 +14,34 @@ export async function DELETE(request: Request) {
     return forbiddenOriginResponse();
   }
 
-  const { supabase, user } = await getAuthenticatedUser();
+  const { supabase, user } = await getAuthSessionUser();
 
   if (!user) {
     return errorResponse("ログインが必要です。", 401, "UNAUTHENTICATED");
   }
 
-  const { error } = await supabase.rpc("soft_delete_my_account");
+  const userId = user.id;
 
-  if (error) {
-    console.error("[account-delete]", error);
+  const stripeCancel = await cancelStripeSubscriptionsForUser(userId);
+  if (!stripeCancel.ok) {
+    return errorResponse(stripeCancel.message, 502, stripeCancel.code);
+  }
+
+  let supabaseAdmin: ReturnType<typeof getSupabaseAdminClient>;
+  try {
+    supabaseAdmin = getSupabaseAdminClient();
+  } catch {
+    return errorResponse(
+      "アカウントを削除する設定が不足しています。",
+      500,
+      "SUPABASE_ADMIN_NOT_CONFIGURED",
+    );
+  }
+
+  const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+
+  if (deleteError) {
+    console.error("[account-delete]", deleteError);
     return errorResponse("アカウントを削除できません。", 500, "ACCOUNT_DELETE_FAILED");
   }
 

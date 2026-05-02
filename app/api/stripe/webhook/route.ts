@@ -58,20 +58,45 @@ export async function POST(request: Request) {
 
   const supabase = getSupabaseAdminClient();
 
+  async function updateProfilePlanIfActive(userId: string, plan: "free" | "paid") {
+    const { data: authUser, error: authLookupError } = await supabase.auth.admin.getUserById(userId);
+    if (authLookupError || !authUser?.user) {
+      console.log("[stripe-webhook] skip plan update: auth user not found (deleted?)", {
+        userId,
+        plan,
+      });
+      return;
+    }
+
+    const { data: profile, error: selectError } = await supabase
+      .from("profiles")
+      .select("deleted_at")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (selectError) {
+      throw selectError;
+    }
+
+    if (profile?.deleted_at) {
+      console.log("[stripe-webhook] skip plan update for soft-deleted user", { userId, plan });
+      return;
+    }
+
+    const { error } = await supabase.from("profiles").upsert(
+      { id: userId, plan },
+      { onConflict: "id" },
+    );
+    if (error) throw error;
+  }
+
   try {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
       const userId = await resolveUserIdFromCheckoutSession(stripe, session);
       console.log("[stripe-webhook] checkout.session.completed userId", { userId });
       if (userId) {
-        const { error } = await supabase.from("profiles").upsert(
-          {
-            id: userId,
-            plan: "paid",
-          },
-          { onConflict: "id" },
-        );
-        if (error) throw error;
+        await updateProfilePlanIfActive(userId, "paid");
       }
     }
 
@@ -85,14 +110,7 @@ export async function POST(request: Request) {
       if (userId) {
         const activeStatuses = new Set(["active", "trialing", "past_due"]);
         const nextPlan = activeStatuses.has(subscription.status) ? "paid" : "free";
-        const { error } = await supabase.from("profiles").upsert(
-          {
-            id: userId,
-            plan: nextPlan,
-          },
-          { onConflict: "id" },
-        );
-        if (error) throw error;
+        await updateProfilePlanIfActive(userId, nextPlan);
       }
     }
   } catch (error) {

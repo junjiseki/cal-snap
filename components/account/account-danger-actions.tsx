@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { Loader2, LogOut, UserX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
+import { getAccountDeleteConfirmMessage } from "@/lib/account-delete";
+import type { Plan } from "@/lib/supabase/database.types";
 
-export function AccountDangerActions() {
+export function AccountDangerActions({ plan = "free" }: { plan?: Plan }) {
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
@@ -24,29 +26,27 @@ export function AccountDangerActions() {
   }
 
   async function handleDeleteAccount() {
-    const message =
-      "アカウントを削除（利用停止）します。ログインできなくなり、データはサーバー上に残りますが参照できません。この操作は取り消せません。続行しますか？";
-    if (!window.confirm(message)) return;
+    if (!window.confirm(getAccountDeleteConfirmMessage(plan))) return;
 
     setDeletingAccount(true);
     try {
       const res = await fetch("/api/account", { method: "DELETE" });
-      const supabase = createClient();
-      await supabase.auth.signOut();
-      if (res.ok) {
-        router.refresh();
-        router.push("/login?deleted=1");
+      if (!res.ok) {
+        let detail = "アカウントを削除できませんでした。";
+        try {
+          const body = (await res.json()) as { error?: { message?: string } };
+          if (body.error?.message) detail = body.error.message;
+        } catch {
+          /* ignore */
+        }
+        window.alert(detail);
         return;
       }
 
-      let detail = "アカウントを削除できませんでした。";
-      try {
-        const body = (await res.json()) as { error?: { message?: string } };
-        if (body.error?.message) detail = body.error.message;
-      } catch {
-        /* ignore */
-      }
-      window.alert(detail);
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      router.refresh();
+      router.push("/login?deleted=1");
     } finally {
       setDeletingAccount(false);
     }

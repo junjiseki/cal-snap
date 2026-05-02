@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
+import { nextResponseAfterSession } from "@/lib/auth/post-login-redirect";
 import { safeInternalPath } from "@/lib/auth/safe-redirect";
 import { createClient } from "@/lib/supabase/server";
 
@@ -12,7 +13,7 @@ export async function GET(request: Request) {
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      return NextResponse.redirect(new URL(next, url.origin));
+      return nextResponseAfterSession(supabase, next, url);
     }
     return NextResponse.redirect(new URL("/login?error=auth_confirm", url.origin));
   }
@@ -25,7 +26,7 @@ export async function GET(request: Request) {
       type: type as EmailOtpType,
     });
     if (!error) {
-      return NextResponse.redirect(new URL(next, url.origin));
+      return nextResponseAfterSession(supabase, next, url);
     }
   }
 

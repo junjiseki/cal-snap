@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { ArrowLeft, Settings } from "lucide-react";
 import { AccountDangerActions } from "@/components/account/account-danger-actions";
+import { ChangePasswordForm } from "@/components/account/change-password-form";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
-  const { user } = await getAuthenticatedUser();
+  const { supabase, user } = await getAuthenticatedUser();
 
   if (!user) {
     return (
@@ -26,6 +27,17 @@ export default async function SettingsPage() {
       </main>
     );
   }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("plan")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const plan = profile?.plan === "paid" ? "paid" : "free";
+  const hasEmailPassword =
+    user.identities?.some((identity) => identity.provider === "email") ?? false;
+  const emailForPassword = user.email ?? "";
 
   return (
     <main className="min-h-0 flex-1 bg-background">
@@ -52,12 +64,39 @@ export default async function SettingsPage() {
 
       <div className="mx-auto grid w-full max-w-4xl gap-5 px-4 py-5 sm:px-8 sm:py-6">
         <section className="border border-border bg-card p-5">
+          <h2 className="text-lg font-semibold">パスワード</h2>
+          <p className="mt-2 text-sm leading-7 text-muted-foreground">
+            メールアドレスとパスワードでログインしている場合のみ変更できます。
+          </p>
+          <div className="mt-4">
+            {hasEmailPassword && emailForPassword ? (
+              <ChangePasswordForm userEmail={emailForPassword} />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {hasEmailPassword && !emailForPassword
+                  ? "メールアドレスが未設定のため、パスワードを変更できません。"
+                  : "Google などでログインしているアカウントにはパスワードがありません。メールでのログインが必要な場合は、ログアウトして新規登録するか、サポートへお問い合わせください。"}
+              </p>
+            )}
+          </div>
+        </section>
+
+        <section className="border border-border bg-card p-5">
           <h2 className="text-lg font-semibold">セッション</h2>
           <p className="mt-2 text-sm leading-7 text-muted-foreground">
             ログアウトとアカウント削除はこちらで操作します。
           </p>
+          {plan === "paid" ? (
+            <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm leading-relaxed text-amber-950">
+              有料プラン契約中でも、アカウント削除時に Stripe のサブスクリプションは自動解約されます。請求履歴やお支払い方法は{" "}
+              <Link href="/billing" className="font-semibold underline underline-offset-2">
+                料金・プラン
+              </Link>
+              からご確認ください。
+            </p>
+          ) : null}
           <div className="mt-4">
-            <AccountDangerActions />
+            <AccountDangerActions plan={plan} />
           </div>
         </section>
       </div>

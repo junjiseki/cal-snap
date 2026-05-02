@@ -1,7 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   MealAnalysisSchema,
   MealRegistrationSchema,
+  getDailyAnalysisLimit,
+  getDayRangeInJapan,
+  getTodayRangeInJapan,
   toConfidence,
   toInteger,
 } from "@/lib/meal-analysis";
@@ -112,6 +115,43 @@ describe("MealRegistrationSchema", () => {
       eaten_at: "not-a-date",
     });
     expect(result.success).toBe(false);
+  });
+});
+
+describe("getDayRangeInJapan", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-02T12:00:00.000Z"));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("uses explicit YYYY-MM-DD when valid", () => {
+    const r = getDayRangeInJapan("2026-06-15");
+    expect(r.date).toBe("2026-06-15");
+    expect(r.isToday).toBe(false);
+    expect(r.start).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    expect(r.end).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+  });
+
+  it("falls back to today when date string is invalid", () => {
+    const today = getTodayRangeInJapan();
+    const r = getDayRangeInJapan("not-a-date");
+    expect(r.date).toBe(today.date);
+    expect(r.isToday).toBe(true);
+  });
+});
+
+describe("getDailyAnalysisLimit", () => {
+  it("returns distinct limits per plan", () => {
+    const free = getDailyAnalysisLimit("free");
+    const paid = getDailyAnalysisLimit("paid");
+    expect(typeof free).toBe("number");
+    expect(typeof paid).toBe("number");
+    expect(free).toBeGreaterThan(0);
+    expect(paid).toBeGreaterThan(0);
   });
 });
 

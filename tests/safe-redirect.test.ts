@@ -22,4 +22,12 @@ describe("safeInternalPath", () => {
     expect(safeInternalPath("", "/home")).toBe("/home");
     expect(safeInternalPath("dashboard", "/home")).toBe("/home");
   });
+
+  it("rejects paths containing NUL", () => {
+    expect(safeInternalPath("/dash\0board", "/fallback")).toBe("/fallback");
+  });
+
+  it("trims whitespace and allows valid internal path", () => {
+    expect(safeInternalPath("  /profile  ", "/")).toBe("/profile");
+  });
 });

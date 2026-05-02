@@ -99,7 +99,9 @@ export function SignupForm({ next = "/dashboard" }: { next?: string }) {
         caught instanceof Error ? caught.message.toLowerCase() : "";
 
       if (message.includes("already registered") || message.includes("already exists")) {
-        setError("このメールアドレスは既に登録済みです。ログイン画面からサインインしてください。");
+        setError(
+          "このメールアドレスは既に登録済みです。以前アカウントを利用停止にした場合は、一度ログイン画面から同じメールでログインすると整理され、その後に再度新規登録できます。",
+        );
       } else {
         setError(caught instanceof Error ? caught.message : "ユーザー登録に失敗しました。");
       }

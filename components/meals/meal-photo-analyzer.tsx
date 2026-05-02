@@ -705,22 +705,22 @@ export function MealPhotoAnalyzer() {
                     スマートフォンではカメラ撮影か、保存済みの画像から選べます（5MB以下・JPEG / PNG / WebP）。
                   </p>
                 </div>
-                <div className="flex w-full max-w-md flex-col gap-2 sm:flex-row sm:justify-center">
+                <div className="flex w-full max-w-md gap-2 flex-row justify-center">
                   <button
                     type="button"
                     onClick={() => cameraFileInputRef.current?.click()}
-                    className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-semibold shadow-sm transition-colors hover:border-primary hover:bg-primary/5"
+                    className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-semibold shadow-sm transition-colors hover:border-primary hover:bg-primary/5"
                   >
-                    <Camera className="size-4 shrink-0" aria-hidden />
-                    カメラで撮る
+                    <Camera className="size-5 shrink-0" aria-hidden />
+                    カメラ撮影
                   </button>
                   <button
                     type="button"
                     onClick={() => galleryFileInputRef.current?.click()}
-                    className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-semibold shadow-sm transition-colors hover:border-primary hover:bg-primary/5"
+                    className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-semibold shadow-sm transition-colors hover:border-primary hover:bg-primary/5"
                   >
-                    <Images className="size-4 shrink-0" aria-hidden />
-                    ライブラリから選ぶ
+                    <Images className="size-5 shrink-0" aria-hidden />
+                    写真選択
                   </button>
                 </div>
                 <input

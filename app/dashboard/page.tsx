@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Camera, TrendingDown, TrendingUp } from "lucide-react";
+import { Camera, Sparkles, TrendingDown, TrendingUp } from "lucide-react";
 import { getDayRangeInJapan } from "@/lib/meal-analysis";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 import { CalorieGoalOnboardingModal } from "@/components/account/calorie-goal-onboarding-modal";
@@ -287,6 +287,29 @@ export default async function DashboardPage({
             食事データを取得できません。
           </p>
         ) : null}
+
+        <section className="border border-primary/20 bg-primary/5 p-4 sm:p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex gap-3">
+              <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                <Sparkles className="size-5" />
+              </span>
+              <div>
+                <h2 className="font-semibold">次の食事に迷ったら</h2>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                  有料プランでは、過去の食事から外食・自炊・コンビニ向けのメニューを1日3回提案できます。
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/suggestions"
+              className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm"
+            >
+              食事提案へ
+              <Sparkles className="size-4" />
+            </Link>
+          </div>
+        </section>
 
         <section className="space-y-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">

@@ -43,7 +43,7 @@ export function ManageSubscriptionButton({ className }: { className?: string }) 
         {isLoading ? "管理画面を準備中..." : "サブスクの管理・解約"}
       </button>
       <p className="text-xs text-muted-foreground leading-relaxed">
-        Stripe の画面で解約・お支払い方法の変更・請求履歴の確認ができます。解約後も請求期間終了までは有料枠が有効な場合があります。
+        サブスク管理画面で解約・お支払い方法の変更・請求履歴の確認ができます。解約後も請求期間終了までは有料枠が有効な場合があります。
       </p>
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
     </div>

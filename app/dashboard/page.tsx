@@ -143,18 +143,31 @@ export default async function DashboardPage({
   last14DaysStart.setDate(last14DaysStart.getDate() - 13);
   last14DaysStart.setHours(0, 0, 0, 0);
   // TODO: Replace this mock billing state with Stripe webhook-driven profile updates.
-  const { data: profile } = await supabase
+  const profileQuery = supabase
     .from("profiles")
     .select("plan,daily_calorie_goal")
     .eq("id", user.id)
     .maybeSingle();
-  const { data: totalMeals, error: totalError } = await supabase
+  const summaryQuery = supabase
+    .rpc("get_daily_meal_summary", {
+      p_start: start,
+      p_end: end,
+    })
+    .single();
+  const chartMealsQuery = supabase
     .from("meals")
-    .select("total_calories,protein,fat,carbs")
+    .select("id,eaten_at,total_calories")
     .eq("user_id", user.id)
-    .gte("eaten_at", start)
-    .lte("eaten_at", end);
-  const mealCount = totalMeals?.length ?? 0;
+    .gte("eaten_at", last14DaysStart.toISOString())
+    .order("eaten_at", { ascending: true });
+
+  const [
+    { data: profile },
+    { data: summary, error: summaryError },
+    { data: chartMeals, error: chartError },
+  ] = await Promise.all([profileQuery, summaryQuery, chartMealsQuery]);
+
+  const mealCount = Number(summary?.meal_count ?? 0);
   const totalPages = Math.max(1, Math.ceil(mealCount / MEALS_PAGE_SIZE));
   const currentPage = Math.min(requestedPage, totalPages);
   const rangeFrom = (currentPage - 1) * MEALS_PAGE_SIZE;
@@ -169,23 +182,14 @@ export default async function DashboardPage({
     .lte("eaten_at", end)
     .order("eaten_at", { ascending: false })
     .range(rangeFrom, rangeTo);
-  const { data: chartMeals, error: chartError } = await supabase
-    .from("meals")
-    .select("id,eaten_at,total_calories")
-    .eq("user_id", user.id)
-    .gte("eaten_at", last14DaysStart.toISOString())
-    .order("eaten_at", { ascending: true });
 
   const meals = (data ?? []) as unknown as MealRow[];
-  const total = (totalMeals ?? []).reduce(
-    (sum, meal) => ({
-      calories: sum.calories + meal.total_calories,
-      protein: sum.protein + Number(meal.protein),
-      fat: sum.fat + Number(meal.fat),
-      carbs: sum.carbs + Number(meal.carbs),
-    }),
-    { calories: 0, protein: 0, fat: 0, carbs: 0 },
-  );
+  const total = {
+    calories: Number(summary?.calories ?? 0),
+    protein: Number(summary?.protein ?? 0),
+    fat: Number(summary?.fat ?? 0),
+    carbs: Number(summary?.carbs ?? 0),
+  };
   const pageStart = mealCount === 0 ? 0 : rangeFrom + 1;
   const pageEnd = Math.min(rangeTo + 1, mealCount);
   const visiblePages = Array.from(
@@ -278,7 +282,7 @@ export default async function DashboardPage({
       </section>
 
       <div className="mx-auto w-full max-w-7xl space-y-5 px-4 py-5 sm:space-y-6 sm:px-8 sm:py-6">
-        {error || totalError || chartError ? (
+        {error || summaryError || chartError ? (
           <p className="border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
             食事データを取得できません。
           </p>

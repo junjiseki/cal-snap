@@ -182,6 +182,19 @@ export type Database = {
         };
         Returns: string;
       };
+      get_daily_meal_summary: {
+        Args: {
+          p_start: string;
+          p_end: string;
+        };
+        Returns: {
+          meal_count: number;
+          calories: number;
+          protein: number;
+          fat: number;
+          carbs: number;
+        }[];
+      };
     };
     Enums: {
       plan_type: Plan;

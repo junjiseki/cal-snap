@@ -82,6 +82,7 @@ export function PublicHome() {
                   width={385}
                   height={723}
                   priority
+                  sizes="(min-width: 1024px) 15rem, (min-width: 640px) 13.5rem, min(78vw, 19rem)"
                   className="h-auto w-full"
                 />
               </div>
@@ -100,7 +101,7 @@ export function PublicHome() {
                 alt="食事写真をAI解析して確認・修正している画面"
                 width={1357}
                 height={1281}
-                priority
+                sizes="(min-width: 1024px) 44rem, (min-width: 640px) calc(100vw - 16rem), 0px"
                 className="h-auto w-full rounded-sm"
               />
             </div>

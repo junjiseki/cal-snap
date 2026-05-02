@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { BarChart3, Camera, LogIn, Menu, UserPlus, X } from "lucide-react";
+import { BarChart3, Camera, LogIn, Menu, Sparkles, UserPlus, X } from "lucide-react";
 import { DashboardAccountMenu } from "@/components/meals/dashboard-account-menu";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +27,7 @@ export function AppHeaderClient({
   const pathname = usePathname();
   const isDashboardPage = pathname === "/dashboard";
   const isMealAnalyzerPage = pathname === "/meals/new";
+  const isSuggestionsPage = pathname === "/suggestions";
   const closeMobileMenuSoon = () => {
     window.setTimeout(() => setOpen(false), 120);
   };
@@ -161,7 +162,7 @@ export function AppHeaderClient({
         className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 px-4 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur md:hidden"
         aria-label="ボトムナビゲーション"
       >
-        <div className="mx-auto grid max-w-md grid-cols-2 gap-2">
+        <div className="mx-auto grid max-w-md grid-cols-3 gap-2">
           <Link
             href="/dashboard"
             aria-current={isDashboardPage ? "page" : undefined}
@@ -187,6 +188,19 @@ export function AppHeaderClient({
           >
             <Camera className="size-5" />
             食事解析
+          </Link>
+          <Link
+            href="/suggestions"
+            aria-current={isSuggestionsPage ? "page" : undefined}
+            className={cn(
+              "flex min-h-12 flex-col items-center justify-center gap-1 rounded-md text-xs font-semibold",
+              isSuggestionsPage
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground active:bg-muted",
+            )}
+          >
+            <Sparkles className="size-5" />
+            食事提案
           </Link>
         </div>
       </nav>

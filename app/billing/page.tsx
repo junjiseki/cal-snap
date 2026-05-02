@@ -14,6 +14,7 @@ import {
   FREE_DAILY_ANALYSIS_LIMIT,
   PAID_DAILY_ANALYSIS_LIMIT,
 } from "@/lib/meal-analysis";
+import { MEAL_SUGGESTION_DAILY_LIMIT } from "@/lib/meal-suggestions";
 
 export const dynamic = "force-dynamic";
 const PAID_PLAN_PRICE_LABEL = "550円";
@@ -26,8 +27,8 @@ const paidBenefits = [
   },
   {
     icon: Sparkles,
-    title: "入力の手間を減らす",
-    body: "料理名やPFCのたたき台を作るので、修正して保存するだけで記録できます。",
+    title: "食事提案が1日3回",
+    body: "過去の食事から、外食・自炊・コンビニ向けのメニュー候補を作れます。",
   },
   {
     icon: ShieldCheck,
@@ -89,7 +90,7 @@ export default async function BillingPage() {
               <p className="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
                 {isPaid
                   ? "支払い方法、請求履歴、解約はStripeの管理画面から確認できます。"
-                  : `月額${PAID_PLAN_PRICE_LABEL}でAI解析枠を1日${PAID_DAILY_ANALYSIS_LIMIT}回利用できます。写真から下書きを自動生成し、確認して保存するだけのシンプルなフローで、継続しやすくします。`}
+                  : `月額${PAID_PLAN_PRICE_LABEL}でAI解析枠を1日${PAID_DAILY_ANALYSIS_LIMIT}回、食事提案を1日${MEAL_SUGGESTION_DAILY_LIMIT}回利用できます。記録と次の食事決めを軽くします。`}
               </p>
             </div>
           </div>
@@ -120,7 +121,7 @@ export default async function BillingPage() {
               </span>
             </div>
             <p className="mt-4 text-sm leading-7 text-muted-foreground">
-              1日{PAID_DAILY_ANALYSIS_LIMIT}回までAI解析。食事写真を撮ってカロリーを推定し、保存するだけのシンプルなフローで、継続しやすくします。
+              1日{PAID_DAILY_ANALYSIS_LIMIT}回までAI解析。さらに過去の食事から、次のメニュー提案を1日{MEAL_SUGGESTION_DAILY_LIMIT}回使えます。
             </p>
             <div className="mt-5">
               {isPaid ? <ManageSubscriptionButton /> : <UpgradePlanButton />}
@@ -149,10 +150,51 @@ export default async function BillingPage() {
           ))}
         </section>
 
+        <section className="border border-border bg-card p-5">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div className="max-w-2xl">
+              <p className="text-sm font-semibold text-primary">食事メニュー提案</p>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight">
+                過去の食事から、次に食べる候補を作成。
+              </h2>
+              <p className="mt-3 text-sm leading-7 text-muted-foreground">
+                外食・自炊・コンビニと、朝ご飯・昼食・夜ご飯を選ぶだけで、Geminiが過去の食事傾向をもとにメニューを提案します。有料プランでは1日{MEAL_SUGGESTION_DAILY_LIMIT}回まで利用できます。
+              </p>
+            </div>
+            <Link
+              href="/suggestions"
+              className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-semibold hover:bg-muted"
+            >
+              食事提案を見る
+              <Sparkles className="size-4" />
+            </Link>
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-md border border-border bg-background p-4">
+              <p className="text-sm font-semibold">1. シーンを選択</p>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                外食・自炊・コンビニから選択。
+              </p>
+            </div>
+            <div className="rounded-md border border-border bg-background p-4">
+              <p className="text-sm font-semibold">2. 食事タイミング</p>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                朝ご飯・昼食・夜ご飯を指定。
+              </p>
+            </div>
+            <div className="rounded-md border border-border bg-background p-4">
+              <p className="text-sm font-semibold">3. 候補を確認</p>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                カロリーとPFC付きで3候補を表示。
+              </p>
+            </div>
+          </div>
+        </section>
+
         {!isPaid ? (
           <section className="border border-border bg-card p-5">
             <h2 className="text-lg font-semibold">無料と有料の違い</h2>
-            <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+            <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-md border border-border p-4">
                 <p className="text-muted-foreground">AI解析回数</p>
                 <p className="mt-3 text-xs text-muted-foreground">無料</p>
@@ -160,6 +202,15 @@ export default async function BillingPage() {
                 <p className="mt-2 text-xs text-muted-foreground">有料</p>
                 <p className="font-semibold text-primary">
                   1日{PAID_DAILY_ANALYSIS_LIMIT}回
+                </p>
+              </div>
+              <div className="rounded-md border border-border p-4">
+                <p className="text-muted-foreground">食事メニュー提案</p>
+                <p className="mt-3 text-xs text-muted-foreground">無料</p>
+                <p>なし</p>
+                <p className="mt-2 text-xs text-muted-foreground">有料</p>
+                <p className="font-semibold text-primary">
+                  1日{MEAL_SUGGESTION_DAILY_LIMIT}回
                 </p>
               </div>
               <div className="rounded-md border border-border p-4">

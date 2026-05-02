@@ -118,6 +118,29 @@ export type Database = {
         };
         Relationships: [];
       };
+      meal_suggestion_logs: {
+        Row: {
+          id: string;
+          user_id: string;
+          suggested_at: string;
+          model: string;
+          context: "eat_out" | "cook" | "convenience";
+          meal_slot: "breakfast" | "lunch" | "dinner";
+          success: boolean;
+        };
+        Insert: {
+          user_id: string;
+          suggested_at?: string;
+          model: string;
+          context: "eat_out" | "cook" | "convenience";
+          meal_slot: "breakfast" | "lunch" | "dinner";
+          success?: boolean;
+        };
+        Update: {
+          success?: boolean;
+        };
+        Relationships: [];
+      };
       contact_messages: {
         Row: {
           id: string;
@@ -158,6 +181,22 @@ export type Database = {
         Args: {
           p_user_id: string;
           p_model: string;
+          p_daily_limit: number;
+          p_day_start: string;
+          p_day_end: string;
+        };
+        Returns: {
+          log_id: string;
+          used: number;
+          daily_limit: number;
+        }[];
+      };
+      claim_meal_suggestion_slot: {
+        Args: {
+          p_user_id: string;
+          p_model: string;
+          p_context: string;
+          p_meal_slot: string;
           p_daily_limit: number;
           p_day_start: string;
           p_day_end: string;

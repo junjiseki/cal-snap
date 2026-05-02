@@ -8,6 +8,7 @@ import {
   HeartPulse,
   Edit3,
   PartyPopper,
+  Sparkles,
   Smartphone,
   Sun,
 } from "lucide-react";
@@ -29,9 +30,9 @@ const valueProps = [
     body: "ダッシュボードで摂取カロリー、PFC、推移をすぐ確認できます。",
   },
   {
-    icon: Smartphone,
-    title: "スマホで完結",
-    body: "外食後や移動中でも、撮影から登録まで短い導線で進められます。",
+    icon: Sparkles,
+    title: "次の食事も提案",
+    body: "有料プランでは過去の食事から、外食・自炊・コンビニ向けのメニューを提案します。",
   },
 ] as const;
 
@@ -216,6 +217,65 @@ export function PublicHome() {
               好きな物を記録して始める
               <ArrowRight className="size-4" />
             </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-border bg-card">
+        <div className="mx-auto grid w-full max-w-7xl gap-7 px-4 py-10 sm:px-8 lg:grid-cols-[1fr_1fr] lg:items-center">
+          <div className="max-w-2xl">
+            <p className="inline-flex items-center gap-2 rounded-md bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary">
+              <Sparkles className="size-4" />
+              有料プラン限定
+            </p>
+            <h2 className="mt-4 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
+              次に何を食べるかも、AIに相談。
+            </h2>
+            <p className="mt-4 text-base leading-8 text-muted-foreground">
+              外食・自炊・コンビニを選び、朝ご飯・昼食・夜ご飯を指定するだけ。過去の食事傾向から、AIが今日の残りカロリーに合わせたメニュー候補を提案します。
+            </p>
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              {["外食", "自炊", "コンビニ"].map((label) => (
+                <div key={label} className="rounded-md border border-border bg-background p-3 text-center text-sm font-semibold">
+                  {label}
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 grid gap-3 sm:grid-cols-3">
+              {["朝ご飯", "昼食", "夜ご飯"].map((label) => (
+                <div key={label} className="rounded-md border border-border bg-background p-3 text-center text-sm font-semibold">
+                  {label}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="border border-border bg-background p-4 sm:p-5">
+            <div className="rounded-md bg-primary/5 p-4 text-sm leading-7 text-primary">
+              本日の残りカロリーと過去の傾向から、満足感を保ちながら調整しやすい候補を提案します。
+            </div>
+            <div className="mt-4 space-y-3">
+              {[
+                ["外食の候補", "寿司10貫セット + あさり汁", "約720 kcal"],
+                ["自炊の候補", "焼き魚定食 + ご飯普通盛り", "約780 kcal"],
+                ["コンビニの候補", "おにぎり + サラダチキン + 味噌汁", "約520 kcal"],
+              ].map(([title, menu, calories]) => (
+                <article key={title} className="border border-border bg-card p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-primary">{title}</p>
+                      <h3 className="mt-1 font-semibold">{menu}</h3>
+                    </div>
+                    <span className="shrink-0 rounded-md bg-muted px-2 py-1 text-xs font-semibold">
+                      {calories}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    好きな物を禁止せず、1日の中で調整しやすい組み合わせを提案します。
+                  </p>
+                </article>
+              ))}
+            </div>
           </div>
         </div>
       </section>

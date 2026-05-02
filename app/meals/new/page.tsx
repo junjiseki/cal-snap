@@ -41,7 +41,7 @@ export default async function NewMealPage() {
               </div>
               <Link
                 href="/dashboard"
-                className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-semibold shadow-sm hover:bg-muted sm:w-auto"
+                className="hidden h-11 shrink-0 items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-semibold shadow-sm hover:bg-muted sm:inline-flex sm:w-auto"
               >
                 <BarChart3 className="size-4" />
                 ダッシュボード

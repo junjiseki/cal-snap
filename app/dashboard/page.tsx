@@ -233,7 +233,7 @@ export default async function DashboardPage({
               </div>
               <Link
                 href="/meals/new"
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm sm:w-auto"
+                className="hidden h-11 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm sm:inline-flex sm:w-auto"
               >
                 <Camera className="size-4" />
                 食事を登録

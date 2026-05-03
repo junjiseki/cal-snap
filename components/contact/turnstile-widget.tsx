@@ -41,6 +41,7 @@ export function TurnstileWidget({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const widgetIdRef = useRef<string | null>(null);
   const [widgetError, setWidgetError] = useState<string | null>(null);
+  const [scriptStatus, setScriptStatus] = useState<"loading" | "ready" | "error">("loading");
   const { resolvedTheme } = useTheme();
   const theme: "light" | "dark" =
     resolvedTheme === "dark" ? "dark" : "light";
@@ -74,8 +75,12 @@ export function TurnstileWidget({
       }
       if (!window.turnstile) {
         attempts += 1;
-        if (attempts < 80) {
+        if (attempts < 150) {
           window.setTimeout(renderWidget, 100);
+        } else {
+          setWidgetError(
+            "Turnstileの読み込みに時間がかかっています。通信環境を確認し、ページを再読み込みしてください。",
+          );
         }
         return;
       }
@@ -127,7 +132,7 @@ export function TurnstileWidget({
         widgetIdRef.current = null;
       }
     };
-  }, [onTokenChange, theme]);
+  }, [onTokenChange, theme, scriptStatus]);
 
   if (!TURNSTILE_SITE_KEY) {
     return (
@@ -142,6 +147,17 @@ export function TurnstileWidget({
       <Script
         src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
         strategy="afterInteractive"
+        onReady={() => {
+          setScriptStatus("ready");
+          setWidgetError(null);
+        }}
+        onError={() => {
+          setScriptStatus("error");
+          onTokenChange("");
+          setWidgetError(
+            "Turnstileを読み込めませんでした。広告ブロッカーやネットワーク設定を確認してください。",
+          );
+        }}
       />
       <div ref={containerRef} />
       <p className="mt-2 text-xs leading-6 text-muted-foreground">

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Camera, Sparkles, TrendingDown, TrendingUp } from "lucide-react";
 import { getCalorieOverLevel, getDayRangeInJapan } from "@/lib/meal-analysis";
-import { getAuthenticatedUser } from "@/lib/supabase/server";
+import { getAuthenticatedUserCached } from "@/lib/supabase/server";
 import { CalorieGoalOnboardingModal } from "@/components/account/calorie-goal-onboarding-modal";
 import { DashboardMealCalendar } from "@/components/meals/dashboard-meal-calendar";
 import { MealList } from "@/components/meals/meal-list";
@@ -86,7 +86,7 @@ export default async function DashboardPage({
     meals_page?: string;
   }>;
 }) {
-  const { supabase, user } = await getAuthenticatedUser();
+  const { supabase, user } = await getAuthenticatedUserCached();
 
   if (!user) {
     return (

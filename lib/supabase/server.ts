@@ -1,7 +1,14 @@
 import { cookies } from "next/headers";
+import { cache } from "react";
 import { createServerClient } from "@supabase/ssr";
 import type { Database } from "@/lib/supabase/database.types";
 import { isStaleRefreshTokenError } from "@/lib/supabase/stale-session";
+
+function hasSupabaseAuthCookie(cookieStore: Awaited<ReturnType<typeof cookies>>) {
+  return cookieStore
+    .getAll()
+    .some((cookie) => cookie.name.startsWith("sb-") && cookie.name.includes("-auth-token"));
+}
 
 export async function createClient() {
   const cookieStore = await cookies();
@@ -35,7 +42,12 @@ export async function createClient() {
  * 論理削除のみ残っているレガシーアカウントの `DELETE /api/account` などで使う。
  */
 export async function getAuthSessionUser() {
+  const cookieStore = await cookies();
   const supabase = await createClient();
+  if (!hasSupabaseAuthCookie(cookieStore)) {
+    return { supabase, user: null };
+  }
+
   const {
     data: { user },
     error,
@@ -73,3 +85,9 @@ export async function getAuthenticatedUser() {
 
   return { supabase, user };
 }
+
+/**
+ * Server Components / Layout 内で同一リクエスト中の認証取得を共有する。
+ * Route Handler では副作用やリクエスト境界を明確にするため、通常の getAuthenticatedUser を使う。
+ */
+export const getAuthenticatedUserCached = cache(getAuthenticatedUser);

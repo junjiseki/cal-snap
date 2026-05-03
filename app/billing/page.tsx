@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { ManageSubscriptionButton } from "@/components/meals/manage-subscription-button";
 import { UpgradePlanButton } from "@/components/meals/upgrade-plan-button";
-import { getAuthenticatedUser } from "@/lib/supabase/server";
+import { getAuthenticatedUserCached } from "@/lib/supabase/server";
 import {
   FREE_DAILY_ANALYSIS_LIMIT,
   PAID_DAILY_ANALYSIS_LIMIT,
@@ -38,7 +38,7 @@ const paidBenefits = [
 ] as const;
 
 export default async function BillingPage() {
-  const { supabase, user } = await getAuthenticatedUser();
+  const { supabase, user } = await getAuthenticatedUserCached();
 
   if (!user) {
     return (

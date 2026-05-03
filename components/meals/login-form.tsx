@@ -6,6 +6,7 @@ import { Loader2, LogIn } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { GoogleMark } from "@/components/auth/google-mark";
 import { mapSupabaseSignInError } from "@/lib/auth/sign-in-errors";
+import { safeInternalPath } from "@/lib/auth/safe-redirect";
 
 export function LoginForm({
   next = "/dashboard",
@@ -112,7 +113,7 @@ export function LoginForm({
         return;
       }
 
-      window.location.href = next;
+      window.location.href = safeInternalPath(next, "/dashboard");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "ログインに失敗しました。");
     } finally {

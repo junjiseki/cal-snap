@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, Settings } from "lucide-react";
 import { AccountDangerActions } from "@/components/account/account-danger-actions";
 import { ChangePasswordForm } from "@/components/account/change-password-form";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -63,6 +64,16 @@ export default async function SettingsPage() {
       </section>
 
       <div className="mx-auto grid w-full max-w-4xl gap-5 px-4 py-5 sm:px-8 sm:py-6">
+        <section className="border border-border bg-card p-5">
+          <h2 className="text-lg font-semibold">表示</h2>
+          <p className="mt-2 text-sm leading-7 text-muted-foreground">
+            ライトモードとダークモードを切り替えられます。
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <ThemeToggle />
+          </div>
+        </section>
+
         <section className="border border-border bg-card p-5">
           <h2 className="text-lg font-semibold">パスワード</h2>
           <p className="mt-2 text-sm leading-7 text-muted-foreground">

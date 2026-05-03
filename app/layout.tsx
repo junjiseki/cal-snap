@@ -1,13 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
-import { Geist } from "next/font/google";
+import { Geist, Noto_Sans_JP } from "next/font/google";
 import { getSiteUrl } from "@/lib/site-url";
 import { cn } from "@/lib/utils";
 import { CleanupStaleSession } from "@/components/auth/cleanup-stale-session";
 import { AppHeader } from "@/components/layout/app-header";
+import { ThemeProvider } from "@/components/theme-provider";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist",
+});
+
+const noto = Noto_Sans_JP({
+  subsets: ["latin"],
+  variable: "--font-jp",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -20,12 +29,16 @@ export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   keywords: [
     "カロリー管理",
-    "食事記録",
+    "食事管理",
     "PFC",
     "栄養管理",
     "ダイエット",
     "食事写真",
     "AI解析",
+    "筋トレ",
+    "ジム",
+    "健康",
+    "生活",
   ],
   alternates: {
     canonical: "/",
@@ -77,30 +90,36 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" className={cn("h-full antialiased", "font-sans", geist.variable)}>
+    <html
+      lang="ja"
+      suppressHydrationWarning
+      className={cn("h-full antialiased", "font-sans", geist.variable, noto.variable)}
+    >
       <body className="flex min-h-full flex-col">
-        <CleanupStaleSession />
-        <AppHeader />
-        <div className="flex flex-1 flex-col">{children}</div>
-        <footer className="border-t border-border bg-card pb-20 md:pb-0">
-          <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 px-4 py-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8">
-            <p>© {new Date().getFullYear()} カロリースナップ</p>
-            <div className="flex gap-4">
-              <Link href="/contact" className="hover:text-foreground">
-                お問い合わせ
-              </Link>
-              <Link href="/terms" className="hover:text-foreground">
-                利用規約
-              </Link>
-              <Link href="/privacy" className="hover:text-foreground">
-                プライバシーポリシー
-              </Link>
-              <Link href="/commerce-disclosure" className="hover:text-foreground">
-                特商法表記
-              </Link>
+        <ThemeProvider>
+          <CleanupStaleSession />
+          <AppHeader />
+          <div className="flex flex-1 flex-col">{children}</div>
+          <footer className="border-t border-border bg-card pb-20 md:pb-0">
+            <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 px-4 py-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8">
+              <p>© {new Date().getFullYear()} カロリースナップ</p>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-left sm:flex sm:items-center sm:gap-4">
+                <Link href="/contact" className="hover:text-foreground sm:whitespace-nowrap">
+                  お問い合わせ
+                </Link>
+                <Link href="/terms" className="hover:text-foreground sm:whitespace-nowrap">
+                  利用規約
+                </Link>
+                <Link href="/privacy" className="hover:text-foreground sm:whitespace-nowrap">
+                  プライバシーポリシー
+                </Link>
+                <Link href="/commerce-disclosure" className="hover:text-foreground sm:whitespace-nowrap">
+                  特商法表記
+                </Link>
+              </div>
             </div>
-          </div>
-        </footer>
+          </footer>
+        </ThemeProvider>
       </body>
     </html>
   );

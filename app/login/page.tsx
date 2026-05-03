@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/meals/login-form";
+import { safeInternalPath } from "@/lib/auth/safe-redirect";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 
 export default async function LoginPage({
@@ -23,7 +24,7 @@ export default async function LoginPage({
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 items-center justify-center px-4 py-10 sm:px-5">
       <LoginForm
-        next={params.next || "/dashboard"}
+        next={safeInternalPath(params.next ?? null, "/dashboard")}
         accountDeleted={params.deleted === "1"}
         accountInactive={params.inactive === "1"}
         authConfirmFailed={params.error === "auth_confirm"}

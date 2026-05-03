@@ -15,5 +15,10 @@ export function safeInternalPath(next: string | null, fallback: string): string 
   if (trimmed.includes("\0")) {
     return fallback;
   }
+  // パブリックホーム（/）はログイン直後の遷移先にしない。Cookie 反映前の SSR で
+  // 未ログイン扱いになり、ランディングが表示されうる。
+  if (trimmed === "/") {
+    return fallback;
+  }
   return trimmed;
 }

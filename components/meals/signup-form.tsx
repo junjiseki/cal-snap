@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { safeInternalPath } from "@/lib/auth/safe-redirect";
 import { GoogleMark } from "@/components/auth/google-mark";
 
 export function SignupForm({ next = "/dashboard" }: { next?: string }) {
@@ -76,7 +77,7 @@ export function SignupForm({ next = "/dashboard" }: { next?: string }) {
       }
 
       if (session) {
-        router.push(next);
+        router.push(safeInternalPath(next, "/dashboard"));
         router.refresh();
         return;
       }

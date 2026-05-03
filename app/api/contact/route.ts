@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { forbiddenOriginResponse, isAllowedOrigin } from "@/lib/security/request";
+import { validateTurnstileToken } from "@/lib/security/turnstile";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 
@@ -20,6 +21,7 @@ const ContactSchema = z.object({
   message: z.string().trim().min(10).max(2000),
   submittedAt: z.number().int().positive(),
   website: z.string().max(200).optional().default(""),
+  turnstileToken: z.string().trim().min(1).max(2048),
 });
 
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
@@ -106,6 +108,15 @@ export async function POST(request: Request) {
 
   if (countUrls(parsed.data.message) > 2) {
     return errorResponse("URLが多すぎます。内容を確認してください。", 400, "TOO_MANY_LINKS");
+  }
+
+  const turnstile = await validateTurnstileToken(parsed.data.turnstileToken, request);
+  if (!turnstile.ok) {
+    const message =
+      turnstile.code === "not_configured"
+        ? "Turnstileのシークレットキーが未設定です。"
+        : "スパム対策の確認に失敗しました。ページを更新して再度お試しください。";
+    return errorResponse(message, 400, "TURNSTILE_FAILED");
   }
 
   const clientKey = getClientKey(request, parsed.data.email);

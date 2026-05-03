@@ -39,15 +39,20 @@ export async function validateTurnstileToken(
     request.headers.get("x-real-ip") ||
     undefined;
 
+  const body = new URLSearchParams();
+  body.set("secret", secret);
+  body.set("response", normalizedToken);
+  if (remoteIp) {
+    body.set("remoteip", remoteIp);
+  }
+
   try {
     const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        secret,
-        response: normalizedToken,
-        remoteip: remoteIp,
-      }),
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: body.toString(),
     });
 
     const parsed = TurnstileVerifyResponseSchema.safeParse(await response.json());

@@ -1,5 +1,7 @@
 "use client";
 
+import Script from "next/script";
+import { useTheme } from "next-themes";
 import { useEffect, useRef } from "react";
 
 const TEST_TURNSTILE_SITE_KEY = "1x00000000000000000000AA";
@@ -28,11 +30,27 @@ declare global {
 
 export function TurnstileWidget({
   onTokenChange,
+  resetSignal = 0,
 }: {
   onTokenChange: (token: string) => void;
+  /** 成功送信後にインクリメントするとウィジェットを reset し、再送信可能にする */
+  resetSignal?: number;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const widgetIdRef = useRef<string | null>(null);
+  const { resolvedTheme } = useTheme();
+  const theme: "light" | "dark" =
+    resolvedTheme === "dark" ? "dark" : "light";
+
+  useEffect(() => {
+    if (resetSignal === 0) {
+      return;
+    }
+    if (widgetIdRef.current && window.turnstile?.reset) {
+      window.turnstile.reset(widgetIdRef.current);
+      onTokenChange("");
+    }
+  }, [resetSignal, onTokenChange]);
 
   useEffect(() => {
     let cancelled = false;
@@ -56,7 +74,7 @@ export function TurnstileWidget({
 
       widgetIdRef.current = window.turnstile.render(containerRef.current, {
         sitekey: TURNSTILE_SITE_KEY,
-        theme: "light",
+        theme,
         callback: onTokenChange,
         "expired-callback": () => onTokenChange(""),
         "error-callback": () => onTokenChange(""),
@@ -72,7 +90,7 @@ export function TurnstileWidget({
         widgetIdRef.current = null;
       }
     };
-  }, [onTokenChange]);
+  }, [onTokenChange, theme]);
 
   if (!TURNSTILE_SITE_KEY) {
     return (
@@ -84,6 +102,10 @@ export function TurnstileWidget({
 
   return (
     <div>
+      <Script
+        src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+        strategy="afterInteractive"
+      />
       <div ref={containerRef} />
       <p className="mt-2 text-xs leading-6 text-muted-foreground">
         スパム対策のためCloudflare Turnstileで確認します。

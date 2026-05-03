@@ -42,6 +42,7 @@ export function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+  const [turnstileResetSignal, setTurnstileResetSignal] = useState(0);
   const handleTurnstileTokenChange = useCallback((turnstileToken: string) => {
     setForm((current) => ({ ...current, turnstileToken }));
   }, []);
@@ -78,6 +79,7 @@ export function ContactForm() {
         throw new Error(data?.error?.message ?? "お問い合わせを送信できませんでした。");
       }
       setForm(createInitialForm());
+      setTurnstileResetSignal((n) => n + 1);
       setSent(true);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "お問い合わせを送信できませんでした。");
@@ -186,6 +188,7 @@ export function ContactForm() {
 
       <TurnstileWidget
         onTokenChange={handleTurnstileTokenChange}
+        resetSignal={turnstileResetSignal}
       />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

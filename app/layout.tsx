@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Script from "next/script";
 import "./globals.css";
 import { Geist, Noto_Sans_JP } from "next/font/google";
 import { getSiteUrl } from "@/lib/site-url";
@@ -96,9 +95,6 @@ export default async function RootLayout({
       suppressHydrationWarning
       className={cn("h-full antialiased", "font-sans", geist.variable, noto.variable)}
     >
-      <head>
-        <link rel="preconnect" href="https://challenges.cloudflare.com" />
-      </head>
       <body className="flex min-h-full flex-col">
         <ThemeProvider>
           <CleanupStaleSession />
@@ -123,10 +119,6 @@ export default async function RootLayout({
               </div>
             </div>
           </footer>
-          <Script
-            src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
-            strategy="afterInteractive"
-          />
         </ThemeProvider>
       </body>
     </html>

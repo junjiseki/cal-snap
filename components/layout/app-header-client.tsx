@@ -6,7 +6,6 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { BarChart3, Camera, LogIn, Menu, Sparkles, UserPlus, X } from "lucide-react";
 import { DashboardAccountMenu } from "@/components/meals/dashboard-account-menu";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 
 export type AppHeaderAccount = {
@@ -55,22 +54,20 @@ export function AppHeaderClient({
             />
             <span className="truncate text-base font-semibold sm:text-lg">カロリースナップ</span>
           </Link>
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            <ThemeToggle />
-            <button
-              type="button"
-              className="inline-flex size-10 shrink-0 items-center justify-center rounded-md border border-border bg-background shadow-sm md:hidden"
-              onClick={() => setOpen((v) => !v)}
-              aria-expanded={open}
-              aria-controls="app-header-mobile-nav"
-              aria-label={open ? "メニューを閉じる" : "メニューを開く"}
-            >
-              {open ? <X className="size-5" /> : <Menu className="size-5" />}
-            </button>
-            <nav
-              className="hidden items-center gap-2 md:flex md:flex-wrap md:gap-3"
-              aria-label="メインナビゲーション"
-            >
+          <button
+            type="button"
+            className="inline-flex size-10 shrink-0 items-center justify-center rounded-md border border-border bg-background shadow-sm md:hidden"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            aria-controls="app-header-mobile-nav"
+            aria-label={open ? "メニューを閉じる" : "メニューを開く"}
+          >
+            {open ? <X className="size-5" /> : <Menu className="size-5" />}
+          </button>
+          <nav
+            className="hidden items-center gap-2 md:flex md:flex-wrap md:gap-3"
+            aria-label="メインナビゲーション"
+          >
             {account ? (
               <DashboardAccountMenu
                 email={account.email}
@@ -95,8 +92,7 @@ export function AppHeaderClient({
                 </Link>
               </>
             )}
-            </nav>
-          </div>
+          </nav>
         </div>
       </div>
       {open ? (

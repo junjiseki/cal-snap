@@ -33,6 +33,7 @@ export function FavoriteFoodSlideshow() {
           width={1080}
           height={1080}
           sizes="(min-width: 1024px) 36rem, calc(100vw - 2rem)"
+          priority={index === 0}
           className={[
             "public-home-fade-slide absolute inset-0 h-full w-full object-cover",
             paused ? "public-home-fade-slide--paused" : "",

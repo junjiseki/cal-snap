@@ -7,6 +7,7 @@ import { getSiteUrl } from "@/lib/site-url";
 import { cn } from "@/lib/utils";
 import { CleanupStaleSession } from "@/components/auth/cleanup-stale-session";
 import { AppHeader } from "@/components/layout/app-header";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -92,38 +93,41 @@ export default async function RootLayout({
   return (
     <html
       lang="ja"
+      suppressHydrationWarning
       className={cn("h-full antialiased", "font-sans", geist.variable, noto.variable)}
     >
       <head>
         <link rel="preconnect" href="https://challenges.cloudflare.com" />
       </head>
       <body className="flex min-h-full flex-col">
-        <CleanupStaleSession />
-        <AppHeader />
-        <div className="flex flex-1 flex-col">{children}</div>
-        <footer className="border-t border-border bg-card pb-20 md:pb-0">
-          <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 px-4 py-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8">
-            <p>© {new Date().getFullYear()} カロリースナップ</p>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-left sm:flex sm:items-center sm:gap-4">
-              <Link href="/contact" className="hover:text-foreground sm:whitespace-nowrap">
-                お問い合わせ
-              </Link>
-              <Link href="/terms" className="hover:text-foreground sm:whitespace-nowrap">
-                利用規約
-              </Link>
-              <Link href="/privacy" className="hover:text-foreground sm:whitespace-nowrap">
-                プライバシーポリシー
-              </Link>
-              <Link href="/commerce-disclosure" className="hover:text-foreground sm:whitespace-nowrap">
-                特商法表記
-              </Link>
+        <ThemeProvider>
+          <CleanupStaleSession />
+          <AppHeader />
+          <div className="flex flex-1 flex-col">{children}</div>
+          <footer className="border-t border-border bg-card pb-20 md:pb-0">
+            <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 px-4 py-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8">
+              <p>© {new Date().getFullYear()} カロリースナップ</p>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-left sm:flex sm:items-center sm:gap-4">
+                <Link href="/contact" className="hover:text-foreground sm:whitespace-nowrap">
+                  お問い合わせ
+                </Link>
+                <Link href="/terms" className="hover:text-foreground sm:whitespace-nowrap">
+                  利用規約
+                </Link>
+                <Link href="/privacy" className="hover:text-foreground sm:whitespace-nowrap">
+                  プライバシーポリシー
+                </Link>
+                <Link href="/commerce-disclosure" className="hover:text-foreground sm:whitespace-nowrap">
+                  特商法表記
+                </Link>
+              </div>
             </div>
-          </div>
-        </footer>
-        <Script
-          src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
-          strategy="afterInteractive"
-        />
+          </footer>
+          <Script
+            src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+            strategy="afterInteractive"
+          />
+        </ThemeProvider>
       </body>
     </html>
   );

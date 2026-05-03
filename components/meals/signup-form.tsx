@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { CheckCircle2, Eye, EyeOff, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { safeInternalPath } from "@/lib/auth/safe-redirect";
 import { GoogleMark } from "@/components/auth/google-mark";
@@ -14,6 +14,8 @@ export function SignupForm({ next = "/dashboard" }: { next?: string }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSigningUp, setIsSigningUp] = useState(false);
@@ -24,6 +26,7 @@ export function SignupForm({ next = "/dashboard" }: { next?: string }) {
   const handleCaptchaTokenChange = useCallback((token: string) => {
     setCaptchaToken(token);
   }, []);
+  const isPasswordLongEnough = password.length >= 8;
 
   async function signUpWithGoogle() {
     setError(null);
@@ -159,29 +162,59 @@ export function SignupForm({ next = "/dashboard" }: { next?: string }) {
       </label>
       <label className="block text-sm font-medium">
         パスワード
-        <input
-          type="password"
-          name="new-password"
-          autoComplete="new-password"
-          required
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          className="mt-2 h-11 w-full rounded-md border-2 border-[#17231f] bg-[#fffaf0] px-3 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#ffe66d]"
-          placeholder="8文字以上"
-        />
+        <span className="relative mt-2 block">
+          <input
+            type={showPassword ? "text" : "password"}
+            name="new-password"
+            autoComplete="new-password"
+            required
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            className="h-11 w-full rounded-md border-2 border-[#17231f] bg-[#fffaf0] px-3 pr-12 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#ffe66d]"
+            placeholder="8文字以上"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((current) => !current)}
+            aria-label={showPassword ? "パスワードを隠す" : "パスワードを表示"}
+            className="absolute right-2 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-[#42504b] transition active:scale-95 active:bg-[#ffe66d]/60"
+          >
+            {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+          </button>
+        </span>
       </label>
+      <p
+        className={[
+          "flex items-center gap-1.5 text-xs font-bold",
+          isPasswordLongEnough ? "text-[#036854]" : "text-[#6b746f]",
+        ].join(" ")}
+        aria-live="polite"
+      >
+        <CheckCircle2 className="size-4" />
+        {isPasswordLongEnough ? "8文字以上になりました" : "8文字以上で入力してください"}
+      </p>
       <label className="block text-sm font-medium">
         パスワード確認
-        <input
-          type="password"
-          name="new-password-confirmation"
-          autoComplete="new-password"
-          required
-          value={passwordConfirm}
-          onChange={(event) => setPasswordConfirm(event.target.value)}
-          className="mt-2 h-11 w-full rounded-md border-2 border-[#17231f] bg-[#fffaf0] px-3 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#ffe66d]"
-          placeholder="確認用パスワード"
-        />
+        <span className="relative mt-2 block">
+          <input
+            type={showPasswordConfirm ? "text" : "password"}
+            name="new-password-confirmation"
+            autoComplete="new-password"
+            required
+            value={passwordConfirm}
+            onChange={(event) => setPasswordConfirm(event.target.value)}
+            className="h-11 w-full rounded-md border-2 border-[#17231f] bg-[#fffaf0] px-3 pr-12 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#ffe66d]"
+            placeholder="確認用パスワード"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPasswordConfirm((current) => !current)}
+            aria-label={showPasswordConfirm ? "確認用パスワードを隠す" : "確認用パスワードを表示"}
+            className="absolute right-2 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-[#42504b] transition active:scale-95 active:bg-[#ffe66d]/60"
+          >
+            {showPasswordConfirm ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+          </button>
+        </span>
       </label>
       <TurnstileWidget onTokenChange={handleCaptchaTokenChange} resetSignal={captchaResetSignal} />
       <button
@@ -214,9 +247,15 @@ export function SignupForm({ next = "/dashboard" }: { next?: string }) {
         </Link>
       </p>
       {message ? (
-        <p className="border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
-          {message}
-        </p>
+        <div className="space-y-2 border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
+          <p>{message}</p>
+          <Link
+            href={`/login?next=${encodeURIComponent(next)}`}
+            className="inline-flex min-h-10 items-center rounded-md font-bold text-[#036854] underline-offset-4 hover:underline"
+          >
+            メール確認後、ログイン画面へ進む
+          </Link>
+        </div>
       ) : null}
       {error ? (
         <p className="border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">

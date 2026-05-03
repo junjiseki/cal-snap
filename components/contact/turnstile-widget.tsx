@@ -62,8 +62,11 @@ export function TurnstileWidget({
   }, [resetSignal, onTokenChange]);
 
   useEffect(() => {
+    if (scriptStatus !== "ready") {
+      return;
+    }
+
     let cancelled = false;
-    let attempts = 0;
 
     function renderWidget() {
       if (cancelled || widgetIdRef.current || !containerRef.current) {
@@ -74,14 +77,9 @@ export function TurnstileWidget({
         return;
       }
       if (!window.turnstile) {
-        attempts += 1;
-        if (attempts < 150) {
-          window.setTimeout(renderWidget, 100);
-        } else {
-          setWidgetError(
-            "Turnstileの読み込みに時間がかかっています。通信環境を確認し、ページを再読み込みしてください。",
-          );
-        }
+        setWidgetError(
+          "Turnstile API が利用できません。ページを再読み込みしてください。",
+        );
         return;
       }
 

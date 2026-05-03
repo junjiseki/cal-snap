@@ -4,14 +4,19 @@ import { createServerClient } from "@supabase/ssr";
 import type { Database } from "@/lib/supabase/database.types";
 import { isStaleRefreshTokenError } from "@/lib/supabase/stale-session";
 
-function hasSupabaseAuthCookie(cookieStore: Awaited<ReturnType<typeof cookies>>) {
+export type SupabaseCookieStore = Awaited<ReturnType<typeof cookies>>;
+
+function hasSupabaseAuthCookie(cookieStore: SupabaseCookieStore) {
   return cookieStore
     .getAll()
     .some((cookie) => cookie.name.startsWith("sb-") && cookie.name.includes("-auth-token"));
 }
 
-export async function createClient() {
-  const cookieStore = await cookies();
+/**
+ * @param cookieStore - 省略時は内部で `cookies()` を1回だけ呼ぶ。既に取得済みの store を渡すと二重読みを避けられる。
+ */
+export async function createClient(cookieStore?: SupabaseCookieStore) {
+  const store = cookieStore ?? (await cookies());
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -22,12 +27,12 @@ export async function createClient() {
   return createServerClient<Database>(url, anonKey, {
     cookies: {
       getAll() {
-        return cookieStore.getAll();
+        return store.getAll();
       },
       setAll(cookiesToSet) {
         try {
           cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
+            store.set(name, value, options);
           });
         } catch {
           // TODO: Rely on proxy.ts (or route handlers) for session refresh before production.
@@ -43,7 +48,7 @@ export async function createClient() {
  */
 export async function getAuthSessionUser() {
   const cookieStore = await cookies();
-  const supabase = await createClient();
+  const supabase = await createClient(cookieStore);
   if (!hasSupabaseAuthCookie(cookieStore)) {
     return { supabase, user: null };
   }

@@ -5,7 +5,7 @@ import { ContactForm } from "@/components/contact/contact-form";
 export const metadata: Metadata = {
   title: "お問い合わせ",
   description:
-    "カロリースナップへのお問い合わせページです。使い方、料金、個人情報、不具合についてご連絡いただけます。",
+    "カロスナへのお問い合わせページです。使い方、料金、個人情報、不具合についてご連絡いただけます。",
   alternates: {
     canonical: "/contact",
   },
@@ -21,7 +21,7 @@ export default function ContactPage() {
             お問い合わせ
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground">
-            カロリースナップの使い方、料金、個人情報、不具合についてはこちらからご連絡ください。
+            カロスナの使い方、料金、個人情報、不具合についてはこちらからご連絡ください。
           </p>
         </div>
       </section>

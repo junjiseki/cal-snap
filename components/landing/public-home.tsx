@@ -75,7 +75,7 @@ export function PublicHome() {
               </span>
             </h1>
             <p className="mt-6 text-base font-medium leading-8 text-[#42504b] sm:text-lg">
-              面倒な入力が続かなかった人でも、写真なら始めやすい。カロリースナップは食事写真からカロリーとPFCを推定し、今日の摂取量をすぐ見える化します。
+              面倒な入力が続かなかった人でも、写真なら始めやすい。カロスナは食事写真からカロリーとPFCを推定し、今日の摂取量をすぐ見える化します。
             </p>
             <div className="mt-5 grid gap-2 text-sm font-bold text-[#17231f] sm:grid-cols-2">
               {["3秒で記録完了", "外食でもOK", "PFCも自動で見える", "修正もできるから安心"].map((label) => (

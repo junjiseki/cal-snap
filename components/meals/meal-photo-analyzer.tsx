@@ -645,7 +645,7 @@ export function MealPhotoAnalyzer() {
         throw new Error(await readError(response));
       }
 
-      router.push("/dashboard");
+      router.push("/meals/new");
       router.refresh();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "食事を登録できません。");

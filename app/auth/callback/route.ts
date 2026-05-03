@@ -7,7 +7,7 @@ import { createSupabaseRouteHandlerClient } from "@/lib/supabase/route-handler";
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
-  const nextPath = safeInternalPath(url.searchParams.get("next"), "/dashboard");
+  const nextPath = safeInternalPath(url.searchParams.get("next"), "/meals/new");
 
   const responseRef = {
     current: authRouteRedirect(new URL(nextPath, url.origin)),

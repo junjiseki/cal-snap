@@ -10,7 +10,7 @@ import { safeInternalPath } from "@/lib/auth/safe-redirect";
 import { TurnstileWidget } from "@/components/contact/turnstile-widget";
 
 export function LoginForm({
-  next = "/dashboard",
+  next = "/meals/new",
   accountDeleted = false,
   accountInactive = false,
   authConfirmFailed = false,
@@ -138,7 +138,7 @@ export function LoginForm({
         return;
       }
 
-      window.location.href = safeInternalPath(next, "/dashboard");
+      window.location.href = safeInternalPath(next, "/meals/new");
     } catch (caught) {
       setCaptchaResetSignal((n) => n + 1);
       setError(caught instanceof Error ? caught.message : "ログインに失敗しました。");

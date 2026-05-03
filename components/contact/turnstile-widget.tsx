@@ -42,6 +42,7 @@ export function TurnstileWidget({
   const widgetIdRef = useRef<string | null>(null);
   const [widgetError, setWidgetError] = useState<string | null>(null);
   const [scriptStatus, setScriptStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [scriptRetryKey, setScriptRetryKey] = useState(0);
   const { resolvedTheme } = useTheme();
   const theme: "light" | "dark" =
     resolvedTheme === "dark" ? "dark" : "light";
@@ -49,6 +50,27 @@ export function TurnstileWidget({
   useEffect(() => {
     setWidgetError(null);
   }, [theme]);
+
+  useEffect(() => {
+    if (scriptStatus !== "loading") {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      if (window.turnstile) {
+        setScriptStatus("ready");
+        setWidgetError(null);
+        return;
+      }
+      setScriptStatus("error");
+      onTokenChange("");
+      setWidgetError(
+        "Turnstileの読み込みに時間がかかっています。通信環境、広告ブロッカー、セキュリティ設定を確認して再読み込みしてください。",
+      );
+    }, 12_000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [scriptStatus, onTokenChange]);
 
   useEffect(() => {
     if (resetSignal === 0) {
@@ -143,6 +165,7 @@ export function TurnstileWidget({
   return (
     <div>
       <Script
+        key={scriptRetryKey}
         src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
         strategy="afterInteractive"
         onReady={() => {
@@ -172,7 +195,24 @@ export function TurnstileWidget({
         </p>
       ) : null}
       {widgetError ? (
-        <p className="mt-2 text-xs leading-relaxed text-destructive">{widgetError}</p>
+        <div className="mt-2 space-y-2">
+          <p className="text-xs leading-relaxed text-destructive">{widgetError}</p>
+          {scriptStatus === "error" ? (
+            <button
+              type="button"
+              onClick={() => {
+                widgetIdRef.current = null;
+                setWidgetError(null);
+                setScriptStatus("loading");
+                setScriptRetryKey((current) => current + 1);
+                onTokenChange("");
+              }}
+              className="inline-flex min-h-9 items-center rounded-md border border-border bg-background px-3 text-xs font-semibold transition active:scale-95"
+            >
+              確認ウィジェットを再読み込み
+            </button>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );

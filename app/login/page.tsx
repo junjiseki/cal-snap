@@ -25,7 +25,7 @@ export default async function LoginPage({
     <main className="flex flex-1 items-center justify-center bg-[#fff3c7] px-4 py-10 sm:px-8">
       <div className="w-full max-w-md">
         <LoginForm
-          next={safeInternalPath(params.next ?? null, "/dashboard")}
+          next={safeInternalPath(params.next ?? null, "/meals/new")}
           accountDeleted={params.deleted === "1"}
           accountInactive={params.inactive === "1"}
           authConfirmFailed={params.error === "auth_confirm"}

@@ -9,8 +9,10 @@ export default async function SignupPage({
   const params = await searchParams;
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 items-center justify-center px-4 py-10 sm:px-5">
-      <SignupForm next={safeInternalPath(params.next ?? null, "/dashboard")} />
+    <main className="flex flex-1 items-center justify-center bg-[#d6fff2] px-4 py-10 sm:px-8">
+      <div className="w-full max-w-md">
+        <SignupForm next={safeInternalPath(params.next ?? null, "/dashboard")} />
+      </div>
     </main>
   );
 }

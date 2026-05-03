@@ -51,6 +51,7 @@ describe("validateTurnstileToken", () => {
   });
 
   it("sends application/x-www-form-urlencoded with secret, response, and optional remoteip", async () => {
+    vi.stubEnv("NEXT_PUBLIC_TURNSTILE_USE_PRODUCTION_WIDGET", "true");
     fetchMock.mockResolvedValue({
       ok: true,
       json: async () => ({ success: true }),

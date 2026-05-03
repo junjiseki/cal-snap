@@ -1,15 +1,24 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Camera, Sparkles, TrendingDown, TrendingUp } from "lucide-react";
-import { getDayRangeInJapan } from "@/lib/meal-analysis";
+import { getCalorieOverLevel, getDayRangeInJapan } from "@/lib/meal-analysis";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 import { CalorieGoalOnboardingModal } from "@/components/account/calorie-goal-onboarding-modal";
+import { DashboardMealCalendar } from "@/components/meals/dashboard-meal-calendar";
 import { MealList } from "@/components/meals/meal-list";
 import { CalorieChart } from "@/components/meals/calorie-chart";
+import {
+  dashboardDateHref,
+  dashboardMealsListHref,
+  daysInJapanMonth,
+  pad2,
+  toJapanYmd,
+} from "@/lib/japan-calendar";
+import { DASHBOARD_DAY_MEALS_PAGE_SIZE, parseDashboardMealsPage } from "@/lib/dashboard-meals";
 import { getStripeServer } from "@/lib/stripe/server";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
-const MEALS_PAGE_SIZE = 5;
 
 type MealRow = {
   id: string;
@@ -18,33 +27,14 @@ type MealRow = {
   protein: number;
   fat: number;
   carbs: number;
-  ai_confidence: number;
   memo: string | null;
   meal_items?: {
     id: string;
     name: string;
     estimated_amount: string;
     calories: number;
-    protein: number;
-    fat: number;
-    carbs: number;
-    confidence: number;
   }[];
 };
-
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
-
-/** YYYY-MM-DD（日本の暦）を diffDays だけずらす。UTC の日付と混ぜない（前日が二日分ずれる原因になる） */
-function shiftJapanDate(date: string, diffDays: number) {
-  const base = new Date(`${date}T12:00:00+09:00`);
-  const shifted = new Date(base.getTime() + diffDays * MS_PER_DAY);
-  return new Intl.DateTimeFormat("sv-SE", {
-    timeZone: "Asia/Tokyo",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(shifted);
-}
 
 /** YYYY-MM-DD を日本語の日付表記に（その日の表示用。正午 JST で解釈） */
 function formatJapanDateHeading(ymd: string) {
@@ -55,19 +45,6 @@ function formatJapanDateHeading(ymd: string) {
     day: "numeric",
     weekday: "short",
   }).format(new Date(`${ymd}T12:00:00+09:00`));
-}
-
-function parsePositivePage(value?: string) {
-  const page = Number(value);
-  return Number.isInteger(page) && page > 0 ? page : 1;
-}
-
-function dashboardHref(date: string, page = 1) {
-  const params = new URLSearchParams({ date });
-  if (page > 1) {
-    params.set("page", String(page));
-  }
-  return `/dashboard?${params.toString()}`;
 }
 
 async function syncPlanOnBillingSuccess(sessionId: string, userId: string) {
@@ -102,7 +79,12 @@ async function syncPlanOnBillingSuccess(sessionId: string, userId: string) {
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ billing?: string; session_id?: string; date?: string; page?: string }>;
+  searchParams: Promise<{
+    billing?: string;
+    session_id?: string;
+    date?: string;
+    meals_page?: string;
+  }>;
 }) {
   const { supabase, user } = await getAuthenticatedUser();
 
@@ -134,55 +116,75 @@ export default async function DashboardPage({
     }
   }
 
-  const { date, start, end, isToday } = getDayRangeInJapan(params.date);
   const { date: todayDate } = getDayRangeInJapan();
-  const prevDate = shiftJapanDate(date, -1);
-  const nextDate = shiftJapanDate(date, 1);
-  const requestedPage = parsePositivePage(params.page);
-  const last14DaysStart = new Date();
-  last14DaysStart.setDate(last14DaysStart.getDate() - 13);
-  last14DaysStart.setHours(0, 0, 0, 0);
-  // TODO: Replace this mock billing state with Stripe webhook-driven profile updates.
-  const profileQuery = supabase
+  const { date, start, end, isToday } = getDayRangeInJapan(params.date);
+  const mealsPage = parseDashboardMealsPage(params.meals_page);
+  const mealsRangeFrom = (mealsPage - 1) * DASHBOARD_DAY_MEALS_PAGE_SIZE;
+  const mealsRangeTo = mealsRangeFrom + DASHBOARD_DAY_MEALS_PAGE_SIZE - 1;
+
+  const { data: profile } = await supabase
     .from("profiles")
     .select("plan,daily_calorie_goal")
     .eq("id", user.id)
     .maybeSingle();
+
+  const isPaid = profile?.plan === "paid";
+  if (!isPaid && date !== todayDate) {
+    redirect("/dashboard");
+  }
+
+  const last14DaysStart = new Date();
+  last14DaysStart.setDate(last14DaysStart.getDate() - 13);
+  last14DaysStart.setHours(0, 0, 0, 0);
+
   const summaryQuery = supabase
     .rpc("get_daily_meal_summary", {
       p_start: start,
       p_end: end,
     })
     .single();
-  const chartMealsQuery = supabase
-    .from("meals")
-    .select("id,eaten_at,total_calories")
-    .eq("user_id", user.id)
-    .gte("eaten_at", last14DaysStart.toISOString())
-    .order("eaten_at", { ascending: true });
 
-  const [
-    { data: profile },
-    { data: summary, error: summaryError },
-    { data: chartMeals, error: chartError },
-  ] = await Promise.all([profileQuery, summaryQuery, chartMealsQuery]);
+  const summaryResult = await summaryQuery;
+
+  const chartMealsResult = isPaid
+    ? await supabase
+        .from("meals")
+        .select("id,eaten_at,total_calories")
+        .eq("user_id", user.id)
+        .gte("eaten_at", last14DaysStart.toISOString())
+        .order("eaten_at", { ascending: true })
+    : { data: [] as { id: string; eaten_at: string; total_calories: number }[] | null, error: null };
+
+  const { data: summary, error: summaryError } = summaryResult;
+  const { data: chartMeals, error: chartError } = chartMealsResult;
 
   const mealCount = Number(summary?.meal_count ?? 0);
-  const totalPages = Math.max(1, Math.ceil(mealCount / MEALS_PAGE_SIZE));
-  const currentPage = Math.min(requestedPage, totalPages);
-  const rangeFrom = (currentPage - 1) * MEALS_PAGE_SIZE;
-  const rangeTo = rangeFrom + MEALS_PAGE_SIZE - 1;
-  const { data, error } = await supabase
-    .from("meals")
-    .select(
-      "id,eaten_at,total_calories,protein,fat,carbs,ai_confidence,memo,meal_items(id,name,estimated_amount,calories,protein,fat,carbs,confidence)",
-    )
-    .eq("user_id", user.id)
-    .gte("eaten_at", start)
-    .lte("eaten_at", end)
-    .order("eaten_at", { ascending: false })
-    .range(rangeFrom, rangeTo);
 
+  const [cy, cm] = date.split("-").map(Number);
+  const monthStartIso = new Date(`${cy}-${pad2(cm)}-01T00:00:00.000+09:00`).toISOString();
+  const dimMonth = daysInJapanMonth(cy, cm);
+  const monthEndIso = new Date(`${cy}-${pad2(cm)}-${pad2(dimMonth)}T23:59:59.999+09:00`).toISOString();
+
+  const [{ data, error }, { data: monthMealRows }] = await Promise.all([
+    supabase
+      .from("meals")
+      .select(
+        "id,eaten_at,total_calories,protein,fat,carbs,memo,meal_items(id,name,estimated_amount,calories)",
+      )
+      .eq("user_id", user.id)
+      .gte("eaten_at", start)
+      .lte("eaten_at", end)
+      .order("eaten_at", { ascending: false })
+      .range(mealsRangeFrom, mealsRangeTo),
+    supabase
+      .from("meals")
+      .select("eaten_at")
+      .eq("user_id", user.id)
+      .gte("eaten_at", monthStartIso)
+      .lte("eaten_at", monthEndIso),
+  ]);
+
+  const datesWithMeals = [...new Set((monthMealRows ?? []).map((row) => toJapanYmd(row.eaten_at)))];
   const meals = (data ?? []) as unknown as MealRow[];
   const total = {
     calories: Number(summary?.calories ?? 0),
@@ -190,19 +192,6 @@ export default async function DashboardPage({
     fat: Number(summary?.fat ?? 0),
     carbs: Number(summary?.carbs ?? 0),
   };
-  const pageStart = mealCount === 0 ? 0 : rangeFrom + 1;
-  const pageEnd = Math.min(rangeTo + 1, mealCount);
-  const visiblePages = Array.from(
-    { length: Math.min(5, totalPages) },
-    (_, index) => {
-      const windowStart = Math.min(
-        Math.max(currentPage - 2, 1),
-        Math.max(totalPages - 4, 1),
-      );
-      return windowStart + index;
-    },
-  );
-
   const goalCalories = profile?.daily_calorie_goal ?? 2000;
   const safeGoalCalories = Math.max(goalCalories, 1);
   const dateLabelJa = formatJapanDateHeading(date);
@@ -212,7 +201,7 @@ export default async function DashboardPage({
       ? `あと ${calorieDelta} kcal`
       : `1日の摂取カロリー（目安）を ${Math.abs(calorieDelta)} kcal 超過`;
   const calorieProgress = Math.min(100, Math.round((total.calories / safeGoalCalories) * 100));
-  const isOverGoal = calorieDelta < 0;
+  const overLevel = getCalorieOverLevel(total.calories, goalCalories);
   const shouldShowGoalPrompt = user.user_metadata?.calorie_goal_prompt_dismissed !== true;
 
   return (
@@ -251,12 +240,14 @@ export default async function DashboardPage({
                 <div
                   className={[
                     "inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-semibold",
-                    isOverGoal
-                      ? "bg-red-50 text-red-700"
-                      : "bg-emerald-50 text-emerald-700",
-                  ].join(" ")}
+                    overLevel === "none" && "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/35 dark:text-emerald-300",
+                    overLevel === "warn" && "bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200",
+                    overLevel === "severe" && "bg-red-50 text-red-700 dark:bg-red-950/35 dark:text-red-300",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
                 >
-                  {isOverGoal ? (
+                  {overLevel !== "none" ? (
                     <TrendingUp className="size-4" />
                   ) : (
                     <TrendingDown className="size-4" />
@@ -268,8 +259,12 @@ export default async function DashboardPage({
                 <div
                   className={[
                     "h-3 rounded-full transition-all",
-                    isOverGoal ? "bg-red-500" : "bg-primary",
-                  ].join(" ")}
+                    overLevel === "none" && "bg-primary",
+                    overLevel === "warn" && "bg-amber-500 dark:bg-amber-400",
+                    overLevel === "severe" && "bg-red-500",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
                   style={{ width: `${calorieProgress}%` }}
                 />
               </div>
@@ -343,11 +338,25 @@ export default async function DashboardPage({
           <div className="border-b border-border p-4 sm:p-5">
             <h2 className="text-lg font-semibold sm:text-xl">摂取カロリー推移</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              直近14日の日ごとの合計カロリーです。
+              {isPaid
+                ? "直近14日の日ごとの合計カロリーです。"
+                : "無料プランでは当日の集計のみです。過去の推移は有料プランで表示できます。"}
             </p>
           </div>
           <div className="p-4 sm:p-5">
-            {(chartMeals ?? []).length === 0 ? (
+            {!isPaid ? (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  チャート・過去日の履歴を見るには、有料プランへのアップグレードが必要です。
+                </p>
+                <Link
+                  href="/billing"
+                  className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm"
+                >
+                  料金・プランを見る
+                </Link>
+              </div>
+            ) : (chartMeals ?? []).length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 データがまだないため、グラフは表示されません。
               </p>
@@ -361,86 +370,44 @@ export default async function DashboardPage({
         </section>
 
         <section className="border border-border bg-card">
-          <div className="flex items-center justify-between gap-3 border-b border-border p-4 sm:p-5">
-            <h2 className="text-lg font-semibold sm:text-xl">食事一覧</h2>
-            <div className="flex items-center gap-2">
-              <Link
-                href={dashboardHref(prevDate)}
-                scroll={false}
-                className="inline-flex h-8 items-center rounded-md border border-border px-3 text-xs font-semibold hover:bg-muted"
-              >
-                ←
-              </Link>
-              <Link
-                href={dashboardHref(todayDate)}
-                scroll={false}
-                className="inline-flex h-8 items-center rounded-md border border-border px-3 text-xs font-semibold hover:bg-muted"
-              >
-                本日
-              </Link>
-              <Link
-                href={dashboardHref(nextDate)}
-                scroll={false}
-                className="inline-flex h-8 items-center rounded-md border border-border px-3 text-xs font-semibold hover:bg-muted"
-              >
-                →
-              </Link>
-            </div>
-          </div>
-          <MealList meals={meals} />
-          {mealCount > MEALS_PAGE_SIZE ? (
-            <div className="flex flex-col gap-3 border-t border-border p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
-              <p className="text-sm text-muted-foreground">
-                {pageStart}-{pageEnd} / {mealCount}件
+          <div className="flex flex-col gap-2 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+            <div>
+              <h2 className="text-lg font-semibold sm:text-xl">食事一覧</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {mealCount}件
+                {!isPaid ? " · 無料プランは本日のみ" : null}
               </p>
-              <nav className="flex items-center gap-1" aria-label="食事一覧ページネーション">
-                {currentPage > 1 ? (
-                  <Link
-                    href={dashboardHref(date, currentPage - 1)}
-                    scroll={false}
-                    className="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-semibold hover:bg-muted"
-                  >
-                    前へ
-                  </Link>
-                ) : (
-                  <span className="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-semibold text-muted-foreground opacity-50">
-                    前へ
-                  </span>
-                )}
-                <div className="flex items-center gap-1">
-                  {visiblePages.map((page) => (
-                    <Link
-                      key={page}
-                      href={dashboardHref(date, page)}
-                      scroll={false}
-                      aria-current={page === currentPage ? "page" : undefined}
-                      className={[
-                        "inline-flex size-9 items-center justify-center rounded-md border text-sm font-semibold",
-                        page === currentPage
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border hover:bg-muted",
-                      ].join(" ")}
-                    >
-                      {page}
-                    </Link>
-                  ))}
-                </div>
-                {currentPage < totalPages ? (
-                  <Link
-                    href={dashboardHref(date, currentPage + 1)}
-                    scroll={false}
-                    className="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-semibold hover:bg-muted"
-                  >
-                    次へ
-                  </Link>
-                ) : (
-                  <span className="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-semibold text-muted-foreground opacity-50">
-                    次へ
-                  </span>
-                )}
-              </nav>
             </div>
-          ) : null}
+            {isPaid && date !== todayDate ? (
+              <Link
+                href={dashboardDateHref(todayDate)}
+                scroll={false}
+                className="inline-flex h-9 shrink-0 items-center justify-center rounded-md border border-border px-3 text-sm font-semibold hover:bg-muted"
+              >
+                本日へ
+              </Link>
+            ) : null}
+          </div>
+          <div className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,17.5rem)_1fr] lg:items-start">
+            <DashboardMealCalendar
+              selectedDate={date}
+              todayDate={todayDate}
+              isPaid={isPaid}
+              datesWithMeals={datesWithMeals}
+            />
+            <MealList
+              meals={meals}
+              mealsPage={mealsPage}
+              mealsPageSize={DASHBOARD_DAY_MEALS_PAGE_SIZE}
+              totalMealsForDay={mealCount}
+              nextPageHref={
+                mealsRangeFrom + meals.length < mealCount
+                  ? dashboardMealsListHref(date, mealsPage + 1)
+                  : null
+              }
+              prevPageHref={mealsPage > 1 ? dashboardMealsListHref(date, mealsPage - 1) : null}
+            />
+          </div>
         </section>
       </div>
     </main>

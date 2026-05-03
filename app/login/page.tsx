@@ -22,14 +22,16 @@ export default async function LoginPage({
   const profileFetchFailed = params.error === "profile_fetch";
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 items-center justify-center px-4 py-10 sm:px-5">
-      <LoginForm
-        next={safeInternalPath(params.next ?? null, "/dashboard")}
-        accountDeleted={params.deleted === "1"}
-        accountInactive={params.inactive === "1"}
-        authConfirmFailed={params.error === "auth_confirm"}
-        profileFetchFailed={profileFetchFailed}
-      />
+    <main className="flex flex-1 items-center justify-center bg-[#fff3c7] px-4 py-10 sm:px-8">
+      <div className="w-full max-w-md">
+        <LoginForm
+          next={safeInternalPath(params.next ?? null, "/dashboard")}
+          accountDeleted={params.deleted === "1"}
+          accountInactive={params.inactive === "1"}
+          authConfirmFailed={params.error === "auth_confirm"}
+          profileFetchFailed={profileFetchFailed}
+        />
+      </div>
     </main>
   );
 }

@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  CALORIE_OVER_WARN_THRESHOLD_KCAL,
   MealAnalysisSchema,
   MealRegistrationSchema,
+  getCalorieOverLevel,
   getDailyAnalysisLimit,
   getDayRangeInJapan,
   getTodayRangeInJapan,
@@ -152,6 +154,24 @@ describe("getDailyAnalysisLimit", () => {
     expect(typeof paid).toBe("number");
     expect(free).toBeGreaterThan(0);
     expect(paid).toBeGreaterThan(0);
+  });
+});
+
+describe("getCalorieOverLevel", () => {
+  const goal = 2000;
+
+  it("returns none at or under goal", () => {
+    expect(getCalorieOverLevel(2000, goal)).toBe("none");
+    expect(getCalorieOverLevel(1500, goal)).toBe("none");
+  });
+
+  it("returns warn when over by threshold kcal or less", () => {
+    expect(getCalorieOverLevel(2001, goal)).toBe("warn");
+    expect(getCalorieOverLevel(2000 + CALORIE_OVER_WARN_THRESHOLD_KCAL, goal)).toBe("warn");
+  });
+
+  it("returns severe when over by more than threshold kcal", () => {
+    expect(getCalorieOverLevel(2000 + CALORIE_OVER_WARN_THRESHOLD_KCAL + 1, goal)).toBe("severe");
   });
 });
 

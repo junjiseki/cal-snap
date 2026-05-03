@@ -7,14 +7,13 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
+import { CALORIE_OVER_WARN_THRESHOLD_KCAL } from "@/lib/meal-analysis";
 
 type MealRow = {
   id: string;
   eaten_at: string;
   total_calories: number;
 };
-
-const OVER_WARN_KCAL = 300;
 
 const chartConfig = {
   calories: {
@@ -25,24 +24,26 @@ const chartConfig = {
     },
   },
   caloriesOverWarn: {
-    label: `摂取カロリー（基準+${OVER_WARN_KCAL}kcal以内超過）`,
+    label: `摂取カロリー（基準+${CALORIE_OVER_WARN_THRESHOLD_KCAL}kcal以内超過）`,
     theme: {
       light: "oklch(0.88 0.14 95)",
       dark: "oklch(0.9 0.13 95)",
     },
   },
   caloriesOver: {
-    label: `摂取カロリー（基準+${OVER_WARN_KCAL}kcal超過）`,
+    label: `摂取カロリー（基準+${CALORIE_OVER_WARN_THRESHOLD_KCAL}kcal超過）`,
     theme: {
-      light: "oklch(0.78 0.16 28)",
-      dark: "oklch(0.8 0.14 28)",
+      light: "oklch(0.55 0.22 27)",
+      dark: "oklch(0.62 0.2 25)",
     },
   },
 } satisfies ChartConfig;
 
 function barFillForCalories(calories: number, goalCalories: number): string {
   if (calories <= goalCalories) return "var(--color-calories)";
-  if (calories - goalCalories <= OVER_WARN_KCAL) return "var(--color-caloriesOverWarn)";
+  if (calories - goalCalories <= CALORIE_OVER_WARN_THRESHOLD_KCAL) {
+    return "var(--color-caloriesOverWarn)";
+  }
   return "var(--color-caloriesOver)";
 }
 

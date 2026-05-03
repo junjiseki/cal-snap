@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Camera, Sparkles, TrendingDown, TrendingUp } from "lucide-react";
-import { getDayRangeInJapan } from "@/lib/meal-analysis";
+import { getCalorieOverLevel, getDayRangeInJapan } from "@/lib/meal-analysis";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 import { CalorieGoalOnboardingModal } from "@/components/account/calorie-goal-onboarding-modal";
 import { DashboardMealCalendar } from "@/components/meals/dashboard-meal-calendar";
@@ -190,7 +190,7 @@ export default async function DashboardPage({
       ? `あと ${calorieDelta} kcal`
       : `1日の摂取カロリー（目安）を ${Math.abs(calorieDelta)} kcal 超過`;
   const calorieProgress = Math.min(100, Math.round((total.calories / safeGoalCalories) * 100));
-  const isOverGoal = calorieDelta < 0;
+  const overLevel = getCalorieOverLevel(total.calories, goalCalories);
   const shouldShowGoalPrompt = user.user_metadata?.calorie_goal_prompt_dismissed !== true;
 
   return (
@@ -229,12 +229,14 @@ export default async function DashboardPage({
                 <div
                   className={[
                     "inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-semibold",
-                    isOverGoal
-                      ? "bg-red-50 text-red-700"
-                      : "bg-emerald-50 text-emerald-700",
-                  ].join(" ")}
+                    overLevel === "none" && "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/35 dark:text-emerald-300",
+                    overLevel === "warn" && "bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200",
+                    overLevel === "severe" && "bg-red-50 text-red-700 dark:bg-red-950/35 dark:text-red-300",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
                 >
-                  {isOverGoal ? (
+                  {overLevel !== "none" ? (
                     <TrendingUp className="size-4" />
                   ) : (
                     <TrendingDown className="size-4" />
@@ -246,8 +248,12 @@ export default async function DashboardPage({
                 <div
                   className={[
                     "h-3 rounded-full transition-all",
-                    isOverGoal ? "bg-red-500" : "bg-primary",
-                  ].join(" ")}
+                    overLevel === "none" && "bg-primary",
+                    overLevel === "warn" && "bg-amber-500 dark:bg-amber-400",
+                    overLevel === "severe" && "bg-red-500",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
                   style={{ width: `${calorieProgress}%` }}
                 />
               </div>

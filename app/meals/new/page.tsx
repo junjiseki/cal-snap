@@ -31,9 +31,9 @@ export default async function NewMealPage() {
           <div>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-sm font-semibold text-primary">食事を記録</p>
+                <p className="text-sm font-semibold text-primary">写真で3秒記録</p>
                 <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-4xl">
-                  食事を記録
+                  食事写真を解析して記録
                 </h1>
               </div>
               <Link
@@ -45,7 +45,7 @@ export default async function NewMealPage() {
               </Link>
             </div>
             <p className="mt-4 max-w-2xl text-sm text-muted-foreground">
-              写真のAI解析でも、数値の手入力でも記録できます。解析回数に達した場合は手入力をご利用ください。
+              写真を選んで推定値を確認し、違うところだけ直して保存できます。解析回数に達した場合は手入力でも記録できます。
             </p>
           </div>
         </div>

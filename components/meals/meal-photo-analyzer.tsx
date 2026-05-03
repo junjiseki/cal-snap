@@ -23,6 +23,7 @@ import {
   TrendingUp,
   X,
 } from "lucide-react";
+import { dashboardDateHref, toJapanYmd } from "@/lib/japan-calendar";
 import {
   type MealAnalysis,
   getCalorieOverLevel,
@@ -463,6 +464,7 @@ export function MealPhotoAnalyzer() {
   const router = useRouter();
   const cameraFileInputRef = useRef<HTMLInputElement>(null);
   const galleryFileInputRef = useRef<HTMLInputElement>(null);
+  const saveInFlightRef = useRef(false);
   const [entryMode, setEntryMode] = useState<EntryMode>("photo");
   const [file, setFile] = useState<File | null>(null);
   const [analysis, setAnalysis] = useState<MealAnalysisForm | null>(null);
@@ -628,6 +630,10 @@ export function MealPhotoAnalyzer() {
 
     const payload = mealFormToMealAnalysis(analysis, entryMode);
 
+    if (saveInFlightRef.current) {
+      return;
+    }
+    saveInFlightRef.current = true;
     setIsSaving(true);
     setError(null);
 
@@ -645,11 +651,17 @@ export function MealPhotoAnalyzer() {
         throw new Error(await readError(response));
       }
 
-      router.push("/meals/new");
+      if (entryMode === "manual") {
+        const dateYmd = toJapanYmd(new Date(eatenAt).toISOString());
+        router.push(dashboardDateHref(dateYmd));
+      } else {
+        router.push("/meals/new");
+      }
       router.refresh();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "食事を登録できません。");
     } finally {
+      saveInFlightRef.current = false;
       setIsSaving(false);
     }
   }
@@ -731,8 +743,13 @@ export function MealPhotoAnalyzer() {
   const canSaveMeal = analysis !== null && isMealFormMacroComplete(analysis, entryMode);
 
   return (
-    <div className="grid gap-4 sm:gap-6 lg:grid-cols-[minmax(0,390px)_1fr]">
-      <section className="space-y-4 border border-border bg-card p-4 shadow-sm sm:p-5">
+    <div className="grid gap-4 sm:gap-6 lg:grid-cols-[minmax(0,360px)_1fr] lg:items-start">
+      <section className="space-y-4 border border-border bg-card p-4 shadow-sm sm:p-5 lg:sticky lg:top-24">
+        <div>
+          <p className="text-xs font-semibold text-primary">STEP 1</p>
+          <h2 className="mt-1 text-lg font-semibold">記録方法を選ぶ</h2>
+        </div>
+
         <div className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-muted/30 p-1">
           <button
             type="button"
@@ -765,7 +782,7 @@ export function MealPhotoAnalyzer() {
         </div>
 
         {entryMode === "photo" ? (
-          <div className="flex flex-col gap-3 border-b border-border pb-4">
+          <div className="flex flex-col gap-3 rounded-md border border-border bg-background p-3">
             <div className="grid grid-cols-3 gap-2">
               <StepDot done={Boolean(file)} active={activeStep === 1} label="写真" />
               <StepDot done={Boolean(analysis)} active={activeStep === 2} label="解析" />
@@ -808,7 +825,7 @@ export function MealPhotoAnalyzer() {
         ) : null}
 
         {entryMode === "photo" ? (
-          <div className="flex min-h-64 flex-col items-center justify-center gap-3 rounded-md border border-dashed border-border bg-muted/20 p-4 text-center">
+          <div className="flex min-h-64 flex-col items-center justify-center gap-3 rounded-md border border-dashed border-primary/30 bg-primary/5 p-4 text-center">
             {previewUrl ? (
               <div className="relative inline-block max-h-64 max-w-full">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -832,9 +849,9 @@ export function MealPhotoAnalyzer() {
                   <Camera className="size-6" />
                 </span>
                 <div>
-                  <p className="text-base font-semibold">食事の写真を追加</p>
+                  <p className="text-base font-semibold">写真を追加して解析</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    スマートフォンではカメラ撮影か、保存済みの画像から選べます（5MB以下・JPEG / PNG / WebP）。
+                    カメラ撮影か写真選択を選べます。5MB以下の JPEG / PNG / WebP に対応しています。
                   </p>
                 </div>
                 <div className="flex w-full max-w-md gap-2 flex-row justify-center">
@@ -910,7 +927,8 @@ export function MealPhotoAnalyzer() {
       <section className="space-y-5 border border-border bg-card p-4 shadow-sm sm:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h2 className="text-xl font-semibold">確認して記録</h2>
+            <p className="text-xs font-semibold text-primary">STEP 2</p>
+            <h2 className="mt-1 text-xl font-semibold">推定値を確認して保存</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               {entryMode === "manual"
                 ? "入力した値を確認し、保存前にいつでも修正できます。"
@@ -929,10 +947,22 @@ export function MealPhotoAnalyzer() {
         </div>
 
         {!analysis ? (
-          <div className="border-t border-border pt-5 text-sm text-muted-foreground">
-            {entryMode === "manual"
-              ? "手入力を開始できませんでした。左の「手入力」をもう一度押してください。"
-              : "写真を解析すると、推定値が表示されます。"}
+          <div className="rounded-md border border-dashed border-border bg-muted/20 p-5">
+            <div className="flex gap-3">
+              <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                {entryMode === "manual" ? <Keyboard className="size-5" /> : <Sparkles className="size-5" />}
+              </span>
+              <div>
+                <h3 className="font-semibold">
+                  {entryMode === "manual" ? "内訳を入力して保存できます" : "解析結果がここに表示されます"}
+                </h3>
+                <p className="mt-2 text-sm leading-7 text-muted-foreground">
+                  {entryMode === "manual"
+                    ? "手入力モードでは、料理ごとのカロリーとPFCを入力すると合計が自動で計算されます。"
+                    : "左側で写真を選んで解析すると、合計カロリー、PFC、料理ごとの内訳を確認・修正できます。"}
+                </p>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="space-y-5">

@@ -19,23 +19,23 @@ import {
 const valueProps = [
   {
     icon: Camera,
-    title: "撮るだけでカロリーを記録",
-    body: "入力の手間をなくし、写真からカロリーとPFCの記録ができます。",
+    title: "3秒で記録完了",
+    body: "食事写真を選んで解析するだけ。毎食の入力負担を小さくします。",
   },
   {
-    icon: Edit3,
-    title: "保存前に直せる",
-    body: "AI推定をそのまま確定せず、量やメモを確認してから登録できます。",
+    icon: Utensils,
+    title: "外食でもOK",
+    body: "ラーメン、定食、コンビニ飯も写真からざっくり把握できます。",
   },
   {
     icon: BarChart3,
-    title: "今日の目標を達成",
-    body: "ダッシュボードで摂取カロリー、PFC、推移をすぐ確認できます。",
+    title: "PFCも自動で見える",
+    body: "カロリーだけでなく、たんぱく質・脂質・炭水化物も確認できます。",
   },
   {
-    icon: Sparkles,
-    title: "次の食事も提案",
-    body: "有料プランでは過去の食事から、外食・自炊・コンビニ向けのメニューを提案します。",
+    icon: Edit3,
+    title: "修正もできるから安心",
+    body: "AI推定を保存前に確認し、量やメモを直してから登録できます。",
   },
 ] as const;
 
@@ -65,18 +65,26 @@ export function PublicHome() {
           <div className="max-w-xl">
             <p className="inline-flex items-center gap-2 rounded-md border-2 border-[#17231f] bg-[#d6fff2] px-3 py-1.5 text-sm font-semibold text-[#036854] shadow-[3px_3px_0_#17231f]">
               <Smartphone className="size-4" />
-              健康的に痩せたい人の食事記録
+              カロリー管理、続かなかった人へ
             </p>
             <h1 className="mt-6 text-5xl font-black leading-tight tracking-tight text-[#17231f] sm:text-6xl">
-              あの日までに、
+              3秒で終わる
               <br />
               <span className="inline-block -rotate-1 bg-[#ff6b6b] px-2 text-white">
-                輝きたい。
+                食事記録
               </span>
             </h1>
             <p className="mt-6 text-base font-medium leading-8 text-[#42504b] sm:text-lg">
-              結婚式までに、夏までに、健康のために。カロリースナップは食事写真からカロリーとPFCを推定し、摂取カロリーを管理できます。
+              面倒な入力が続かなかった人でも、写真なら始めやすい。カロリースナップは食事写真からカロリーとPFCを推定し、今日の摂取量をすぐ見える化します。
             </p>
+            <div className="mt-5 grid gap-2 text-sm font-bold text-[#17231f] sm:grid-cols-2">
+              {["3秒で記録完了", "外食でもOK", "PFCも自動で見える", "修正もできるから安心"].map((label) => (
+                <p key={label} className="flex items-center gap-2">
+                  <CheckCircle2 className="size-4 text-[#00a878]" />
+                  {label}
+                </p>
+              ))}
+            </div>
 
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <Link
@@ -126,6 +134,7 @@ export function PublicHome() {
                 alt="食事写真をAI解析して確認・修正している画面"
                 width={1357}
                 height={1281}
+                loading="eager"
                 sizes="(min-width: 1024px) 44rem, (min-width: 640px) calc(100vw - 16rem), 0px"
                 className="h-auto w-full rounded-sm"
               />
@@ -160,31 +169,56 @@ export function PublicHome() {
         </div>
       </section>
 
+      <section className="border-b-2 border-[#17231f] bg-white">
+        <div className="mx-auto grid w-full max-w-7xl gap-7 px-4 py-10 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+          <div className="max-w-2xl">
+            <p className="inline-flex rounded-md border-2 border-[#17231f] bg-[#ffb4a2] px-3 py-1.5 text-sm font-bold text-[#17231f] shadow-[3px_3px_0_#17231f]">
+              続かない理由に合わせました
+            </p>
+            <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight text-[#17231f] sm:text-4xl">
+              記録が面倒だと、正しい方法でも続かない。
+            </h2>
+            <p className="mt-4 text-base font-medium leading-8 text-[#42504b]">
+              カロリー管理で大切なのは、完璧な入力よりも「今日も記録できた」こと。だから、毎食のハードルを写真1枚まで下げています。
+            </p>
+          </div>
+          <div className="rounded-md border-2 border-[#17231f] bg-[#fff3c7] p-5 shadow-[6px_6px_0_#17231f]">
+            <p className="text-sm font-semibold text-primary">太る理由はシンプル</p>
+            <p className="mt-2 text-2xl font-black tracking-tight text-[#17231f] sm:text-3xl">
+              摂取カロリー ＞ 消費カロリー
+            </p>
+            <p className="mt-3 text-sm leading-7 text-muted-foreground">
+              だからまずは、食べた量をざっくり把握することから。写真でOKなら、外食の日も記録を途切れさせにくくなります。
+            </p>
+          </div>
+        </div>
+      </section>
+
       <section className="border-b-2 border-[#17231f] bg-[#fffaf0]">
         <div className="mx-auto grid w-full max-w-7xl gap-7 px-4 py-10 sm:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
           <FavoriteFoodSlideshow />
 
           <div className="max-w-2xl lg:pl-4">
             <p className="inline-flex rounded-md border-2 border-[#17231f] bg-[#ffe66d] px-3 py-1.5 text-sm font-bold text-[#17231f] shadow-[3px_3px_0_#17231f]">
-              好きな物も、計画に入れる
+              写真でOK
             </p>
             <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight text-[#17231f] sm:text-4xl">
-              我慢だけのダイエットは終わりにして
+              好きな物も、記録すれば調整できる。
             </h2>
             <p className="mt-4 text-base font-medium leading-8 text-[#42504b]">
               ラーメンも外食も、食べたら失敗ではありません。カロリーを把握して1日の中で調整できれば、好きな物を楽しみながらダイエットを続けられます。
             </p>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <div className="rounded-md border-2 border-[#17231f] bg-white p-4 shadow-[4px_4px_0_#17231f]">
-                <p className="font-semibold">食べた後に記録</p>
+                <p className="font-semibold">撮る</p>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  写真から推定値を作り、量を直して保存できます。
+                  食事写真を選ぶだけ。細かいメニュー検索から始めません。
                 </p>
               </div>
               <div className="rounded-md border-2 border-[#17231f] bg-white p-4 shadow-[4px_4px_0_#17231f]">
-                <p className="font-semibold">今日の残りを確認</p>
+                <p className="font-semibold">3秒で見る</p>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  合計カロリーを見ながら、次の食事を調整できます。
+                  推定カロリーとPFCを確認し、違うところだけ直せます。
                 </p>
               </div>
             </div>
@@ -192,7 +226,7 @@ export function PublicHome() {
               href="/signup"
               className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-md border-2 border-[#17231f] bg-[#ff6b6b] px-6 text-base font-bold text-white shadow-[4px_4px_0_#17231f] sm:w-auto"
             >
-              好きな物を記録して始める
+              3秒記録を試す
               <ArrowRight className="size-4" />
             </Link>
           </div>
@@ -264,20 +298,20 @@ export function PublicHome() {
             <div className="max-w-2xl">
               <p className="inline-flex rounded-md border-2 border-[#17231f] bg-white px-3 py-1.5 text-sm font-bold text-primary shadow-[3px_3px_0_#17231f]">目的から始める</p>
               <h2 className="mt-4 text-2xl font-black tracking-tight text-[#17231f] sm:text-3xl">
-                ただ減らすより、続けられる食事管理。
+                続くから、結果につながる。
               </h2>
               <p className="mt-3 text-sm font-medium leading-7 text-[#42504b] sm:text-base">
-                予定がある日までに体を整えたい時も、長く健康を保ちたい時も、まずは今日の食事を把握することから始められます。
+                結婚式までに、夏までに、健康のために。まずは今日の1食を3秒で残すところから始められます。
               </p>
             </div>
 
             <div className="rounded-md border-2 border-[#17231f] bg-white p-5 shadow-[5px_5px_0_#17231f]">
-              <p className="text-sm font-semibold text-primary">太る理由はシンプル</p>
+              <p className="text-sm font-semibold text-primary">続けるための設計</p>
               <p className="mt-2 text-2xl font-black tracking-tight text-[#17231f] sm:text-3xl">
-                摂取カロリー ＞ 消費カロリー
+                完璧より、途切れない記録。
               </p>
               <p className="mt-3 text-sm leading-7 text-muted-foreground">
-                だからこそ、まずは食べたものをざっくりでも把握することが大切です。写真で記録すれば、毎回ゼロから入力しなくても続けやすくなります。
+                食べすぎた日も、外食の日も、記録できれば次の食事で調整できます。
               </p>
             </div>
           </div>
@@ -310,7 +344,7 @@ export function PublicHome() {
             </p>
             <h2 className="mt-3 text-2xl font-black text-[#17231f]">次の食事から、健康的に記録。</h2>
             <p className="mt-2 text-sm font-medium text-[#42504b]">
-              まずは無料登録して、食事写真からカロリー管理を始められます。
+              カロリー管理が続かなかった人でも、写真1枚なら始められます。
             </p>
           </div>
           <Link

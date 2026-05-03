@@ -38,8 +38,9 @@ const policySections = [
     title: "4. 外部サービスの利用",
     body: [
       "本サービスは、認証、データ保存、AI解析、課金機能のために外部サービスを利用します。",
-      "主な外部サービスには、Supabase（認証・データベース）、Google Gemini API（食事写真のAI解析）、Google OAuth（Googleログインを有効化している場合）、Stripe（有料プランの課金処理を有効化している場合）が含まれます。",
-      "各外部サービスに送信される情報は、サービス提供に必要な範囲に限定します。",
+      "主な外部サービスには、Supabase（認証・データベース）、Google Gemini API（食事写真のAI解析・食事メニュー提案）、Google OAuth（Googleログインを有効化している場合）、Stripe（有料プランの課金処理を有効化している場合）が含まれます。",
+      "Stripeを利用した決済では、カード番号などの決済手段情報はStripeが処理し、本サービスのデータベースには保存しません。",
+      "各外部サービスに送信される情報は、サービス提供に必要な範囲に限定します。Stripeの個人情報の取り扱いについては、Stripeのプライバシーポリシーもご確認ください。",
     ],
   },
   {
@@ -117,6 +118,28 @@ export default function PrivacyPage() {
           >
             お問い合わせフォームへ
           </Link>
+          <div className="mt-3 flex flex-wrap gap-3">
+            <Link
+              href="/terms"
+              className="inline-flex h-10 items-center rounded-md border border-border bg-background px-4 text-sm font-semibold hover:bg-muted"
+            >
+              利用規約
+            </Link>
+            <Link
+              href="/commerce-disclosure"
+              className="inline-flex h-10 items-center rounded-md border border-border bg-background px-4 text-sm font-semibold hover:bg-muted"
+            >
+              特定商取引法に基づく表記
+            </Link>
+            <a
+              href="https://stripe.com/privacy"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex h-10 items-center rounded-md border border-border bg-background px-4 text-sm font-semibold hover:bg-muted"
+            >
+              Stripeプライバシーポリシー
+            </a>
+          </div>
           <p className="mt-3 text-sm text-muted-foreground">
             制定日: 2026年5月1日
           </p>

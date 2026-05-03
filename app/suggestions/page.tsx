@@ -70,7 +70,7 @@ export default async function SuggestionsPage() {
                 過去の食事から、次のメニューを決める。
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-                外食・自炊・コンビニと、朝ご飯・昼食・夜ご飯を選ぶと、Geminiが過去の食事傾向から候補を提案します。
+                外食・自炊・コンビニと、朝ご飯・昼食・夜ご飯を選ぶと、AIが過去の食事傾向から候補を提案します。
               </p>
             </div>
           </div>

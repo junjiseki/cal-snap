@@ -89,8 +89,14 @@ export default async function RootLayout({
               <Link href="/contact" className="hover:text-foreground">
                 お問い合わせ
               </Link>
+              <Link href="/terms" className="hover:text-foreground">
+                利用規約
+              </Link>
               <Link href="/privacy" className="hover:text-foreground">
                 プライバシーポリシー
+              </Link>
+              <Link href="/commerce-disclosure" className="hover:text-foreground">
+                特商法表記
               </Link>
             </div>
           </div>

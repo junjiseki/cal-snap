@@ -47,12 +47,12 @@ export function AppHeaderClient({
           >
             <Image
               src="/logo.png"
-              alt="カロリースナップ AI ロゴ"
+              alt="カロスナ AI ロゴ"
               width={40}
               height={40}
               className="size-10 shrink-0 rounded-md sm:size-12"
             />
-            <span className="truncate text-base font-semibold sm:text-lg">カロリースナップ</span>
+            <span className="truncate text-base font-semibold sm:text-lg">カロスナ</span>
           </Link>
           <button
             type="button"
@@ -112,7 +112,7 @@ export function AppHeaderClient({
               <div className="mb-3">
                 <div>
                   <p className="text-xs font-semibold text-primary">Menu</p>
-                  <p className="mt-1 text-sm font-semibold">カロリースナップ</p>
+                  <p className="mt-1 text-sm font-semibold">カロスナ</p>
                 </div>
               </div>
 

@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "利用規約 | カロリースナップ",
+  title: "利用規約 | カロスナ",
   description:
-    "カロリースナップの利用条件、有料プラン、AI推定、禁止事項、免責、解約に関する規約です。",
+    "カロスナの利用条件、有料プラン、AI推定、禁止事項、免責、解約に関する規約です。",
   alternates: {
     canonical: "/terms",
   },
@@ -14,7 +14,7 @@ const sections = [
   {
     title: "1. 本規約の適用",
     body: [
-      "本利用規約は、カロリースナップ（以下「本サービス」）の利用条件を定めるものです。",
+      "本利用規約は、カロスナ（以下「本サービス」）の利用条件を定めるものです。",
       "ユーザーは、本サービスを利用することで本規約に同意したものとみなされます。",
     ],
   },
@@ -112,7 +112,7 @@ export default function TermsPage() {
             利用規約
           </h1>
           <p className="mt-4 text-sm leading-7 text-muted-foreground">
-            本規約は、カロリースナップの利用条件、有料プラン、AI解析・食事提案、禁止事項、免責などを定めるものです。
+            本規約は、カロスナの利用条件、有料プラン、AI解析・食事提案、禁止事項、免責などを定めるものです。
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <Link

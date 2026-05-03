@@ -6,7 +6,7 @@ import { getAuthenticatedUserCached } from "@/lib/supabase/server";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "健康的に痩せたい人の食事写真カロリー記録",
+  title: "健康的に痩せたい人の食事写真カロリー管理",
   description:
     "好きな物を我慢しすぎず、カロリーを把握しながら健康的にダイエット。食事写真からカロリー・PFCを推定し、摂取カロリーを管理できます。",
   alternates: {
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     url: "/",
-    title: "カロリースナップ | 健康的に痩せたい人の食事写真記録",
+    title: "カロスナ - 3秒で終わる食事管理",
     description:
       "好きな物を我慢しすぎず、カロリーを把握しながら健康的にダイエット。食事写真からカロリー・PFCを推定し、毎日の栄養管理を続けられます。",
     images: ["/logo.png"],

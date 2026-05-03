@@ -21,12 +21,12 @@ const noto = Noto_Sans_JP({
 
 export const metadata: Metadata = {
   title: {
-    default: "カロリースナップ | 食事写真で摂取カロリー記録",
-    template: "%s | カロリースナップ",
+    default: "カロスナ - 3秒で終わる食事管理",
+    template: "%s | カロスナ",
   },
   description:
     "食事写真をAIで解析し、1日の摂取カロリーとPFCバランスを記録・可視化できる食事管理アプリです。",
-  applicationName: "カロリースナップ",
+  applicationName: "カロスナ",
   metadataBase: new URL(getSiteUrl()),
   keywords: [
     "カロリー管理",
@@ -64,15 +64,15 @@ export const metadata: Metadata = {
     type: "website",
     locale: "ja_JP",
     url: "/",
-    siteName: "カロリースナップ",
-    title: "カロリースナップ | 食事写真で摂取カロリー記録",
+    siteName: "カロスナ",
+    title: "カロスナ - 3秒で終わる食事管理",
     description:
       "食事写真をAIで解析し、1日の摂取カロリーとPFCバランスを記録・可視化できる食事管理アプリです。",
     images: ["/logo.png"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "カロリースナップ | 食事写真で摂取カロリー記録",
+    title: "カロスナ - 3秒で終わる食事管理",
     description:
       "食事写真をAIで解析し、1日の摂取カロリーとPFCバランスを記録・可視化できる食事管理アプリです。",
     images: ["/logo.png"],
@@ -104,7 +104,7 @@ export default async function RootLayout({
           <div className="flex flex-1 flex-col">{children}</div>
           <footer className="border-t border-border bg-card pb-20 md:pb-0">
             <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 px-4 py-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8">
-              <p>© {new Date().getFullYear()} カロリースナップ</p>
+              <p>© {new Date().getFullYear()} カロスナ</p>
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-left sm:flex sm:items-center sm:gap-4">
                 <Link href="/contact" className="hover:text-foreground sm:whitespace-nowrap">
                   お問い合わせ

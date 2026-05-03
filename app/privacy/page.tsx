@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "プライバシーポリシー | カロリースナップ",
+  title: "プライバシーポリシー | カロスナ",
   description:
-    "カロリースナップにおける個人情報、食事データ、食事写真、AI解析、外部サービス利用に関する取り扱い方針です。",
+    "カロスナにおける個人情報、食事データ、食事写真、AI解析、外部サービス利用に関する取り扱い方針です。",
   alternates: {
     canonical: "/privacy",
   },
@@ -110,7 +110,7 @@ export default function PrivacyPage() {
             プライバシーポリシー
           </h1>
           <p className="mt-4 text-sm leading-7 text-muted-foreground">
-            カロリースナップは、食事写真から摂取カロリーとPFCを推定し、ユーザーが確認・修正した食事データを保存するサービスです。本ポリシーでは、本サービスにおける個人情報および関連データの取り扱いを定めます。
+            カロスナは、食事写真から摂取カロリーとPFCを推定し、ユーザーが確認・修正した食事データを保存するサービスです。本ポリシーでは、本サービスにおける個人情報および関連データの取り扱いを定めます。
           </p>
           <Link
             href="/contact"

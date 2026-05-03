@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "特定商取引法に基づく表記 | カロリースナップ",
+  title: "特定商取引法に基づく表記 | カロスナ",
   description:
-    "カロリースナップの有料プランに関する販売価格、支払方法、解約、返品・返金、問い合わせ先などの表記です。",
+    "カロスナの有料プランに関する販売価格、支払方法、解約、返品・返金、問い合わせ先などの表記です。",
   alternates: {
     canonical: "/commerce-disclosure",
   },
@@ -66,7 +66,7 @@ export default function CommerceDisclosurePage() {
             特定商取引法に基づく表記
           </h1>
           <p className="mt-4 text-sm leading-7 text-muted-foreground">
-            カロリースナップの有料プランに関する販売条件を記載しています。
+            カロスナの有料プランに関する販売条件を記載しています。
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <Link

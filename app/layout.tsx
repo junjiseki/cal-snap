@@ -85,17 +85,17 @@ export default async function RootLayout({
         <footer className="border-t border-border bg-card pb-20 md:pb-0">
           <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 px-4 py-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8">
             <p>© {new Date().getFullYear()} カロリースナップ</p>
-            <div className="flex gap-4">
-              <Link href="/contact" className="hover:text-foreground">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-left sm:flex sm:items-center sm:gap-4">
+              <Link href="/contact" className="hover:text-foreground sm:whitespace-nowrap">
                 お問い合わせ
               </Link>
-              <Link href="/terms" className="hover:text-foreground">
+              <Link href="/terms" className="hover:text-foreground sm:whitespace-nowrap">
                 利用規約
               </Link>
-              <Link href="/privacy" className="hover:text-foreground">
+              <Link href="/privacy" className="hover:text-foreground sm:whitespace-nowrap">
                 プライバシーポリシー
               </Link>
-              <Link href="/commerce-disclosure" className="hover:text-foreground">
+              <Link href="/commerce-disclosure" className="hover:text-foreground sm:whitespace-nowrap">
                 特商法表記
               </Link>
             </div>

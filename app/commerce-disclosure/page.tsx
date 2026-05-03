@@ -52,11 +52,6 @@ const disclosureRows = [
   {
     label: "解約方法",
     value:
-      "アプリ内のプラン管理画面またはStripeの管理画面から、いつでもサブスクリプションを解約できます。",
-  },
-  {
-    label: "解約・返金",
-    value:
       "プラン管理画面またはStripeの管理画面から解約できます。サービスの性質上、法令上必要な場合を除き、支払い済み料金の日割り返金または途中返金は行いません。",
   },
 ] as const;
@@ -92,7 +87,7 @@ export default function CommerceDisclosurePage() {
       </section>
 
       <section className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-8 sm:py-10">
-        <div className="border border-border bg-card">
+        <dl className="border border-border bg-card">
           {disclosureRows.map((row) => (
             <div
               key={row.label}
@@ -110,7 +105,7 @@ export default function CommerceDisclosurePage() {
               </dd>
             </div>
           ))}
-        </div>
+        </dl>
       </section>
     </main>
   );

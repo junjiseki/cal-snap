@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { mapSupabaseSignInError } from "@/lib/auth/sign-in-errors";
 import { Button } from "@/components/ui/button";
+import { TurnstileWidget } from "@/components/contact/turnstile-widget";
 
 export function ChangePasswordForm({ userEmail }: { userEmail: string }) {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -13,6 +14,12 @@ export function ChangePasswordForm({ userEmail }: { userEmail: string }) {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaResetSignal, setCaptchaResetSignal] = useState(0);
+
+  const handleCaptchaTokenChange = useCallback((token: string) => {
+    setCaptchaToken(token);
+  }, []);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -32,14 +39,29 @@ export function ChangePasswordForm({ userEmail }: { userEmail: string }) {
       return;
     }
 
+    const trimmedCaptcha = captchaToken.trim();
+    if (!trimmedCaptcha) {
+      setError("下の「人間による操作の確認」を完了してから、もう一度お試しください。");
+      return;
+    }
+
     setIsSaving(true);
     try {
       const supabase = createClient();
       const { error: verifyError } = await supabase.auth.signInWithPassword({
         email: userEmail,
         password: currentPassword,
+        options: { captchaToken: trimmedCaptcha },
       });
       if (verifyError) {
+        setCaptchaResetSignal((n) => n + 1);
+        const raw = verifyError.message?.toLowerCase() ?? "";
+        if (raw.includes("captcha")) {
+          setError(
+            "ボット対策の検証に失敗しました。確認ウィジェットをやり直してから再度お試しください。",
+          );
+          return;
+        }
         setError(mapSupabaseSignInError(verifyError));
         return;
       }
@@ -48,6 +70,7 @@ export function ChangePasswordForm({ userEmail }: { userEmail: string }) {
         password: newPassword,
       });
       if (updateError) {
+        setCaptchaResetSignal((n) => n + 1);
         setError(updateError.message || "パスワードを更新できませんでした。");
         return;
       }
@@ -56,7 +79,9 @@ export function ChangePasswordForm({ userEmail }: { userEmail: string }) {
       setNewPassword("");
       setConfirmPassword("");
       setNotice("パスワードを変更しました。");
+      setCaptchaResetSignal((n) => n + 1);
     } catch (caught) {
+      setCaptchaResetSignal((n) => n + 1);
       setError(caught instanceof Error ? caught.message : "パスワードを変更できませんでした。");
     } finally {
       setIsSaving(false);
@@ -112,6 +137,7 @@ export function ChangePasswordForm({ userEmail }: { userEmail: string }) {
           minLength={8}
         />
       </label>
+      <TurnstileWidget onTokenChange={handleCaptchaTokenChange} resetSignal={captchaResetSignal} />
       <Button type="submit" disabled={isSaving} aria-busy={isSaving} className="h-10 gap-2">
         {isSaving ? <Loader2 className="size-4 animate-spin" /> : null}
         {isSaving ? "変更中..." : "パスワードを変更"}

@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Loader2, LogIn } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { GoogleMark } from "@/components/auth/google-mark";
 import { mapSupabaseSignInError } from "@/lib/auth/sign-in-errors";
 import { safeInternalPath } from "@/lib/auth/safe-redirect";
+import { TurnstileWidget } from "@/components/contact/turnstile-widget";
 
 export function LoginForm({
   next = "/dashboard",
@@ -30,6 +31,12 @@ export function LoginForm({
   const [notice, setNotice] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaResetSignal, setCaptchaResetSignal] = useState(0);
+
+  const handleCaptchaTokenChange = useCallback((token: string) => {
+    setCaptchaToken(token);
+  }, []);
 
   async function signInWithGoogle() {
     setError(null);
@@ -58,6 +65,12 @@ export function LoginForm({
     event.preventDefault();
     setError(null);
     setNotice(null);
+    const trimmedCaptcha = captchaToken.trim();
+    if (!trimmedCaptcha) {
+      setError("下の「人間による操作の確認」を完了してから、もう一度お試しください。");
+      return;
+    }
+
     setIsLoggingIn(true);
 
     try {
@@ -65,9 +78,18 @@ export function LoginForm({
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
+        options: { captchaToken: trimmedCaptcha },
       });
 
       if (signInError) {
+        setCaptchaResetSignal((n) => n + 1);
+        const raw = signInError.message?.toLowerCase() ?? "";
+        if (raw.includes("captcha")) {
+          setError(
+            "ボット対策の検証に失敗しました。確認ウィジェットをやり直してから再度お試しください。",
+          );
+          return;
+        }
         setError(mapSupabaseSignInError(signInError));
         return;
       }
@@ -76,6 +98,7 @@ export function LoginForm({
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
+        setCaptchaResetSignal((n) => n + 1);
         setError("ログインに失敗しました。もう一度お試しください。");
         return;
       }
@@ -89,6 +112,7 @@ export function LoginForm({
       if (profileError) {
         console.error("[login-form] profile deleted_at fetch failed", profileError);
         await supabase.auth.signOut();
+        setCaptchaResetSignal((n) => n + 1);
         setError("アカウント状態の確認に失敗しました。時間をおいて再度お試しください。");
         return;
       }
@@ -115,6 +139,7 @@ export function LoginForm({
 
       window.location.href = safeInternalPath(next, "/dashboard");
     } catch (caught) {
+      setCaptchaResetSignal((n) => n + 1);
       setError(caught instanceof Error ? caught.message : "ログインに失敗しました。");
     } finally {
       setIsLoggingIn(false);
@@ -168,6 +193,7 @@ export function LoginForm({
           placeholder="パスワード"
         />
       </label>
+      <TurnstileWidget onTokenChange={handleCaptchaTokenChange} resetSignal={captchaResetSignal} />
       <button
         type="submit"
         disabled={isLoggingIn || isGoogleLoading}

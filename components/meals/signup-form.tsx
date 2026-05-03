@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { safeInternalPath } from "@/lib/auth/safe-redirect";
 import { GoogleMark } from "@/components/auth/google-mark";
+import { TurnstileWidget } from "@/components/contact/turnstile-widget";
 
 export function SignupForm({ next = "/dashboard" }: { next?: string }) {
   const router = useRouter();
@@ -17,6 +18,12 @@ export function SignupForm({ next = "/dashboard" }: { next?: string }) {
   const [error, setError] = useState<string | null>(null);
   const [isSigningUp, setIsSigningUp] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaResetSignal, setCaptchaResetSignal] = useState(0);
+
+  const handleCaptchaTokenChange = useCallback((token: string) => {
+    setCaptchaToken(token);
+  }, []);
 
   async function signUpWithGoogle() {
     setError(null);
@@ -57,6 +64,12 @@ export function SignupForm({ next = "/dashboard" }: { next?: string }) {
       return;
     }
 
+    const trimmedCaptcha = captchaToken.trim();
+    if (!trimmedCaptcha) {
+      setError("下の「人間による操作の確認」を完了してから、もう一度お試しください。");
+      return;
+    }
+
     setIsSigningUp(true);
     try {
       const supabase = createClient();
@@ -69,6 +82,7 @@ export function SignupForm({ next = "/dashboard" }: { next?: string }) {
         password,
         options: {
           emailRedirectTo: `${origin}/auth/confirm?next=${encodeURIComponent(next)}`,
+          captchaToken: trimmedCaptcha,
         },
       });
 
@@ -96,12 +110,17 @@ export function SignupForm({ next = "/dashboard" }: { next?: string }) {
 
       setMessage("登録を受け付けました。画面の案内に従ってください。");
     } catch (caught) {
+      setCaptchaResetSignal((n) => n + 1);
       const message =
         caught instanceof Error ? caught.message.toLowerCase() : "";
 
       if (message.includes("already registered") || message.includes("already exists")) {
         setError(
           "このメールアドレスは既に登録済みです。以前アカウントを利用停止にした場合は、一度ログイン画面から同じメールでログインすると整理され、その後に再度新規登録できます。",
+        );
+      } else if (message.includes("captcha")) {
+        setError(
+          "ボット対策の検証に失敗しました。確認ウィジェットをやり直してから再度お試しください。",
         );
       } else {
         setError(caught instanceof Error ? caught.message : "ユーザー登録に失敗しました。");
@@ -152,6 +171,7 @@ export function SignupForm({ next = "/dashboard" }: { next?: string }) {
           placeholder="確認用パスワード"
         />
       </label>
+      <TurnstileWidget onTokenChange={handleCaptchaTokenChange} resetSignal={captchaResetSignal} />
       <button
         type="submit"
         disabled={isSigningUp || isGoogleLoading}

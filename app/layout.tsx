@@ -5,6 +5,7 @@ import { Geist, Noto_Sans_JP } from "next/font/google";
 import { getSiteUrl } from "@/lib/site-url";
 import { cn } from "@/lib/utils";
 import { CleanupStaleSession } from "@/components/auth/cleanup-stale-session";
+import { SessionHydrationRefresh } from "@/components/auth/session-hydration-refresh";
 import { AppHeader } from "@/components/layout/app-header";
 import { ThemeProvider } from "@/components/theme-provider";
 
@@ -98,6 +99,7 @@ export default async function RootLayout({
       <body className="flex min-h-full flex-col">
         <ThemeProvider>
           <CleanupStaleSession />
+          <SessionHydrationRefresh />
           <AppHeader />
           <div className="flex flex-1 flex-col">{children}</div>
           <footer className="border-t border-border bg-card pb-20 md:pb-0">

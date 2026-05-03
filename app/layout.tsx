@@ -21,12 +21,16 @@ export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   keywords: [
     "カロリー管理",
-    "食事記録",
+    "食事管理",
     "PFC",
     "栄養管理",
     "ダイエット",
     "食事写真",
     "AI解析",
+    "筋トレ",
+    "ジム",
+    "健康",
+    "生活",
   ],
   alternates: {
     canonical: "/",

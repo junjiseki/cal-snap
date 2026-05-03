@@ -57,6 +57,27 @@ const goalPromotions = [
   },
 ] as const;
 
+const mobilePreviewSlides = [
+  {
+    src: "/home-mobile-preview.webp",
+    alt: "スマホで今日の摂取カロリーと次の行動を確認している画面",
+    width: 392,
+    height: 785,
+  },
+  {
+    src: "/1.webp",
+    alt: "スマホでPFC合計と摂取カロリー推移を確認している画面",
+    width: 389,
+    height: 845,
+  },
+  {
+    src: "/2.webp",
+    alt: "スマホで食事提案の結果を確認している画面",
+    width: 389,
+    height: 845,
+  },
+] as const;
+
 export function PublicHome() {
   return (
     <main className="flex-1 bg-[#fffaf0]">
@@ -110,17 +131,26 @@ export function PublicHome() {
 
           <div className="relative min-w-0">
             <div className="mx-auto w-[min(78vw,19rem)] rotate-2 rounded-[2rem] border-2 border-[#17231f] bg-white p-2 shadow-[8px_8px_0_#17231f] sm:absolute sm:-right-2 sm:bottom-[-1.5rem] sm:z-10 sm:w-[13.5rem] lg:w-[15rem]">
-              <div className="overflow-hidden rounded-[1.5rem] border border-border">
-                <Image
-                  src="/home-mobile-preview.png"
-                  alt="スマホで今日の摂取カロリーと次の行動を確認している画面"
-                  width={385}
-                  height={723}
-                  priority
-                  sizes="(min-width: 1024px) 15rem, (min-width: 640px) 13.5rem, min(78vw, 19rem)"
-                  className="h-auto w-full"
-                />
+              <div
+                className="flex snap-x snap-mandatory overflow-x-auto rounded-[1.5rem] border border-border"
+                aria-label="スマホ画面プレビューを横にスライドして確認"
+              >
+                {mobilePreviewSlides.map((slide, index) => (
+                  <Image
+                    key={slide.src}
+                    src={slide.src}
+                    alt={slide.alt}
+                    width={slide.width}
+                    height={slide.height}
+                    priority={index === 0}
+                    sizes="(min-width: 1024px) 15rem, (min-width: 640px) 13.5rem, min(78vw, 19rem)"
+                    className="h-auto min-w-full snap-center"
+                  />
+                ))}
               </div>
+              <p className="mt-2 text-center text-[11px] font-bold text-[#036854] sm:hidden">
+                横にスライドして画面を確認
+              </p>
             </div>
             <div className="mt-6 hidden -rotate-1 rounded-md border-2 border-[#17231f] bg-white p-2 shadow-[8px_8px_0_#17231f] sm:block sm:pr-28 lg:pr-36">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b-2 border-[#17231f] px-2 py-2">
@@ -130,7 +160,7 @@ export function PublicHome() {
                 </span>
               </div>
               <Image
-                src="/home-preview.png"
+                src="/home-preview.webp"
                 alt="食事写真をAI解析して確認・修正している画面"
                 width={1357}
                 height={1281}

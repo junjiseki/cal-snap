@@ -4,10 +4,10 @@ import Image from "next/image";
 import { useState } from "react";
 
 const slides = [
-  { src: "/ramen-promo.png" },
-  { src: "/favorite-food-burger.png" },
-  { src: "/favorite-food-onigiri.png" },
-  { src: "/favorite-food-udon.png" },
+  { src: "/ramen-promo.webp" },
+  { src: "/favorite-food-burger.webp" },
+  { src: "/favorite-food-onigiri.webp" },
+  { src: "/favorite-food-udon.webp" },
 ] as const;
 
 export function FavoriteFoodSlideshow() {

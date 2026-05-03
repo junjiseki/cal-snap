@@ -46,7 +46,7 @@ export function AppHeaderClient({
             className="flex min-w-0 items-center gap-2 sm:gap-3"
           >
             <Image
-              src="/logo.png"
+              src="/logo.webp"
               alt="カロスナ AI ロゴ"
               width={40}
               height={40}

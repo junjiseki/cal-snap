@@ -131,10 +131,16 @@ export function SignupForm({ next = "/dashboard" }: { next?: string }) {
   }
 
   return (
-    <form onSubmit={signUpWithEmail} className="space-y-4 border border-border bg-card p-6">
+    <form
+      onSubmit={signUpWithEmail}
+      className="space-y-4 rounded-md border-2 border-[#17231f] bg-white p-6 shadow-[6px_6px_0_#17231f]"
+    >
       <div>
-        <h1 className="text-2xl font-semibold">新規登録</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="inline-flex rounded-md bg-[#ffe66d] px-3 py-1.5 text-sm font-bold text-[#17231f]">
+          はじめの一歩
+        </p>
+        <h1 className="mt-3 text-2xl font-black text-[#17231f]">新規登録</h1>
+        <p className="mt-2 text-sm font-medium text-[#42504b]">
           メールアドレスとパスワード、または Google でアカウントを作成します。
         </p>
       </div>
@@ -145,7 +151,7 @@ export function SignupForm({ next = "/dashboard" }: { next?: string }) {
           required
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+          className="mt-2 h-11 w-full rounded-md border-2 border-[#17231f] bg-[#fffaf0] px-3 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#ffe66d]"
           placeholder="you@example.com"
         />
       </label>
@@ -156,7 +162,7 @@ export function SignupForm({ next = "/dashboard" }: { next?: string }) {
           required
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+          className="mt-2 h-11 w-full rounded-md border-2 border-[#17231f] bg-[#fffaf0] px-3 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#ffe66d]"
           placeholder="8文字以上"
         />
       </label>
@@ -167,7 +173,7 @@ export function SignupForm({ next = "/dashboard" }: { next?: string }) {
           required
           value={passwordConfirm}
           onChange={(event) => setPasswordConfirm(event.target.value)}
-          className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+          className="mt-2 h-11 w-full rounded-md border-2 border-[#17231f] bg-[#fffaf0] px-3 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#ffe66d]"
           placeholder="確認用パスワード"
         />
       </label>
@@ -176,7 +182,7 @@ export function SignupForm({ next = "/dashboard" }: { next?: string }) {
         type="submit"
         disabled={isSigningUp || isGoogleLoading}
         aria-busy={isSigningUp}
-        className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md border-2 border-[#17231f] bg-[#00a878] px-4 text-sm font-bold text-white shadow-[3px_3px_0_#17231f] disabled:opacity-50"
       >
         {isSigningUp ? <Loader2 className="size-4 animate-spin" /> : null}
         {isSigningUp ? "登録中..." : "メールで新規登録"}
@@ -186,7 +192,7 @@ export function SignupForm({ next = "/dashboard" }: { next?: string }) {
         onClick={() => void signUpWithGoogle()}
         disabled={isSigningUp || isGoogleLoading}
         aria-busy={isGoogleLoading}
-        className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-border bg-card px-4 text-sm font-semibold text-foreground disabled:opacity-50"
+        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md border-2 border-[#17231f] bg-white px-4 text-sm font-bold text-[#17231f] shadow-[3px_3px_0_#17231f] disabled:opacity-50"
       >
         {isGoogleLoading ? (
           <Loader2 className="size-4 animate-spin" />
@@ -195,9 +201,9 @@ export function SignupForm({ next = "/dashboard" }: { next?: string }) {
         )}
         {isGoogleLoading ? "Googleへ移動中..." : "Google で登録"}
       </button>
-      <p className="text-center text-sm text-muted-foreground">
+      <p className="text-center text-sm font-medium text-[#42504b]">
         すでにアカウントがある場合は{" "}
-        <Link href={`/login?next=${encodeURIComponent(next)}`} className="font-semibold text-primary underline-offset-4 hover:underline">
+        <Link href={`/login?next=${encodeURIComponent(next)}`} className="font-bold text-[#036854] underline-offset-4 hover:underline">
           ログイン
         </Link>
       </p>

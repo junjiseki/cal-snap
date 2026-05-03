@@ -147,10 +147,16 @@ export function LoginForm({
   }
 
   return (
-    <form onSubmit={submit} className="space-y-4 border border-border bg-card p-6">
+    <form
+      onSubmit={submit}
+      className="space-y-4 rounded-md border-2 border-[#17231f] bg-white p-6 shadow-[6px_6px_0_#17231f]"
+    >
       <div>
-        <h1 className="text-2xl font-semibold">ログイン</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="inline-flex rounded-md bg-[#d6fff2] px-3 py-1.5 text-sm font-bold text-[#036854]">
+          おかえりなさい
+        </p>
+        <h1 className="mt-3 text-2xl font-black text-[#17231f]">ログイン</h1>
+        <p className="mt-2 text-sm font-medium text-[#42504b]">
           メールアドレスとパスワードでログインします。
         </p>
       </div>
@@ -178,7 +184,7 @@ export function LoginForm({
           required
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+          className="mt-2 h-11 w-full rounded-md border-2 border-[#17231f] bg-[#fffaf0] px-3 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#ffe66d]"
           placeholder="you@example.com"
         />
       </label>
@@ -189,7 +195,7 @@ export function LoginForm({
           required
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+          className="mt-2 h-11 w-full rounded-md border-2 border-[#17231f] bg-[#fffaf0] px-3 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#ffe66d]"
           placeholder="パスワード"
         />
       </label>
@@ -198,7 +204,7 @@ export function LoginForm({
         type="submit"
         disabled={isLoggingIn || isGoogleLoading}
         aria-busy={isLoggingIn}
-        className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md border-2 border-[#17231f] bg-[#00a878] px-4 text-sm font-bold text-white shadow-[3px_3px_0_#17231f] disabled:opacity-50"
       >
         {isLoggingIn ? <Loader2 className="size-4 animate-spin" /> : <LogIn className="size-4" />}
         {isLoggingIn ? "ログイン中..." : "ログイン"}
@@ -208,7 +214,7 @@ export function LoginForm({
         onClick={signInWithGoogle}
         disabled={isLoggingIn || isGoogleLoading}
         aria-busy={isGoogleLoading}
-        className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-border bg-card px-4 text-sm font-semibold text-foreground disabled:opacity-50"
+        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md border-2 border-[#17231f] bg-white px-4 text-sm font-bold text-[#17231f] shadow-[3px_3px_0_#17231f] disabled:opacity-50"
       >
         {isGoogleLoading ? (
           <Loader2 className="size-4 animate-spin" />
@@ -217,9 +223,9 @@ export function LoginForm({
         )}
         {isGoogleLoading ? "Googleへ移動中..." : "Google でログイン"}
       </button>
-      <p className="text-center text-sm text-muted-foreground">
+      <p className="text-center text-sm font-medium text-[#42504b]">
         アカウントがない場合は{" "}
-        <Link href={`/signup?next=${encodeURIComponent(next)}`} className="font-semibold text-primary underline-offset-4 hover:underline">
+        <Link href={`/signup?next=${encodeURIComponent(next)}`} className="font-bold text-[#036854] underline-offset-4 hover:underline">
           新規登録
         </Link>
       </p>

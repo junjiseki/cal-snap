@@ -9,7 +9,7 @@ import { safeInternalPath } from "@/lib/auth/safe-redirect";
 import { GoogleMark } from "@/components/auth/google-mark";
 import { TurnstileWidget } from "@/components/contact/turnstile-widget";
 
-export function SignupForm({ next = "/dashboard" }: { next?: string }) {
+export function SignupForm({ next = "/meals/new" }: { next?: string }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -94,7 +94,7 @@ export function SignupForm({ next = "/dashboard" }: { next?: string }) {
       }
 
       if (session) {
-        router.push(safeInternalPath(next, "/dashboard"));
+        router.push(safeInternalPath(next, "/meals/new"));
         router.refresh();
         return;
       }

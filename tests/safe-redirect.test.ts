@@ -8,7 +8,7 @@ describe("safeInternalPath", () => {
   });
 
   it("maps root path to fallback (post-login destination)", () => {
-    expect(safeInternalPath("/", "/dashboard")).toBe("/dashboard");
+    expect(safeInternalPath("/", "/meals/new")).toBe("/meals/new");
   });
 
   it("rejects external URLs and protocol-relative paths", () => {

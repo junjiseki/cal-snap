@@ -7,7 +7,8 @@ type ResponseRef = { current: NextResponse };
 
 /**
  * Route Handler 用: `exchangeCodeForSession` 等で Set-Cookie した内容を、
- * 最終的に return する `NextResponse` に確実に載せる（別インスタンスの redirect に載せない）。
+ * 最終的に return する `NextResponse` に載せつつ、同一ハンドラ内の後続 `getUser()` が
+ * リクエスト由来の Cookie ではなく更新後の値を `getAll()` で読めるようにする。
  */
 export function createSupabaseRouteHandlerClient(request: NextRequest, responseRef: ResponseRef) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -17,15 +18,21 @@ export function createSupabaseRouteHandlerClient(request: NextRequest, responseR
     throw new Error("Supabase public environment variables are not configured.");
   }
 
+  const jar = new Map<string, { name: string; value: string }>();
+  for (const c of request.cookies.getAll()) {
+    jar.set(c.name, { name: c.name, value: c.value });
+  }
+
   return createServerClient<Database>(url, anonKey, {
     cookies: {
       getAll() {
-        return request.cookies.getAll();
+        return Array.from(jar.values());
       },
       setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => {
+        for (const { name, value, options } of cookiesToSet) {
+          jar.set(name, { name, value });
           responseRef.current.cookies.set(name, value, options);
-        });
+        }
       },
     },
   });

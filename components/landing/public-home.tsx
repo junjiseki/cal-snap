@@ -93,7 +93,7 @@ export function PublicHome() {
 
             <p className="mt-6 flex gap-2 text-sm text-muted-foreground">
               <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" />
-              写真は保存せず、DBには確認後の数値とメモだけを残します。
+              写真は保存しません。
             </p>
           </div>
 

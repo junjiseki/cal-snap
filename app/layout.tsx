@@ -2,13 +2,21 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Script from "next/script";
 import "./globals.css";
-import { Geist } from "next/font/google";
+import { Geist, Noto_Sans_JP } from "next/font/google";
 import { getSiteUrl } from "@/lib/site-url";
 import { cn } from "@/lib/utils";
 import { CleanupStaleSession } from "@/components/auth/cleanup-stale-session";
 import { AppHeader } from "@/components/layout/app-header";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist",
+});
+
+const noto = Noto_Sans_JP({
+  subsets: ["latin"],
+  variable: "--font-jp",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -82,7 +90,10 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" className={cn("h-full antialiased", "font-sans", geist.variable)}>
+    <html
+      lang="ja"
+      className={cn("h-full antialiased", "font-sans", geist.variable, noto.variable)}
+    >
       <head>
         <link rel="preconnect" href="https://challenges.cloudflare.com" />
       </head>

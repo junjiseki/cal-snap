@@ -1,23 +1,35 @@
-import { NextResponse } from "next/server";
-import { nextResponseAfterSession } from "@/lib/auth/post-login-redirect";
+import { type NextRequest } from "next/server";
+import { authRouteRedirect } from "@/lib/auth/auth-route-response";
+import { finalizeAuthSession } from "@/lib/auth/post-login-redirect";
 import { safeInternalPath } from "@/lib/auth/safe-redirect";
-import { createClient } from "@/lib/supabase/server";
+import { createSupabaseRouteHandlerClient } from "@/lib/supabase/route-handler";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
-  const next = safeInternalPath(url.searchParams.get("next"), "/dashboard");
+  const nextPath = safeInternalPath(url.searchParams.get("next"), "/dashboard");
+
+  const responseRef = {
+    current: authRouteRedirect(new URL(nextPath, url.origin)),
+  };
+
+  const supabase = createSupabaseRouteHandlerClient(request, responseRef);
 
   if (code) {
-    const supabase = await createClient();
     const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
     if (exchangeError) {
-      return NextResponse.redirect(
-        new URL(`/login?next=${encodeURIComponent(next)}`, url.origin),
+      return authRouteRedirect(
+        new URL(`/login?next=${encodeURIComponent(nextPath)}`, url.origin),
       );
     }
-    return nextResponseAfterSession(supabase, next, url);
+
+    const fin = await finalizeAuthSession(supabase, nextPath);
+    if (!fin.ok) {
+      responseRef.current = authRouteRedirect(new URL(fin.redirectPath, url.origin));
+      await supabase.auth.signOut();
+    }
+    return responseRef.current;
   }
 
-  return NextResponse.redirect(new URL(next, url.origin));
+  return responseRef.current;
 }

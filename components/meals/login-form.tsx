@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useState } from "react";
-import { Loader2, LogIn } from "lucide-react";
+import { Eye, EyeOff, Loader2, LogIn } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { GoogleMark } from "@/components/auth/google-mark";
 import { mapSupabaseSignInError } from "@/lib/auth/sign-in-errors";
@@ -27,6 +27,7 @@ export function LoginForm({
 }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -181,6 +182,8 @@ export function LoginForm({
         メールアドレス
         <input
           type="email"
+          name="email"
+          autoComplete="email"
           required
           value={email}
           onChange={(event) => setEmail(event.target.value)}
@@ -190,14 +193,26 @@ export function LoginForm({
       </label>
       <label className="block text-sm font-medium">
         パスワード
-        <input
-          type="password"
-          required
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          className="mt-2 h-11 w-full rounded-md border-2 border-[#17231f] bg-[#fffaf0] px-3 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#ffe66d]"
-          placeholder="パスワード"
-        />
+        <span className="relative mt-2 block">
+          <input
+            type={showPassword ? "text" : "password"}
+            name="password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            className="h-11 w-full rounded-md border-2 border-[#17231f] bg-[#fffaf0] px-3 pr-12 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#ffe66d]"
+            placeholder="パスワード"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((current) => !current)}
+            aria-label={showPassword ? "パスワードを隠す" : "パスワードを表示"}
+            className="absolute right-2 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-[#42504b] transition active:scale-95 active:bg-[#ffe66d]/60"
+          >
+            {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+          </button>
+        </span>
       </label>
       <TurnstileWidget onTokenChange={handleCaptchaTokenChange} resetSignal={captchaResetSignal} />
       <button

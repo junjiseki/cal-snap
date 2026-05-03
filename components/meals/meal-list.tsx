@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
@@ -9,10 +10,6 @@ type MealItem = {
   name: string;
   estimated_amount: string;
   calories: number;
-  protein: number;
-  fat: number;
-  carbs: number;
-  confidence: number;
 };
 
 type MealRow = {
@@ -22,7 +19,6 @@ type MealRow = {
   protein: number;
   fat: number;
   carbs: number;
-  ai_confidence: number;
   memo: string | null;
   meal_items?: MealItem[];
 };
@@ -96,7 +92,21 @@ function createForm(meal: MealRow): EditForm {
   };
 }
 
-export function MealList({ meals }: { meals: MealRow[] }) {
+export function MealList({
+  meals,
+  mealsPage,
+  mealsPageSize,
+  totalMealsForDay,
+  nextPageHref,
+  prevPageHref,
+}: {
+  meals: MealRow[];
+  mealsPage: number;
+  mealsPageSize: number;
+  totalMealsForDay: number;
+  nextPageHref: string | null;
+  prevPageHref: string | null;
+}) {
   const router = useRouter();
   const [editingMealId, setEditingMealId] = useState<string | null>(null);
   const [form, setForm] = useState<EditForm | null>(null);
@@ -104,6 +114,12 @@ export function MealList({ meals }: { meals: MealRow[] }) {
   const [error, setError] = useState<string | null>(null);
 
   const mealMap = useMemo(() => new Map(meals.map((m) => [m.id, m])), [meals]);
+
+  const rangeStart =
+    meals.length === 0 ? 0 : (mealsPage - 1) * mealsPageSize + 1;
+  const rangeEnd = (mealsPage - 1) * mealsPageSize + meals.length;
+  const showPaginationFooter =
+    totalMealsForDay > 0 && (totalMealsForDay > mealsPageSize || mealsPage > 1);
 
   async function startEdit(mealId: string) {
     const meal = mealMap.get(mealId);
@@ -339,6 +355,38 @@ export function MealList({ meals }: { meals: MealRow[] }) {
           </article>
         );
       })}
+      {showPaginationFooter ? (
+        <div className="flex flex-col gap-3 border-t border-border p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+          <p className="text-xs text-muted-foreground">
+            {meals.length === 0
+              ? `全 ${totalMealsForDay} 件`
+              : `${rangeStart}–${rangeEnd} 件を表示 / 全 ${totalMealsForDay} 件`}
+            {totalMealsForDay > mealsPageSize
+              ? `（1ページあたり最大 ${mealsPageSize} 件）`
+              : null}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {prevPageHref ? (
+              <Link
+                href={prevPageHref}
+                scroll={false}
+                className="inline-flex h-9 items-center justify-center rounded-md border border-border px-3 text-sm font-semibold hover:bg-muted"
+              >
+                前へ
+              </Link>
+            ) : null}
+            {nextPageHref ? (
+              <Link
+                href={nextPageHref}
+                scroll={false}
+                className="inline-flex h-9 items-center justify-center rounded-md border border-border bg-primary px-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+              >
+                さらに表示
+              </Link>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

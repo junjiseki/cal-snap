@@ -515,12 +515,17 @@ export function MealPhotoAnalyzer() {
         if (!response.ok) return;
         const data = (await response.json()) as {
           usage: { used: number; limit: number; remaining: number };
-          todayCalories?: number;
           goalCalories?: number;
+          todaySummaryOk?: boolean;
+          todayCalories?: number;
         };
         if (!mounted) return;
         setUsage(data.usage);
-        if (typeof data.todayCalories === "number" && typeof data.goalCalories === "number") {
+        if (
+          data.todaySummaryOk === true &&
+          typeof data.todayCalories === "number" &&
+          typeof data.goalCalories === "number"
+        ) {
           setDaySnapshot({ consumed: data.todayCalories, goal: data.goalCalories });
         }
       } catch {

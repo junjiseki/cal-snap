@@ -7,7 +7,14 @@ import { CalorieGoalOnboardingModal } from "@/components/account/calorie-goal-on
 import { DashboardMealCalendar } from "@/components/meals/dashboard-meal-calendar";
 import { MealList } from "@/components/meals/meal-list";
 import { CalorieChart } from "@/components/meals/calorie-chart";
-import { dashboardDateHref, daysInJapanMonth, pad2, toJapanYmd } from "@/lib/japan-calendar";
+import {
+  dashboardDateHref,
+  dashboardMealsListHref,
+  daysInJapanMonth,
+  pad2,
+  toJapanYmd,
+} from "@/lib/japan-calendar";
+import { DASHBOARD_DAY_MEALS_PAGE_SIZE, parseDashboardMealsPage } from "@/lib/dashboard-meals";
 import { getStripeServer } from "@/lib/stripe/server";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -20,17 +27,12 @@ type MealRow = {
   protein: number;
   fat: number;
   carbs: number;
-  ai_confidence: number;
   memo: string | null;
   meal_items?: {
     id: string;
     name: string;
     estimated_amount: string;
     calories: number;
-    protein: number;
-    fat: number;
-    carbs: number;
-    confidence: number;
   }[];
 };
 
@@ -77,7 +79,12 @@ async function syncPlanOnBillingSuccess(sessionId: string, userId: string) {
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ billing?: string; session_id?: string; date?: string }>;
+  searchParams: Promise<{
+    billing?: string;
+    session_id?: string;
+    date?: string;
+    meals_page?: string;
+  }>;
 }) {
   const { supabase, user } = await getAuthenticatedUser();
 
@@ -111,6 +118,9 @@ export default async function DashboardPage({
 
   const { date: todayDate } = getDayRangeInJapan();
   const { date, start, end, isToday } = getDayRangeInJapan(params.date);
+  const mealsPage = parseDashboardMealsPage(params.meals_page);
+  const mealsRangeFrom = (mealsPage - 1) * DASHBOARD_DAY_MEALS_PAGE_SIZE;
+  const mealsRangeTo = mealsRangeFrom + DASHBOARD_DAY_MEALS_PAGE_SIZE - 1;
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -159,12 +169,13 @@ export default async function DashboardPage({
     supabase
       .from("meals")
       .select(
-        "id,eaten_at,total_calories,protein,fat,carbs,ai_confidence,memo,meal_items(id,name,estimated_amount,calories,protein,fat,carbs,confidence)",
+        "id,eaten_at,total_calories,protein,fat,carbs,memo,meal_items(id,name,estimated_amount,calories)",
       )
       .eq("user_id", user.id)
       .gte("eaten_at", start)
       .lte("eaten_at", end)
-      .order("eaten_at", { ascending: false }),
+      .order("eaten_at", { ascending: false })
+      .range(mealsRangeFrom, mealsRangeTo),
     supabase
       .from("meals")
       .select("eaten_at")
@@ -384,7 +395,18 @@ export default async function DashboardPage({
               isPaid={isPaid}
               datesWithMeals={datesWithMeals}
             />
-            <MealList meals={meals} />
+            <MealList
+              meals={meals}
+              mealsPage={mealsPage}
+              mealsPageSize={DASHBOARD_DAY_MEALS_PAGE_SIZE}
+              totalMealsForDay={mealCount}
+              nextPageHref={
+                mealsRangeFrom + meals.length < mealCount
+                  ? dashboardMealsListHref(date, mealsPage + 1)
+                  : null
+              }
+              prevPageHref={mealsPage > 1 ? dashboardMealsListHref(date, mealsPage - 1) : null}
+            />
           </div>
         </section>
       </div>

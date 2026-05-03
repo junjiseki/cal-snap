@@ -5,16 +5,16 @@ export function pad2(n: number): string {
 }
 
 export function daysInJapanMonth(year: number, month: number): number {
+  const jstYmd = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
   for (let d = 31; d >= 28; d--) {
     const iso = `${year}-${pad2(month)}-${pad2(d)}`;
     const dt = new Date(`${iso}T12:00:00+09:00`);
-    const j = new Intl.DateTimeFormat("sv-SE", {
-      timeZone: "Asia/Tokyo",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).format(dt);
-    if (j === iso) return d;
+    if (jstYmd.format(dt) === iso) return d;
   }
   return 28;
 }
@@ -57,4 +57,14 @@ export function jstWeekdaySun0(ymd: string): number {
 
 export function dashboardDateHref(ymd: string): string {
   return `/dashboard?date=${encodeURIComponent(ymd)}`;
+}
+
+/** 食事一覧ページング付き（1ページ目は meals_page を付けない） */
+export function dashboardMealsListHref(ymd: string, mealsPage: number): string {
+  const params = new URLSearchParams();
+  params.set("date", ymd);
+  if (mealsPage > 1) {
+    params.set("meals_page", String(mealsPage));
+  }
+  return `/dashboard?${params.toString()}`;
 }

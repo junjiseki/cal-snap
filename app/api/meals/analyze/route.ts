@@ -155,9 +155,22 @@ export async function GET() {
     if (summaryError) {
       console.error("[meals/analyze GET] get_daily_meal_summary failed", summaryError);
     }
-    const todayCalories = summaryError ? 0 : Number(summary?.calories ?? 0);
     const goalCalories = profile.daily_calorie_goal ?? 2000;
-    return Response.json({ plan, usage, todayCalories, goalCalories });
+    if (summaryError) {
+      return Response.json({
+        plan,
+        usage,
+        goalCalories,
+        todaySummaryOk: false as const,
+      });
+    }
+    return Response.json({
+      plan,
+      usage,
+      goalCalories,
+      todaySummaryOk: true as const,
+      todayCalories: Number(summary?.calories ?? 0),
+    });
   } catch {
     return errorResponse("利用状況を取得できません。", 500, "USAGE_FETCH_FAILED");
   }

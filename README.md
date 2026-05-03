@@ -75,7 +75,7 @@ RLS は有効化済みで、自分のデータだけ参照・更新できます�
 NEXT_PUBLIC_SUPABASE_URL="https://<project-ref>.supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="<supabase-anon-key>"
 GEMINI_API_KEY="<gemini-api-key>"
-GEMINI_MODEL="gemini-2.5-flash"
+GEMINI_MODEL="gemini-3-flash-preview"
 FREE_DAILY_ANALYSIS_LIMIT="1"
 PAID_DAILY_ANALYSIS_LIMIT="3"
 STRIPE_SECRET_KEY="<stripe-secret-key>"
@@ -83,9 +83,29 @@ STRIPE_PRICE_ID="<stripe-price-id>"
 STRIPE_WEBHOOK_SECRET="<stripe-webhook-secret>"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 SUPABASE_SECRET_KEY="<supabase-secret-key>"
+NEXT_PUBLIC_TURNSTILE_SITE_KEY="<cloudflare-turnstile-site-key>"
+TURNSTILE_SECRET_KEY="<cloudflare-turnstile-secret-key>"
 ```
 
-`GEMINI_MODEL` は未設定の場合 `gemini-2.5-flash` を使用します。
+`GEMINI_MODEL` は未設定の場合 `gemini-3-flash-preview` を使用します。
+
+### Cloudflare Turnstile
+
+お問い合わせフォームのスパム対策に Turnstile を使います。
+
+サイトキーとシークレットキーは Cloudflare ダッシュボードの **Turnstile → Add widget** で発行します。
+
+- `NEXT_PUBLIC_TURNSTILE_SITE_KEY`: フロントに埋め込む公開キー
+- `TURNSTILE_SECRET_KEY`: API側で Siteverify に使う秘密キー
+
+ローカル開発では、未設定の場合に Cloudflare 公式のテストキーを使います。
+
+```bash
+NEXT_PUBLIC_TURNSTILE_SITE_KEY="1x00000000000000000000AA"
+TURNSTILE_SECRET_KEY="1x0000000000000000000000000000000AA"
+```
+
+本番では必ずCloudflareで発行した実キーを設定してください。
 
 ### ローカル Supabase で Google ログインを使う場合
 
@@ -239,6 +259,7 @@ AI の推定結果はすぐには DB 保存されません。画面上の確認�
 
 - `POST /api/contact`
   - お問い合わせフォームの JSON を受け取る
+  - Cloudflare Turnstile のトークンを Siteverify で検証
   - Zod で入力値を検証
   - `contact_messages` に保存
 

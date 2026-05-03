@@ -13,9 +13,6 @@ export default async function NewMealPage() {
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:px-5">
         <div className="border border-border bg-card p-6">
           <h1 className="text-2xl font-semibold">ログインが必要です</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            食事写真の解析と登録には Supabase Auth のログインが必要です。
-          </p>
           <Link
             href="/login?next=/meals/new"
             className="mt-5 inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground"

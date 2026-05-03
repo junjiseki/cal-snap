@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Script from "next/script";
 import "./globals.css";
 import { Geist } from "next/font/google";
 import { getSiteUrl } from "@/lib/site-url";
@@ -78,6 +79,9 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="ja" className={cn("h-full antialiased", "font-sans", geist.variable)}>
+      <head>
+        <link rel="preconnect" href="https://challenges.cloudflare.com" />
+      </head>
       <body className="flex min-h-full flex-col">
         <CleanupStaleSession />
         <AppHeader />
@@ -101,6 +105,10 @@ export default async function RootLayout({
             </div>
           </div>
         </footer>
+        <Script
+          src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );

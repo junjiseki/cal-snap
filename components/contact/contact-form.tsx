@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { CheckCircle2, Loader2, Send } from "lucide-react";
+import { TurnstileWidget } from "@/components/contact/turnstile-widget";
 
 const categories = [
   { value: "support", label: "使い方について" },
@@ -18,6 +19,7 @@ type FormState = {
   message: string;
   website: string;
   submittedAt: number;
+  turnstileToken: string;
 };
 
 function createInitialForm(): FormState {
@@ -28,6 +30,7 @@ function createInitialForm(): FormState {
     message: "",
     website: "",
     submittedAt: Date.now(),
+    turnstileToken: "",
   };
 }
 
@@ -39,6 +42,9 @@ export function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+  const handleTurnstileTokenChange = useCallback((turnstileToken: string) => {
+    setForm((current) => ({ ...current, turnstileToken }));
+  }, []);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -52,6 +58,11 @@ export function ContactForm() {
 
     if (form.message.trim().length < 10) {
       setError("お問い合わせ内容は10文字以上で入力してください。");
+      return;
+    }
+
+    if (!form.turnstileToken) {
+      setError("スパム対策の確認が完了していません。少し待ってから再度お試しください。");
       return;
     }
 
@@ -172,6 +183,10 @@ export function ContactForm() {
           className="mt-2 w-full resize-y rounded-md border border-input bg-background px-3 py-3 text-sm leading-7 outline-none focus:border-primary"
         />
       </label>
+
+      <TurnstileWidget
+        onTokenChange={handleTurnstileTokenChange}
+      />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs leading-6 text-muted-foreground">

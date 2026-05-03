@@ -6,12 +6,12 @@ import {
   MEAL_SUGGESTION_DAILY_LIMIT,
   getTodaySuggestionUsageRange,
 } from "@/lib/meal-suggestions";
-import { getAuthenticatedUser } from "@/lib/supabase/server";
+import { getAuthenticatedUserCached } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function SuggestionsPage() {
-  const { supabase, user } = await getAuthenticatedUser();
+  const { supabase, user } = await getAuthenticatedUserCached();
 
   if (!user) {
     return (

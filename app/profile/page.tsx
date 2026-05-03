@@ -2,12 +2,12 @@ import Link from "next/link";
 import { ArrowLeft, User } from "lucide-react";
 import { DisplayNameForm } from "@/components/account/display-name-form";
 import { CalorieGoalForm } from "@/components/meals/calorie-goal-form";
-import { getAuthenticatedUser } from "@/lib/supabase/server";
+import { getAuthenticatedUserCached } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProfilePage() {
-  const { supabase, user } = await getAuthenticatedUser();
+  const { supabase, user } = await getAuthenticatedUserCached();
 
   if (!user) {
     return (

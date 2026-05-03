@@ -3,12 +3,12 @@ import { ArrowLeft, Settings } from "lucide-react";
 import { AccountDangerActions } from "@/components/account/account-danger-actions";
 import { ChangePasswordForm } from "@/components/account/change-password-form";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { getAuthenticatedUser } from "@/lib/supabase/server";
+import { getAuthenticatedUserCached } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
-  const { supabase, user } = await getAuthenticatedUser();
+  const { supabase, user } = await getAuthenticatedUserCached();
 
   if (!user) {
     return (

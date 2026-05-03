@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/meals/login-form";
 import { safeInternalPath } from "@/lib/auth/safe-redirect";
-import { getAuthenticatedUser } from "@/lib/supabase/server";
+import { getAuthenticatedUserCached } from "@/lib/supabase/server";
 
 export default async function LoginPage({
   searchParams,
@@ -14,7 +14,7 @@ export default async function LoginPage({
   }>;
 }) {
   const params = await searchParams;
-  const { user } = await getAuthenticatedUser();
+  const { user } = await getAuthenticatedUserCached();
   if (user) {
     redirect("/meals/new");
   }

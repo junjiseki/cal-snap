@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Camera, Sparkles, TrendingDown, TrendingUp } from "lucide-react";
 import { getCalorieOverLevel, getDayRangeInJapan } from "@/lib/meal-analysis";
-import { getAuthenticatedUser } from "@/lib/supabase/server";
+import { getAuthenticatedUserCached } from "@/lib/supabase/server";
 import { CalorieGoalOnboardingModal } from "@/components/account/calorie-goal-onboarding-modal";
 import { DashboardMealCalendar } from "@/components/meals/dashboard-meal-calendar";
 import { MealList } from "@/components/meals/meal-list";
@@ -86,7 +86,7 @@ export default async function DashboardPage({
     meals_page?: string;
   }>;
 }) {
-  const { supabase, user } = await getAuthenticatedUser();
+  const { supabase, user } = await getAuthenticatedUserCached();
 
   if (!user) {
     return (
@@ -137,52 +137,55 @@ export default async function DashboardPage({
   last14DaysStart.setDate(last14DaysStart.getDate() - 13);
   last14DaysStart.setHours(0, 0, 0, 0);
 
+  const [cy, cm] = date.split("-").map(Number);
+  const monthStartIso = new Date(`${cy}-${pad2(cm)}-01T00:00:00.000+09:00`).toISOString();
+  const dimMonth = daysInJapanMonth(cy, cm);
+  const monthEndIso = new Date(`${cy}-${pad2(cm)}-${pad2(dimMonth)}T23:59:59.999+09:00`).toISOString();
+
   const summaryQuery = supabase
     .rpc("get_daily_meal_summary", {
       p_start: start,
       p_end: end,
     })
     .single();
-
-  const summaryResult = await summaryQuery;
-
-  const chartMealsResult = isPaid
-    ? await supabase
+  const chartMealsQuery = isPaid
+    ? supabase
         .from("meals")
         .select("id,eaten_at,total_calories")
         .eq("user_id", user.id)
         .gte("eaten_at", last14DaysStart.toISOString())
         .order("eaten_at", { ascending: true })
-    : { data: [] as { id: string; eaten_at: string; total_calories: number }[] | null, error: null };
+    : Promise.resolve({
+        data: [] as { id: string; eaten_at: string; total_calories: number }[] | null,
+        error: null,
+      });
+  const mealsQuery = supabase
+    .from("meals")
+    .select(
+      "id,eaten_at,total_calories,protein,fat,carbs,memo,meal_items(id,name,estimated_amount,calories)",
+    )
+    .eq("user_id", user.id)
+    .gte("eaten_at", start)
+    .lte("eaten_at", end)
+    .order("eaten_at", { ascending: false })
+    .range(mealsRangeFrom, mealsRangeTo);
+  const monthMealsQuery = isPaid
+    ? supabase
+        .from("meals")
+        .select("eaten_at")
+        .eq("user_id", user.id)
+        .gte("eaten_at", monthStartIso)
+        .lte("eaten_at", monthEndIso)
+    : Promise.resolve({ data: [] as { eaten_at: string }[] | null, error: null });
 
-  const { data: summary, error: summaryError } = summaryResult;
-  const { data: chartMeals, error: chartError } = chartMealsResult;
+  const [
+    { data: summary, error: summaryError },
+    { data: chartMeals, error: chartError },
+    { data, error },
+    { data: monthMealRows },
+  ] = await Promise.all([summaryQuery, chartMealsQuery, mealsQuery, monthMealsQuery]);
 
   const mealCount = Number(summary?.meal_count ?? 0);
-
-  const [cy, cm] = date.split("-").map(Number);
-  const monthStartIso = new Date(`${cy}-${pad2(cm)}-01T00:00:00.000+09:00`).toISOString();
-  const dimMonth = daysInJapanMonth(cy, cm);
-  const monthEndIso = new Date(`${cy}-${pad2(cm)}-${pad2(dimMonth)}T23:59:59.999+09:00`).toISOString();
-
-  const [{ data, error }, { data: monthMealRows }] = await Promise.all([
-    supabase
-      .from("meals")
-      .select(
-        "id,eaten_at,total_calories,protein,fat,carbs,memo,meal_items(id,name,estimated_amount,calories)",
-      )
-      .eq("user_id", user.id)
-      .gte("eaten_at", start)
-      .lte("eaten_at", end)
-      .order("eaten_at", { ascending: false })
-      .range(mealsRangeFrom, mealsRangeTo),
-    supabase
-      .from("meals")
-      .select("eaten_at")
-      .eq("user_id", user.id)
-      .gte("eaten_at", monthStartIso)
-      .lte("eaten_at", monthEndIso),
-  ]);
 
   const datesWithMeals = [...new Set((monthMealRows ?? []).map((row) => toJapanYmd(row.eaten_at)))];
   const meals = (data ?? []) as unknown as MealRow[];

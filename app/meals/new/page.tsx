@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { BarChart3 } from "lucide-react";
 import { MealPhotoAnalyzer } from "@/components/meals/meal-photo-analyzer";
-import { getAuthenticatedUser } from "@/lib/supabase/server";
+import { getAuthenticatedUserCached } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewMealPage() {
-  const { user } = await getAuthenticatedUser();
+  const { user } = await getAuthenticatedUserCached();
 
   if (!user) {
     return (

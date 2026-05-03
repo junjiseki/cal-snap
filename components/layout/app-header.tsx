@@ -1,4 +1,4 @@
-import { getAuthenticatedUser } from "@/lib/supabase/server";
+import { getAuthenticatedUserCached } from "@/lib/supabase/server";
 import {
   FREE_DAILY_ANALYSIS_LIMIT,
   PAID_DAILY_ANALYSIS_LIMIT,
@@ -6,7 +6,7 @@ import {
 import { AppHeaderClient, type AppHeaderAccount } from "@/components/layout/app-header-client";
 
 export async function AppHeader({ className }: { className?: string }) {
-  const { supabase, user } = await getAuthenticatedUser();
+  const { supabase, user } = await getAuthenticatedUserCached();
 
   let account: AppHeaderAccount | null = null;
   if (user) {

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { CalorieOverLegend } from "@/components/calorie-over-legend";
 import { FavoriteFoodSlideshow } from "@/components/landing/favorite-food-slideshow";
 import {
   ArrowRight,
@@ -111,11 +112,9 @@ export function PublicHome() {
               </div>
             </div>
             <div className="mt-6 hidden rounded-md border border-border bg-background p-2 shadow-lg sm:block sm:pr-28 lg:pr-36">
-              <div className="flex items-center gap-1 border-b border-border px-2 py-2">
-                <span className="size-2.5 rounded-full bg-red-400" />
-                <span className="size-2.5 rounded-full bg-amber-400" />
-                <span className="size-2.5 rounded-full bg-emerald-500" />
-                <span className="ml-3 text-xs font-medium text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-border px-2 py-2">
+                <CalorieOverLegend />
+                <span className="text-xs font-medium text-muted-foreground">
                   PCでも編集しやすい登録画面
                 </span>
               </div>

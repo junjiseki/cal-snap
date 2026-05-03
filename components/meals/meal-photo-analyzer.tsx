@@ -19,9 +19,16 @@ import {
   Save,
   Sparkles,
   Trash2,
+  TrendingDown,
+  TrendingUp,
   X,
 } from "lucide-react";
-import { type MealAnalysis, toConfidence, toInteger } from "@/lib/meal-analysis";
+import {
+  type MealAnalysis,
+  getCalorieOverLevel,
+  toConfidence,
+  toInteger,
+} from "@/lib/meal-analysis";
 
 type MacroInput = number | "";
 
@@ -321,6 +328,102 @@ function MacroReadOnlyField({
   );
 }
 
+function calorieOverBadgeClass(level: ReturnType<typeof getCalorieOverLevel>) {
+  return [
+    "inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold",
+    level === "none" && "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/35 dark:text-emerald-300",
+    level === "warn" && "bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200",
+    level === "severe" && "bg-red-50 text-red-700 dark:bg-red-950/35 dark:text-red-300",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function calorieOverBarClass(level: ReturnType<typeof getCalorieOverLevel>) {
+  return [
+    "h-1.5 rounded-full transition-all",
+    level === "none" && "bg-primary",
+    level === "warn" && "bg-amber-500 dark:bg-amber-400",
+    level === "severe" && "bg-red-500",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function MealDayCalorieSnapshot({
+  consumed,
+  goal,
+  draftMealKcal,
+}: {
+  consumed: number;
+  goal: number;
+  draftMealKcal: number | null;
+}) {
+  const safeGoal = Math.max(goal, 1);
+  const overLevel = getCalorieOverLevel(consumed, goal);
+  const calorieDelta = goal - consumed;
+  const calorieRemainOrOver =
+    calorieDelta >= 0
+      ? `あと ${calorieDelta} kcal`
+      : `目安を ${Math.abs(calorieDelta)} kcal 超過`;
+  const progress = Math.min(100, Math.round((consumed / safeGoal) * 100));
+
+  const projected =
+    draftMealKcal != null && draftMealKcal > 0 ? consumed + draftMealKcal : null;
+  const projectedLevel =
+    projected !== null ? getCalorieOverLevel(projected, goal) : null;
+  const projectedDeltaLabel =
+    projected !== null
+      ? goal - projected >= 0
+        ? `あと ${goal - projected} kcal`
+        : `目安を ${Math.abs(goal - projected)} kcal 超過`
+      : null;
+
+  return (
+    <div className="rounded-md border border-border bg-muted/20 p-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-xs font-medium text-muted-foreground">今日の摂取（登録済み）</p>
+          <p className="mt-0.5 text-lg font-semibold tabular-nums tracking-tight">
+            {consumed}
+            <span className="ml-1 text-xs font-normal text-muted-foreground">kcal</span>
+          </p>
+        </div>
+        <div className={calorieOverBadgeClass(overLevel)}>
+          {overLevel !== "none" ? (
+            <TrendingUp className="size-3.5 shrink-0" />
+          ) : (
+            <TrendingDown className="size-3.5 shrink-0" />
+          )}
+          {calorieRemainOrOver}
+        </div>
+      </div>
+      <div className="mt-2 h-1.5 rounded-full bg-muted">
+        <div className={calorieOverBarClass(overLevel)} style={{ width: `${progress}%` }} />
+      </div>
+      <p className="mt-1 text-[11px] text-muted-foreground">
+        目安 {goal} kcal / {progress}%
+      </p>
+      {projected !== null && projectedLevel !== null && projectedDeltaLabel !== null ? (
+        <div className="mt-2 border-t border-border pt-2">
+          <p className="text-[11px] text-muted-foreground">この内容で保存すると</p>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <span className="text-sm font-semibold tabular-nums">{projected} kcal</span>
+            <div className={calorieOverBadgeClass(projectedLevel)}>
+              {projectedLevel !== "none" ? (
+                <TrendingUp className="size-3.5 shrink-0" />
+              ) : (
+                <TrendingDown className="size-3.5 shrink-0" />
+              )}
+              {projectedDeltaLabel}
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function StepDot({
   done,
   active,
@@ -371,6 +474,7 @@ export function MealPhotoAnalyzer() {
   const [usage, setUsage] = useState<{ used: number; limit: number; remaining: number } | null>(
     null,
   );
+  const [daySnapshot, setDaySnapshot] = useState<{ consumed: number; goal: number } | null>(null);
 
   const previewUrl = useMemo(() => {
     if (!file) return null;
@@ -411,9 +515,14 @@ export function MealPhotoAnalyzer() {
         if (!response.ok) return;
         const data = (await response.json()) as {
           usage: { used: number; limit: number; remaining: number };
+          todayCalories?: number;
+          goalCalories?: number;
         };
         if (!mounted) return;
         setUsage(data.usage);
+        if (typeof data.todayCalories === "number" && typeof data.goalCalories === "number") {
+          setDaySnapshot({ consumed: data.todayCalories, goal: data.goalCalories });
+        }
       } catch {
         // 初期表示では解析回数が取れなくても操作を妨げない。
       }
@@ -604,6 +713,16 @@ export function MealPhotoAnalyzer() {
     [analysis],
   );
 
+  const draftMealKcal = useMemo((): number | null => {
+    if (!analysis) return null;
+    if (entryMode === "photo") {
+      if (analysis.total_calories === "") return null;
+      return toInteger(Number(analysis.total_calories));
+    }
+    if (!isMealFormMacroComplete(analysis, entryMode)) return null;
+    return manualTotals!.total_calories;
+  }, [analysis, entryMode, manualTotals]);
+
   const canSaveMeal = analysis !== null && isMealFormMacroComplete(analysis, entryMode);
 
   return (
@@ -674,6 +793,14 @@ export function MealPhotoAnalyzer() {
             </p>
           </div>
         )}
+
+        {daySnapshot ? (
+          <MealDayCalorieSnapshot
+            consumed={daySnapshot.consumed}
+            goal={daySnapshot.goal}
+            draftMealKcal={draftMealKcal}
+          />
+        ) : null}
 
         {entryMode === "photo" ? (
           <div className="flex min-h-64 flex-col items-center justify-center gap-3 rounded-md border border-dashed border-border bg-muted/20 p-4 text-center">

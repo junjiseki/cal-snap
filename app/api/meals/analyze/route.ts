@@ -3,6 +3,7 @@ import {
   MAX_IMAGE_BYTES,
   MealAnalysisSchema,
   getDailyAnalysisLimit,
+  getDayRangeInJapan,
   getTodayRangeInJapan,
   toConfidence,
   toInteger,
@@ -83,11 +84,11 @@ function hasExpectedImageSignature(type: string, bytes: Buffer) {
   return false;
 }
 
-async function getProfilePlan(userId: string) {
+async function getOrCreateProfile(userId: string) {
   const { supabase } = await getAuthenticatedUser();
   const { data, error } = await supabase
     .from("profiles")
-    .select("plan")
+    .select("plan,daily_calorie_goal")
     .eq("id", userId)
     .maybeSingle();
 
@@ -96,20 +97,20 @@ async function getProfilePlan(userId: string) {
   }
 
   if (data?.plan) {
-    return data.plan;
+    return { plan: data.plan, daily_calorie_goal: data.daily_calorie_goal };
   }
 
   const { data: created, error: insertError } = await supabase
     .from("profiles")
     .insert({ id: userId, plan: "free" })
-    .select("plan")
+    .select("plan,daily_calorie_goal")
     .single();
 
   if (insertError) {
     throw insertError;
   }
 
-  return created.plan;
+  return { plan: created.plan, daily_calorie_goal: created.daily_calorie_goal };
 }
 
 async function getTodayUsage(userId: string, plan: Plan) {
@@ -138,15 +139,25 @@ async function getTodayUsage(userId: string, plan: Plan) {
 }
 
 export async function GET() {
-  const { user } = await getAuthenticatedUser();
+  const { supabase, user } = await getAuthenticatedUser();
   if (!user) {
     return errorResponse("ログインが必要です。", 401, "UNAUTHENTICATED");
   }
 
   try {
-    const plan = (await getProfilePlan(user.id)) as Plan;
+    const profile = await getOrCreateProfile(user.id);
+    const plan = profile.plan as Plan;
     const usage = await getTodayUsage(user.id, plan);
-    return Response.json({ plan, usage });
+    const { start, end } = getDayRangeInJapan();
+    const { data: summary, error: summaryError } = await supabase
+      .rpc("get_daily_meal_summary", { p_start: start, p_end: end })
+      .single();
+    if (summaryError) {
+      console.error("[meals/analyze GET] get_daily_meal_summary failed", summaryError);
+    }
+    const todayCalories = summaryError ? 0 : Number(summary?.calories ?? 0);
+    const goalCalories = profile.daily_calorie_goal ?? 2000;
+    return Response.json({ plan, usage, todayCalories, goalCalories });
   } catch {
     return errorResponse("利用状況を取得できません。", 500, "USAGE_FETCH_FAILED");
   }
@@ -204,7 +215,7 @@ export async function POST(request: Request) {
     return errorResponse("画像サイズは5MB以下にしてください。", 413, "IMAGE_TOO_LARGE");
   }
 
-  const plan = (await getProfilePlan(user.id)) as Plan;
+  const plan = (await getOrCreateProfile(user.id)).plan as Plan;
   let usage;
   try {
     usage = await getTodayUsage(user.id, plan);

@@ -23,6 +23,7 @@ import {
   TrendingUp,
   X,
 } from "lucide-react";
+import { dashboardDateHref, toJapanYmd } from "@/lib/japan-calendar";
 import {
   type MealAnalysis,
   getCalorieOverLevel,
@@ -463,6 +464,7 @@ export function MealPhotoAnalyzer() {
   const router = useRouter();
   const cameraFileInputRef = useRef<HTMLInputElement>(null);
   const galleryFileInputRef = useRef<HTMLInputElement>(null);
+  const saveInFlightRef = useRef(false);
   const [entryMode, setEntryMode] = useState<EntryMode>("photo");
   const [file, setFile] = useState<File | null>(null);
   const [analysis, setAnalysis] = useState<MealAnalysisForm | null>(null);
@@ -628,6 +630,10 @@ export function MealPhotoAnalyzer() {
 
     const payload = mealFormToMealAnalysis(analysis, entryMode);
 
+    if (saveInFlightRef.current) {
+      return;
+    }
+    saveInFlightRef.current = true;
     setIsSaving(true);
     setError(null);
 
@@ -645,11 +651,17 @@ export function MealPhotoAnalyzer() {
         throw new Error(await readError(response));
       }
 
-      router.push("/meals/new");
+      if (entryMode === "manual") {
+        const dateYmd = toJapanYmd(new Date(eatenAt).toISOString());
+        router.push(dashboardDateHref(dateYmd));
+      } else {
+        router.push("/meals/new");
+      }
       router.refresh();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "食事を登録できません。");
     } finally {
+      saveInFlightRef.current = false;
       setIsSaving(false);
     }
   }

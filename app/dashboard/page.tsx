@@ -321,16 +321,19 @@ export default async function DashboardPage({
               目標を編集
             </Link>
           </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
-            <div className="border border-border bg-card p-4 sm:p-5">
+          <div
+            className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0"
+            aria-label="PFC合計を横にスライドして確認"
+          >
+            <div className="min-w-[82%] snap-center border border-border bg-card p-4 sm:min-w-0 sm:p-5">
               <p className="text-sm text-muted-foreground">たんぱく質</p>
               <p className="mt-2 text-2xl font-semibold sm:text-3xl">{Math.round(total.protein)} g</p>
             </div>
-            <div className="border border-border bg-card p-4 sm:p-5">
+            <div className="min-w-[82%] snap-center border border-border bg-card p-4 sm:min-w-0 sm:p-5">
               <p className="text-sm text-muted-foreground">脂質</p>
               <p className="mt-2 text-2xl font-semibold sm:text-3xl">{Math.round(total.fat)} g</p>
             </div>
-            <div className="border border-border bg-card p-4 sm:p-5">
+            <div className="min-w-[82%] snap-center border border-border bg-card p-4 sm:min-w-0 sm:p-5">
               <p className="text-sm text-muted-foreground">炭水化物</p>
               <p className="mt-2 text-2xl font-semibold sm:text-3xl">{Math.round(total.carbs)} g</p>
             </div>

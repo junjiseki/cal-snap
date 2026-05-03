@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Camera, Sparkles, TrendingDown, TrendingUp } from "lucide-react";
 import { getDayRangeInJapan } from "@/lib/meal-analysis";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
@@ -134,38 +135,47 @@ export default async function DashboardPage({
     }
   }
 
-  const { date, start, end, isToday } = getDayRangeInJapan(params.date);
   const { date: todayDate } = getDayRangeInJapan();
+  const { date, start, end, isToday } = getDayRangeInJapan(params.date);
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("plan,daily_calorie_goal")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const isPaid = profile?.plan === "paid";
+  if (!isPaid && date !== todayDate) {
+    redirect("/dashboard");
+  }
+
   const prevDate = shiftJapanDate(date, -1);
   const nextDate = shiftJapanDate(date, 1);
   const requestedPage = parsePositivePage(params.page);
   const last14DaysStart = new Date();
   last14DaysStart.setDate(last14DaysStart.getDate() - 13);
   last14DaysStart.setHours(0, 0, 0, 0);
-  // TODO: Replace this mock billing state with Stripe webhook-driven profile updates.
-  const profileQuery = supabase
-    .from("profiles")
-    .select("plan,daily_calorie_goal")
-    .eq("id", user.id)
-    .maybeSingle();
+
   const summaryQuery = supabase
     .rpc("get_daily_meal_summary", {
       p_start: start,
       p_end: end,
     })
     .single();
-  const chartMealsQuery = supabase
-    .from("meals")
-    .select("id,eaten_at,total_calories")
-    .eq("user_id", user.id)
-    .gte("eaten_at", last14DaysStart.toISOString())
-    .order("eaten_at", { ascending: true });
 
-  const [
-    { data: profile },
-    { data: summary, error: summaryError },
-    { data: chartMeals, error: chartError },
-  ] = await Promise.all([profileQuery, summaryQuery, chartMealsQuery]);
+  const summaryResult = await summaryQuery;
+
+  const chartMealsResult = isPaid
+    ? await supabase
+        .from("meals")
+        .select("id,eaten_at,total_calories")
+        .eq("user_id", user.id)
+        .gte("eaten_at", last14DaysStart.toISOString())
+        .order("eaten_at", { ascending: true })
+    : { data: [] as { id: string; eaten_at: string; total_calories: number }[] | null, error: null };
+
+  const { data: summary, error: summaryError } = summaryResult;
+  const { data: chartMeals, error: chartError } = chartMealsResult;
 
   const mealCount = Number(summary?.meal_count ?? 0);
   const totalPages = Math.max(1, Math.ceil(mealCount / MEALS_PAGE_SIZE));
@@ -343,11 +353,25 @@ export default async function DashboardPage({
           <div className="border-b border-border p-4 sm:p-5">
             <h2 className="text-lg font-semibold sm:text-xl">摂取カロリー推移</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              直近14日の日ごとの合計カロリーです。
+              {isPaid
+                ? "直近14日の日ごとの合計カロリーです。"
+                : "無料プランでは当日の集計のみです。過去の推移は有料プランで表示できます。"}
             </p>
           </div>
           <div className="p-4 sm:p-5">
-            {(chartMeals ?? []).length === 0 ? (
+            {!isPaid ? (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  チャート・過去日の履歴を見るには、有料プランへのアップグレードが必要です。
+                </p>
+                <Link
+                  href="/billing"
+                  className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm"
+                >
+                  料金・プランを見る
+                </Link>
+              </div>
+            ) : (chartMeals ?? []).length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 データがまだないため、グラフは表示されません。
               </p>
@@ -363,28 +387,36 @@ export default async function DashboardPage({
         <section className="border border-border bg-card">
           <div className="flex items-center justify-between gap-3 border-b border-border p-4 sm:p-5">
             <h2 className="text-lg font-semibold sm:text-xl">食事一覧</h2>
-            <div className="flex items-center gap-2">
-              <Link
-                href={dashboardHref(prevDate)}
-                scroll={false}
-                className="inline-flex h-8 items-center rounded-md border border-border px-3 text-xs font-semibold hover:bg-muted"
-              >
-                ←
-              </Link>
-              <Link
-                href={dashboardHref(todayDate)}
-                scroll={false}
-                className="inline-flex h-8 items-center rounded-md border border-border px-3 text-xs font-semibold hover:bg-muted"
-              >
-                本日
-              </Link>
-              <Link
-                href={dashboardHref(nextDate)}
-                scroll={false}
-                className="inline-flex h-8 items-center rounded-md border border-border px-3 text-xs font-semibold hover:bg-muted"
-              >
-                →
-              </Link>
+            <div className="flex flex-wrap items-center gap-2">
+              {isPaid ? (
+                <>
+                  <Link
+                    href={dashboardHref(prevDate)}
+                    scroll={false}
+                    className="inline-flex h-8 items-center rounded-md border border-border px-3 text-xs font-semibold hover:bg-muted"
+                  >
+                    ←
+                  </Link>
+                  <Link
+                    href={dashboardHref(todayDate)}
+                    scroll={false}
+                    className="inline-flex h-8 items-center rounded-md border border-border px-3 text-xs font-semibold hover:bg-muted"
+                  >
+                    本日
+                  </Link>
+                  <Link
+                    href={dashboardHref(nextDate)}
+                    scroll={false}
+                    className="inline-flex h-8 items-center rounded-md border border-border px-3 text-xs font-semibold hover:bg-muted"
+                  >
+                    →
+                  </Link>
+                </>
+              ) : (
+                <span className="text-xs font-medium text-muted-foreground">
+                  無料プランは本日の食事のみ表示
+                </span>
+              )}
             </div>
           </div>
           <MealList meals={meals} />

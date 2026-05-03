@@ -85,7 +85,7 @@ export default async function BillingPage() {
             <div>
               <p className="text-sm font-semibold text-primary">プラン</p>
               <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-4xl">
-                {isPaid ? "有料プランを管理" : "毎日の食事記録を、もっと軽く。"}
+                {isPaid ? "有料プランを管理" : "食事管理を、日常に。"}
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
                 {isPaid

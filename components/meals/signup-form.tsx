@@ -148,6 +148,8 @@ export function SignupForm({ next = "/dashboard" }: { next?: string }) {
         メールアドレス
         <input
           type="email"
+          name="email"
+          autoComplete="email"
           required
           value={email}
           onChange={(event) => setEmail(event.target.value)}
@@ -159,6 +161,8 @@ export function SignupForm({ next = "/dashboard" }: { next?: string }) {
         パスワード
         <input
           type="password"
+          name="new-password"
+          autoComplete="new-password"
           required
           value={password}
           onChange={(event) => setPassword(event.target.value)}
@@ -170,6 +174,8 @@ export function SignupForm({ next = "/dashboard" }: { next?: string }) {
         パスワード確認
         <input
           type="password"
+          name="new-password-confirmation"
+          autoComplete="new-password"
           required
           value={passwordConfirm}
           onChange={(event) => setPasswordConfirm(event.target.value)}

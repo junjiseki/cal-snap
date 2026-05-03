@@ -181,6 +181,8 @@ export function LoginForm({
         メールアドレス
         <input
           type="email"
+          name="email"
+          autoComplete="email"
           required
           value={email}
           onChange={(event) => setEmail(event.target.value)}
@@ -192,6 +194,8 @@ export function LoginForm({
         パスワード
         <input
           type="password"
+          name="password"
+          autoComplete="current-password"
           required
           value={password}
           onChange={(event) => setPassword(event.target.value)}

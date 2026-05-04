@@ -1,11 +1,16 @@
 import Link from "next/link";
 import {
   ArrowLeft,
+  BarChart3,
+  CalendarDays,
   Camera,
   CheckCircle2,
   CreditCard,
+  Keyboard,
+  MessageCircle,
   ShieldCheck,
   Sparkles,
+  Target,
 } from "lucide-react";
 import { ManageSubscriptionButton } from "@/components/meals/manage-subscription-button";
 import { UpgradePlanButton } from "@/components/meals/upgrade-plan-button";
@@ -23,18 +28,43 @@ const PAID_PLAN_TRIAL_LABEL = "14日間無料";
 const paidBenefits = [
   {
     icon: Camera,
-    title: "AI解析が1日3回",
-    body: "朝・昼・夜の食事写真をその日のうちに記録しやすくなります。",
+    title: `AI写真解析（1日${PAID_DAILY_ANALYSIS_LIMIT}回）`,
+    body: "食事写真からカロリーとPFCを推定。無料プランは1日1回まで。",
+  },
+  {
+    icon: Keyboard,
+    title: "手入力で食事を登録",
+    body: "写真がないときも、フォームから栄養値を直接入力して保存できます（無料プランは写真解析のみ）。",
   },
   {
     icon: Sparkles,
-    title: "食事提案が1日3回",
-    body: "過去の食事から、外食・自炊・コンビニ向けのメニュー候補を作れます。",
+    title: `食事メニュー提案（1日${MEAL_SUGGESTION_DAILY_LIMIT}回）`,
+    body: "外食・自炊・コンビニと、朝・昼・夜を選ぶと、過去の記録から候補メニューを提案します（有料のみ）。",
+  },
+  {
+    icon: MessageCircle,
+    title: "今日のAIアドバイス",
+    body: "画面右下のカロちゃんから、当日の記録をもとにした一言アドバイスを表示できます（有料のみ）。",
+  },
+  {
+    icon: CalendarDays,
+    title: "過去日の履歴とカレンダー",
+    body: "ダッシュボードで任意の過去日を選び、その日の食事一覧を表示。月の前後へも移動できます（無料は当日のみ）。",
+  },
+  {
+    icon: BarChart3,
+    title: "直近14日のカロリー・PFC推移",
+    body: "日ごとの摂取カロリーとたんぱく質・脂質・炭水化物の推移をグラフで確認できます（無料は当日集計のみ）。",
+  },
+  {
+    icon: Target,
+    title: "目安カロリーで1件ショートカット登録",
+    body: "食事がまだない日に、1日の目安と同じkcalの食事を1件だけまとめて登録できます（有料のみ）。",
   },
   {
     icon: ShieldCheck,
-    title: "写真は保存しない",
-    body: "解析時だけ画像を扱い、DBには確認後の数値とメモだけを残します。",
+    title: "写真はサーバーに保存しない",
+    body: "解析のために一時的に画像を扱い、確定後は数値・メモ・料理名などのテキスト情報だけを保存します（無料・有料共通）。",
   },
 ] as const;
 
@@ -90,8 +120,8 @@ export default async function BillingPage() {
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
                 {isPaid
-                  ? "支払い方法、請求履歴、解約はStripeの管理画面から確認できます。"
-                  : `${PAID_PLAN_TRIAL_LABEL}で試せます。トライアル後は月額${PAID_PLAN_PRICE_LABEL}でAI解析枠を1日${PAID_DAILY_ANALYSIS_LIMIT}回、食事提案を1日${MEAL_SUGGESTION_DAILY_LIMIT}回利用できます。`}
+                  ? "支払い方法、請求履歴、解約はStripeの管理画面から確認できます。下記は有料プランで利用できる機能の一覧です。"
+                  : `${PAID_PLAN_TRIAL_LABEL}で試せます。トライアル後は月額${PAID_PLAN_PRICE_LABEL}で、手入力・過去日の履歴・14日グラフ・食事提案・今日のAIアドバイス・目安カロリーのショートカット登録に加え、AI写真解析を1日${PAID_DAILY_ANALYSIS_LIMIT}回まで利用できます。`}
               </p>
             </div>
           </div>
@@ -122,7 +152,9 @@ export default async function BillingPage() {
               </span>
             </div>
             <p className="mt-4 text-sm leading-7 text-muted-foreground">
-              最初の14日間は無料で試せます。トライアル終了後は月額{PAID_PLAN_PRICE_LABEL}です。1日{PAID_DAILY_ANALYSIS_LIMIT}回までAI解析、食事提案を1日{MEAL_SUGGESTION_DAILY_LIMIT}回使えます。
+              最初の14日間は無料で試せます。トライアル終了後は月額{PAID_PLAN_PRICE_LABEL}です。AI写真解析は1日
+              {PAID_DAILY_ANALYSIS_LIMIT}回、食事提案は1日{MEAL_SUGGESTION_DAILY_LIMIT}
+              回に加え、手入力・過去日のダッシュボード・14日推移グラフ・今日のAIアドバイス・目安にそった1件登録が利用できます。
             </p>
             <div className="mt-5">
               {isPaid ? <ManageSubscriptionButton /> : <UpgradePlanButton />}
@@ -139,16 +171,22 @@ export default async function BillingPage() {
           </div>
         </section>
 
-        <section className="grid gap-3 sm:grid-cols-3">
-          {paidBenefits.map(({ icon: Icon, title, body }) => (
-            <article key={title} className="border border-border bg-card p-4">
-              <span className="inline-flex size-9 items-center justify-center rounded-md bg-primary/10 text-primary">
-                <Icon className="size-4" />
-              </span>
-              <h2 className="mt-3 font-semibold">{title}</h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">{body}</p>
-            </article>
-          ))}
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">有料プランでできること（全機能）</h2>
+          <p className="text-sm leading-7 text-muted-foreground">
+            次の機能はすべて有料プラン契約中に利用できます。回数に上限があるものは、無料プランとの違いも本文に記載しています。
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {paidBenefits.map(({ icon: Icon, title, body }) => (
+              <article key={title} className="border border-border bg-card p-4">
+                <span className="inline-flex size-9 items-center justify-center rounded-md bg-primary/10 text-primary">
+                  <Icon className="size-4" />
+                </span>
+                <h3 className="mt-3 font-semibold">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{body}</p>
+              </article>
+            ))}
+          </div>
         </section>
 
         <section className="border border-border bg-card p-5">
@@ -195,41 +233,63 @@ export default async function BillingPage() {
         {!isPaid ? (
           <section className="border border-border bg-card p-5">
             <h2 className="text-lg font-semibold">無料と有料の違い</h2>
-            <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 xl:grid-cols-3">
               <div className="rounded-md border border-border p-4">
-                <p className="text-muted-foreground">AI解析回数</p>
+                <p className="text-muted-foreground">AI写真解析（1日あたり）</p>
                 <p className="mt-3 text-xs text-muted-foreground">無料</p>
                 <p>1日{FREE_DAILY_ANALYSIS_LIMIT}回</p>
                 <p className="mt-2 text-xs text-muted-foreground">有料</p>
-                <p className="font-semibold text-primary">
-                  1日{PAID_DAILY_ANALYSIS_LIMIT}回
-                </p>
+                <p className="font-semibold text-primary">1日{PAID_DAILY_ANALYSIS_LIMIT}回</p>
+              </div>
+              <div className="rounded-md border border-border p-4">
+                <p className="text-muted-foreground">手入力で食事を登録</p>
+                <p className="mt-3 text-xs text-muted-foreground">無料</p>
+                <p>不可（写真解析のみ）</p>
+                <p className="mt-2 text-xs text-muted-foreground">有料</p>
+                <p className="font-semibold text-primary">利用可</p>
               </div>
               <div className="rounded-md border border-border p-4">
                 <p className="text-muted-foreground">食事メニュー提案</p>
                 <p className="mt-3 text-xs text-muted-foreground">無料</p>
-                <p>なし</p>
+                <p>不可</p>
                 <p className="mt-2 text-xs text-muted-foreground">有料</p>
                 <p className="font-semibold text-primary">
                   1日{MEAL_SUGGESTION_DAILY_LIMIT}回
                 </p>
               </div>
               <div className="rounded-md border border-border p-4">
-                <p className="text-muted-foreground">写真の永続保存</p>
+                <p className="text-muted-foreground">今日のAIアドバイス（カロちゃん）</p>
                 <p className="mt-3 text-xs text-muted-foreground">無料</p>
-                <p>なし</p>
+                <p>不可</p>
                 <p className="mt-2 text-xs text-muted-foreground">有料</p>
-                <p className="font-semibold text-primary">なし</p>
+                <p className="font-semibold text-primary">利用可</p>
               </div>
               <div className="rounded-md border border-border p-4">
-                <p className="text-muted-foreground">確認・修正して保存</p>
+                <p className="text-muted-foreground">過去日の履歴・カレンダー・14日グラフ</p>
+                <p className="mt-3 text-xs text-muted-foreground">無料</p>
+                <p>当日のみ（過去日選択・月移動・推移グラフは不可）</p>
+                <p className="mt-2 text-xs text-muted-foreground">有料</p>
+                <p className="font-semibold text-primary">過去日・月移動・直近14日グラフを利用可</p>
+              </div>
+              <div className="rounded-md border border-border p-4">
+                <p className="text-muted-foreground">目安カロリーで1件ショートカット登録</p>
+                <p className="mt-3 text-xs text-muted-foreground">無料</p>
+                <p>不可</p>
+                <p className="mt-2 text-xs text-muted-foreground">有料</p>
+                <p className="font-semibold text-primary">利用可</p>
+              </div>
+            </div>
+            <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+              <div className="rounded-md border border-border p-4">
+                <p className="text-muted-foreground">写真の永続保存</p>
+                <p className="mt-3 text-xs text-muted-foreground">無料・有料共通</p>
+                <p className="font-semibold">いいえ（解析用に一時利用のみ）</p>
+              </div>
+              <div className="rounded-md border border-border p-4">
+                <p className="text-muted-foreground">保存前の確認・修正</p>
                 <p className="mt-3 flex items-center gap-2">
                   <CheckCircle2 className="size-4 text-muted-foreground" />
-                  無料でも利用可
-                </p>
-                <p className="mt-2 flex items-center gap-2 font-semibold text-primary">
-                  <CheckCircle2 className="size-4" />
-                  有料でも同じ流れ
+                  無料・有料どちらでも利用可
                 </p>
               </div>
             </div>

@@ -18,6 +18,7 @@ import { MEAL_SUGGESTION_DAILY_LIMIT } from "@/lib/meal-suggestions";
 
 export const dynamic = "force-dynamic";
 const PAID_PLAN_PRICE_LABEL = "550円";
+const PAID_PLAN_TRIAL_LABEL = "14日間無料";
 
 const paidBenefits = [
   {
@@ -90,7 +91,7 @@ export default async function BillingPage() {
               <p className="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
                 {isPaid
                   ? "支払い方法、請求履歴、解約はStripeの管理画面から確認できます。"
-                  : `月額${PAID_PLAN_PRICE_LABEL}でAI解析枠を1日${PAID_DAILY_ANALYSIS_LIMIT}回、食事提案を1日${MEAL_SUGGESTION_DAILY_LIMIT}回利用できます。記録と次の食事決めを軽くします。`}
+                  : `${PAID_PLAN_TRIAL_LABEL}で試せます。トライアル後は月額${PAID_PLAN_PRICE_LABEL}でAI解析枠を1日${PAID_DAILY_ANALYSIS_LIMIT}回、食事提案を1日${MEAL_SUGGESTION_DAILY_LIMIT}回利用できます。`}
               </p>
             </div>
           </div>
@@ -117,11 +118,11 @@ export default async function BillingPage() {
                 </div>
               </div>
               <span className="rounded-md bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                おすすめ
+                14日間無料
               </span>
             </div>
             <p className="mt-4 text-sm leading-7 text-muted-foreground">
-              1日{PAID_DAILY_ANALYSIS_LIMIT}回までAI解析。さらに過去の食事から、次のメニュー提案を1日{MEAL_SUGGESTION_DAILY_LIMIT}回使えます。
+              最初の14日間は無料で試せます。トライアル終了後は月額{PAID_PLAN_PRICE_LABEL}です。1日{PAID_DAILY_ANALYSIS_LIMIT}回までAI解析、食事提案を1日{MEAL_SUGGESTION_DAILY_LIMIT}回使えます。
             </p>
             <div className="mt-5">
               {isPaid ? <ManageSubscriptionButton /> : <UpgradePlanButton />}
@@ -132,7 +133,7 @@ export default async function BillingPage() {
               </p>
             ) : (
               <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-                いつでも「サブスクの管理・解約」から操作可能です。
+                14日間のトライアル期間中も、いつでも「サブスクの管理・解約」から解約できます。
               </p>
             )}
           </div>

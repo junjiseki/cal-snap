@@ -3,6 +3,7 @@ import { getAuthenticatedUser } from "@/lib/supabase/server";
 import { getStripeServer } from "@/lib/stripe/server";
 
 export const runtime = "nodejs";
+const PAID_PLAN_TRIAL_DAYS = 14;
 
 function errorResponse(message: string, status: number, code: string) {
   return Response.json({ error: { message, code } }, { status });
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
     },
     customer_email: user.email ?? undefined,
     subscription_data: {
+      trial_period_days: PAID_PLAN_TRIAL_DAYS,
       metadata: {
         userId: user.id,
       },

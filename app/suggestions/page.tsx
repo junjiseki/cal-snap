@@ -104,7 +104,7 @@ export default async function SuggestionsPage() {
                 <span className="ml-1 text-sm text-muted-foreground">/ 月</span>
               </p>
               <p className="mt-3 text-sm leading-7 text-muted-foreground">
-                AI写真解析に加えて、食事提案も1日3回使えます。
+                14日間無料で試せます。トライアル終了後は月額550円で、AI写真解析に加えて食事提案も1日3回使えます。
               </p>
               <div className="mt-5">
                 <UpgradePlanButton />

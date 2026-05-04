@@ -20,7 +20,7 @@ export default async function NewMealPage({
       ? `${dateParam}T12:00`
       : undefined;
 
-  const { user } = await getAuthenticatedUserCached();
+  const { supabase, user } = await getAuthenticatedUserCached();
 
   const nextQs = new URLSearchParams();
   if (typeof params.manual === "string" && params.manual !== "") {
@@ -49,6 +49,14 @@ export default async function NewMealPage({
     );
   }
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("plan")
+    .eq("id", user.id)
+    .maybeSingle();
+  const plan = profile?.plan === "paid" ? "paid" : "free";
+  const canUseManualEntry = plan === "paid";
+
   return (
     <main className="min-h-0 flex-1 bg-background">
       <section className="border-b border-border bg-card">
@@ -70,15 +78,16 @@ export default async function NewMealPage({
               </Link>
             </div>
             <p className="mt-4 max-w-2xl text-sm text-muted-foreground">
-              写真を選んで推定値を確認し、違うところだけ直して保存できます。解析回数に達した場合は手入力でも記録できます。
+              写真を選んで推定値を確認し、違うところだけ直して保存できます。手入力での記録は有料プランで利用できます。
             </p>
           </div>
         </div>
       </section>
       <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-8 sm:py-6">
         <MealPhotoAnalyzer
-          initialEntryMode={openManual ? "manual" : undefined}
+          initialEntryMode={openManual && canUseManualEntry ? "manual" : undefined}
           initialEatenAtLocal={initialEatenAtLocal}
+          plan={plan}
         />
       </div>
     </main>

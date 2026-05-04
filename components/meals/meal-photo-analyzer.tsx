@@ -463,19 +463,24 @@ function StepDot({
 export function MealPhotoAnalyzer({
   initialEntryMode,
   initialEatenAtLocal,
+  plan = "free",
 }: {
   initialEntryMode?: EntryMode;
   /** datetime-local 用（例: YYYY-MM-DDTHH:mm）。日付のみの指定は呼び出し側で時刻を付与 */
   initialEatenAtLocal?: string;
+  plan?: "free" | "paid";
 } = {}) {
+  const canUseManualEntry = plan === "paid";
   const router = useRouter();
   const cameraFileInputRef = useRef<HTMLInputElement>(null);
   const galleryFileInputRef = useRef<HTMLInputElement>(null);
   const saveInFlightRef = useRef(false);
-  const [entryMode, setEntryMode] = useState<EntryMode>(() => initialEntryMode ?? "photo");
+  const [entryMode, setEntryMode] = useState<EntryMode>(() =>
+    initialEntryMode === "manual" && canUseManualEntry ? "manual" : "photo",
+  );
   const [file, setFile] = useState<File | null>(null);
   const [analysis, setAnalysis] = useState<MealAnalysisForm | null>(() =>
-    initialEntryMode === "manual" ? createManualMealDraft() : null,
+    initialEntryMode === "manual" && canUseManualEntry ? createManualMealDraft() : null,
   );
   const [eatenAt, setEatenAt] = useState(() => initialEatenAtLocal ?? todayInputValue());
   const [error, setError] = useState<string | null>(null);
@@ -500,6 +505,13 @@ export function MealPhotoAnalyzer({
   }
 
   function selectEntryMode(mode: EntryMode) {
+    if (mode === "manual" && !canUseManualEntry) {
+      setEntryMode("photo");
+      setAnalysis(null);
+      setError("手入力での記録は有料プランで利用できます。無料プランでは写真解析をご利用ください。");
+      setNotice(null);
+      return;
+    }
     setError(null);
     setNotice(null);
     setFile(null);
@@ -759,7 +771,12 @@ export function MealPhotoAnalyzer({
           <h2 className="mt-1 text-lg font-semibold">記録方法を選ぶ</h2>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-muted/30 p-1">
+        <div
+          className={[
+            "grid gap-2 rounded-lg border border-border bg-muted/30 p-1",
+            canUseManualEntry ? "grid-cols-2" : "grid-cols-1",
+          ].join(" ")}
+        >
           <button
             type="button"
             onClick={() => selectEntryMode("photo")}
@@ -774,20 +791,22 @@ export function MealPhotoAnalyzer({
             <Camera className="size-4 shrink-0" />
             写真
           </button>
-          <button
-            type="button"
-            onClick={() => selectEntryMode("manual")}
-            aria-pressed={entryMode === "manual"}
-            className={[
-              "inline-flex h-10 items-center justify-center gap-2 rounded-md px-3 text-sm font-semibold transition-colors",
-              entryMode === "manual"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
-            ].join(" ")}
-          >
-            <Keyboard className="size-4 shrink-0" />
-            手入力
-          </button>
+          {canUseManualEntry ? (
+            <button
+              type="button"
+              onClick={() => selectEntryMode("manual")}
+              aria-pressed={entryMode === "manual"}
+              className={[
+                "inline-flex h-10 items-center justify-center gap-2 rounded-md px-3 text-sm font-semibold transition-colors",
+                entryMode === "manual"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
+              ].join(" ")}
+            >
+              <Keyboard className="size-4 shrink-0" />
+              手入力
+            </button>
+          ) : null}
         </div>
 
         {entryMode === "photo" ? (

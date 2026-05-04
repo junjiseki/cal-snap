@@ -8,6 +8,7 @@ import { CleanupStaleSession } from "@/components/auth/cleanup-stale-session";
 import { SessionHydrationRefresh } from "@/components/auth/session-hydration-refresh";
 import { DailyAdvice } from "@/components/advice/daily-advice";
 import { AppHeader } from "@/components/layout/app-header";
+import { PassiveServiceWorkerRegister } from "@/components/pwa/passive-service-worker-register";
 import { PwaInstallPrompt } from "@/components/pwa/install-prompt";
 import { ServiceWorkerLegacyCleanup } from "@/components/pwa/service-worker-legacy-cleanup";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -122,6 +123,7 @@ export default async function RootLayout({
           <CleanupStaleSession />
           <SessionHydrationRefresh />
           <ServiceWorkerLegacyCleanup />
+          <PassiveServiceWorkerRegister />
           <AppHeader />
           <div className="flex flex-1 flex-col">{children}</div>
           <DailyAdvice />

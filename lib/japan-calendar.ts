@@ -38,6 +38,7 @@ const jstYmdFormatter = new Intl.DateTimeFormat("sv-SE", {
 
 /**
  * 終端日 endYmd（JST の YYYY-MM-DD）を含む n 日分の暦日を、古い順で返す。
+ * 加算は固定 24h（日本に夏時間がないため暦日と一致）。
  */
 export function lastNJstDaysAsc(n: number, endYmd: string): string[] {
   const anchor = new Date(`${endYmd}T12:00:00+09:00`);

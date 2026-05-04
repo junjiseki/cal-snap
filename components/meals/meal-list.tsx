@@ -57,6 +57,15 @@ function toTokyoDateAndTime(iso: string) {
   };
 }
 
+async function readMealsApiError(response: Response) {
+  try {
+    const data = (await response.json()) as { error?: { message?: string } };
+    return data.error?.message ?? "食事を登録できませんでした。";
+  } catch {
+    return "食事を登録できませんでした。";
+  }
+}
+
 /** 日本時間の日付・時刻を UTC の ISO 文字列に変換（サーバー保存用） */
 function tokyoDateAndTimeToIso(date: string, time: string) {
   const dateMatch = date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -195,11 +204,16 @@ export function MealList({
 
   async function registerGoalCalorieMeal() {
     if (goalCalories <= 0 || baselineSaving) return;
+    const kcal = Math.round(goalCalories);
+    const ok = window.confirm(
+      `選択した日（${selectedDateYmd}）に、1日の目安と同じ ${kcal} kcal の食事を1件追加します。よろしいですか？\n\n※ あとから内容を編集・削除できます。`,
+    );
+    if (!ok) return;
+
     setBaselineSaving(true);
     setError(null);
     try {
       const eatenAtIso = tokyoDateAndTimeToIso(selectedDateYmd, "12:00");
-      const kcal = Math.round(goalCalories);
       const response = await fetch("/api/meals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -225,7 +239,7 @@ export function MealList({
         }),
       });
       if (!response.ok) {
-        throw new Error("食事を登録できませんでした。");
+        throw new Error(await readMealsApiError(response));
       }
       router.refresh();
     } catch (caught) {
@@ -260,6 +274,11 @@ export function MealList({
               type="button"
               onClick={() => void registerGoalCalorieMeal()}
               disabled={goalCalories <= 0 || baselineSaving}
+              title={
+                goalCalories <= 0
+                  ? "1日の目安カロリーが 0 のため使えません。プロフィールで目安を設定してください。"
+                  : undefined
+              }
               className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-semibold hover:bg-muted disabled:pointer-events-none disabled:opacity-50"
             >
               {baselineSaving ? <Loader2 className="size-4 animate-spin" /> : null}
@@ -268,6 +287,20 @@ export function MealList({
                 : `基準（${goalCalories} kcal）と同じ摂取で記録`}
             </button>
           </div>
+          {goalCalories > 0 ? (
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              「基準と同じ摂取で記録」は、その日の合計として目安カロリーの食事を1件だけ登録します。PFC（たんぱく質・脂質・炭水化物）は
+              0 のまま入ります。あとから一覧から編集できます。
+            </p>
+          ) : (
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              1日の目安カロリーが 0 のため、このショートカットは使えません。{" "}
+              <Link href="/profile#calorie-goal" className="font-medium text-foreground underline">
+                プロフィールで目安を設定
+              </Link>
+              してください。
+            </p>
+          )}
         </div>
       ) : null}
       {meals.map((meal) => {

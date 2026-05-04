@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BarChart3 } from "lucide-react";
+import { safeInternalPath } from "@/lib/auth/safe-redirect";
 import { MealPhotoAnalyzer } from "@/components/meals/meal-photo-analyzer";
 import { getAuthenticatedUserCached } from "@/lib/supabase/server";
 
@@ -21,13 +22,24 @@ export default async function NewMealPage({
 
   const { user } = await getAuthenticatedUserCached();
 
+  const nextQs = new URLSearchParams();
+  if (typeof params.manual === "string" && params.manual !== "") {
+    nextQs.set("manual", params.manual);
+  }
+  if (typeof params.date === "string" && params.date !== "") {
+    nextQs.set("date", params.date);
+  }
+  const nextAfterLogin =
+    nextQs.size > 0 ? `/meals/new?${nextQs.toString()}` : "/meals/new";
+  const loginHref = `/login?next=${encodeURIComponent(safeInternalPath(nextAfterLogin, "/meals/new"))}`;
+
   if (!user) {
     return (
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:px-5">
         <div className="border border-border bg-card p-6">
           <h1 className="text-2xl font-semibold">ログインが必要です</h1>
           <Link
-            href="/login?next=/meals/new"
+            href={loginHref}
             className="mt-5 inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground"
           >
             ログインへ

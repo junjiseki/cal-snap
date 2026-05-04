@@ -111,7 +111,7 @@ export function MealList({
   selectedDateYmd,
   todayDateYmd,
   goalCalories,
-  /** 手入力での新規登録導線は有料のみ（/meals/new の手入力可否と一致） */
+  /** 手入力・「基準と同じ摂取で記録」は有料のみ（無料は写真登録） */
   isPaid,
 }: {
   meals: MealRow[];
@@ -206,7 +206,7 @@ export function MealList({
   }
 
   async function registerGoalCalorieMeal() {
-    if (goalCalories <= 0 || baselineSaving) return;
+    if (!isPaid || goalCalories <= 0 || baselineSaving) return;
     const kcal = Math.round(goalCalories);
     const ok = window.confirm(
       `選択した日（${selectedDateYmd}）に、1日の目安と同じ ${kcal} kcal の食事を1件追加します。よろしいですか？\n\n※ あとから内容を編集・削除できます。`,
@@ -267,22 +267,31 @@ export function MealList({
               : "この日はまだ食事が登録されていません。"}
           </p>
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            <button
-              type="button"
-              onClick={() => void registerGoalCalorieMeal()}
-              disabled={goalCalories <= 0 || baselineSaving}
-              title={
-                goalCalories <= 0
-                  ? "1日の目安カロリーが 0 のため使えません。プロフィールで目安を設定してください。"
-                  : undefined
-              }
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-semibold hover:bg-muted disabled:pointer-events-none disabled:opacity-50"
-            >
-              {baselineSaving ? <Loader2 className="size-4 animate-spin" /> : null}
-              {baselineSaving
-                ? "登録中…"
-                : `基準（${goalCalories} kcal）と同じ摂取で記録`}
-            </button>
+            {isPaid ? (
+              <button
+                type="button"
+                onClick={() => void registerGoalCalorieMeal()}
+                disabled={goalCalories <= 0 || baselineSaving}
+                title={
+                  goalCalories <= 0
+                    ? "1日の目安カロリーが 0 のため使えません。プロフィールで目安を設定してください。"
+                    : undefined
+                }
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-semibold hover:bg-muted disabled:pointer-events-none disabled:opacity-50"
+              >
+                {baselineSaving ? <Loader2 className="size-4 animate-spin" /> : null}
+                {baselineSaving
+                  ? "登録中…"
+                  : `基準（${goalCalories} kcal）と同じ摂取で記録`}
+              </button>
+            ) : (
+              <Link
+                href={`/meals/new?date=${encodeURIComponent(selectedDateYmd)}`}
+                className="inline-flex h-10 items-center justify-center rounded-md border border-border bg-background px-4 text-sm font-semibold hover:bg-muted"
+              >
+                写真で記録する
+              </Link>
+            )}
             {isPaid ? (
               <Link
                 href={`/meals/new?manual=1&date=${encodeURIComponent(selectedDateYmd)}`}
@@ -292,18 +301,22 @@ export function MealList({
               </Link>
             ) : null}
           </div>
-          {goalCalories > 0 ? (
+          {goalCalories <= 0 ? (
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              1日の目安カロリーが 0 のため、基準にそったショートカットは使えません。{" "}
+              <Link href="/profile#calorie-goal" className="font-medium text-foreground underline">
+                プロフィールで目安を設定
+              </Link>
+              してください。
+            </p>
+          ) : isPaid ? (
             <p className="text-xs leading-relaxed text-muted-foreground">
               「基準と同じ摂取で記録」は、その日の合計として目安カロリーの食事を1件だけ登録します。PFC（たんぱく質・脂質・炭水化物）は
               0 のまま入ります。あとから一覧から編集できます。
             </p>
           ) : (
             <p className="text-xs leading-relaxed text-muted-foreground">
-              1日の目安カロリーが 0 のため、このショートカットは使えません。{" "}
-              <Link href="/profile#calorie-goal" className="font-medium text-foreground underline">
-                プロフィールで目安を設定
-              </Link>
-              してください。
+              「基準と同じ摂取で記録」は有料プランの機能です。無料プランでは写真から食事を登録してください。
             </p>
           )}
         </div>

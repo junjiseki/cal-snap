@@ -771,6 +771,9 @@ export function MealPhotoAnalyzer({
         <div>
           <p className="text-xs font-semibold text-primary">STEP 1</p>
           <h2 className="mt-1 text-lg font-semibold">記録方法を選ぶ</h2>
+          <p className="mt-2 text-xs leading-6 text-muted-foreground">
+            登録上限: 1日8件まで / 1食あたり料理{MAX_MEAL_ITEMS_PER_MEAL}件まで
+          </p>
         </div>
 
         <div
@@ -841,7 +844,7 @@ export function MealPhotoAnalyzer({
           <div className="rounded-md border border-border bg-muted/20 p-4">
             <p className="text-sm font-semibold">手入力モード</p>
             <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-              AI解析は使いません（本日の解析回数は減りません）。右のフォームに栄養値を入力して保存してください。
+              AI解析は使いません（本日の解析回数は減りません）。右のフォームに栄養値を入力して保存してください。1食あたり料理{MAX_MEAL_ITEMS_PER_MEAL}件まで登録できます。
             </p>
           </div>
         )}

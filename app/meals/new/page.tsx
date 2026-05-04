@@ -78,7 +78,7 @@ export default async function NewMealPage({
               </Link>
             </div>
             <p className="mt-4 max-w-2xl text-sm text-muted-foreground">
-              写真を選んで推定値を確認し、違うところだけ直して保存できます。手入力での記録は有料プランで利用できます。
+              写真を選んで推定値を確認し、違うところだけ直して保存できます。食事登録は1日8件まで、1つの食事に登録できる料理は14件までです。手入力での記録は有料プランで利用できます。
             </p>
           </div>
         </div>

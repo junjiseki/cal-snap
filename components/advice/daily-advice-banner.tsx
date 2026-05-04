@@ -157,7 +157,10 @@ export function DailyAdviceBanner({
             </div>
 
             <div className="relative flex-1 rounded-md border border-emerald-100 bg-white p-3 shadow-sm before:absolute before:left-[-7px] before:top-5 before:size-3 before:rotate-45 before:border-b before:border-l before:border-emerald-100 before:bg-white">
-              <p className="text-xs font-bold text-primary">カロスナコンシェルジュ</p>
+              <p className="text-xs font-bold text-primary">カロちゃん</p>
+              <p className="text-[11px] font-medium text-muted-foreground">
+                カロスナ コンシェルジュ
+              </p>
               <p className="mt-0.5 text-sm font-semibold text-foreground">今日のAIアドバイス</p>
               {isLoading ? (
                 <p className="mt-2 text-sm leading-7 text-muted-foreground">
@@ -193,7 +196,7 @@ export function DailyAdviceBanner({
       >
           <Image
             src="/advice-mascot.webp"
-            alt="コンシェルジュのアイコン"
+            alt="カロちゃん"
             width={120}
             height={120}
             className="h-full w-full object-cover object-top"

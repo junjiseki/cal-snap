@@ -294,7 +294,7 @@ export default async function DashboardPage({
           </p>
         ) : null}
 
-        <section className="border border-primary/20 bg-primary/5 p-4 sm:p-5">
+        <section className="hidden border border-primary/20 bg-primary/5 p-4 sm:block sm:p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex gap-3">
               <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
@@ -318,32 +318,28 @@ export default async function DashboardPage({
         </section>
 
         <section className="space-y-3">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 className="text-sm font-semibold text-foreground">PFC 合計</h2>
-            </div>
-            <Link
-              href="/profile"
-              className="inline-flex h-9 items-center justify-center rounded-md border border-border px-3 text-sm font-semibold hover:bg-muted"
-            >
-              目標を編集
-            </Link>
-          </div>
-          <div
-            className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0"
-            aria-label="PFC合計を横にスライドして確認"
-          >
-            <div className="min-w-[82%] snap-center border border-border bg-card p-4 sm:min-w-0 sm:p-5">
+          <h2 className="text-sm font-semibold text-foreground">PFC 合計</h2>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3" aria-label="PFC合計">
+            <div className="border border-border bg-card p-3 sm:p-5">
               <p className="text-sm text-muted-foreground">たんぱく質</p>
-              <p className="mt-2 text-2xl font-semibold sm:text-3xl">{Math.round(total.protein)} g</p>
+              <p className="mt-2 text-xl font-semibold sm:text-3xl">
+                {Math.round(total.protein)}
+                <span className="ml-0.5 text-sm text-muted-foreground">g</span>
+              </p>
             </div>
-            <div className="min-w-[82%] snap-center border border-border bg-card p-4 sm:min-w-0 sm:p-5">
+            <div className="border border-border bg-card p-3 sm:p-5">
               <p className="text-sm text-muted-foreground">脂質</p>
-              <p className="mt-2 text-2xl font-semibold sm:text-3xl">{Math.round(total.fat)} g</p>
+              <p className="mt-2 text-xl font-semibold sm:text-3xl">
+                {Math.round(total.fat)}
+                <span className="ml-0.5 text-sm text-muted-foreground">g</span>
+              </p>
             </div>
-            <div className="min-w-[82%] snap-center border border-border bg-card p-4 sm:min-w-0 sm:p-5">
+            <div className="border border-border bg-card p-3 sm:p-5">
               <p className="text-sm text-muted-foreground">炭水化物</p>
-              <p className="mt-2 text-2xl font-semibold sm:text-3xl">{Math.round(total.carbs)} g</p>
+              <p className="mt-2 text-xl font-semibold sm:text-3xl">
+                {Math.round(total.carbs)}
+                <span className="ml-0.5 text-sm text-muted-foreground">g</span>
+              </p>
             </div>
           </div>
         </section>

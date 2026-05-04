@@ -3,10 +3,20 @@ import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/lib/supabase/database.types";
 import { isStaleRefreshTokenError } from "@/lib/supabase/stale-session";
 
+/** next.config から移したものと同一（HTML をエッジ長期キャッシュしない） */
+const DOCUMENT_CACHE_CONTROL =
+  "private, no-cache, must-revalidate, max-age=0, s-maxage=0";
+
+const PERMISSIONS_POLICY =
+  "camera=(self), microphone=(), geolocation=(), payment=()";
+
 function hasSupabaseAuthCookie(request: NextRequest) {
   return request.cookies
     .getAll()
-    .some((cookie) => cookie.name.startsWith("sb-") && cookie.name.includes("-auth-token"));
+    .some(
+      (cookie) =>
+        cookie.name.startsWith("sb-") && cookie.name.includes("-auth-token"),
+    );
 }
 
 function shouldNoStore(request: NextRequest) {
@@ -25,12 +35,65 @@ function shouldNoStore(request: NextRequest) {
   );
 }
 
+/** next.config の `headers` ソースに相当（ページ HTML のみ弱キャッシュ） */
+function shouldApplyDocumentCachePolicy(request: NextRequest): boolean {
+  const p = request.nextUrl.pathname;
+  if (p.startsWith("/api/") || p.startsWith("/_next/")) return false;
+  if (
+    p === "/favicon.ico" ||
+    p === "/manifest.json" ||
+    p === "/robots.txt" ||
+    p === "/sitemap.xml" ||
+    p === "/sw.js" ||
+    p === "/sw-passive.js"
+  ) {
+    return false;
+  }
+  const last = p.split("/").pop() ?? "";
+  if (last && /\.[\w.-]+$/.test(last)) return false;
+  return true;
+}
+
+function applySecurityHeaders(res: NextResponse, request: NextRequest) {
+  res.headers.set("X-Content-Type-Options", "nosniff");
+  res.headers.set("X-Frame-Options", "DENY");
+  res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.headers.set("Permissions-Policy", PERMISSIONS_POLICY);
+  if (request.nextUrl.protocol === "https:") {
+    res.headers.set(
+      "Strict-Transport-Security",
+      "max-age=31536000; includeSubDomains",
+    );
+  }
+}
+
+function applyCacheHeaders(res: NextResponse, request: NextRequest) {
+  if (shouldNoStore(request)) {
+    res.headers.set(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, proxy-revalidate",
+    );
+    res.headers.set("Pragma", "no-cache");
+    res.headers.set("Expires", "0");
+    return;
+  }
+  if (shouldApplyDocumentCachePolicy(request)) {
+    res.headers.set("Cache-Control", DOCUMENT_CACHE_CONTROL);
+  }
+}
+
 export async function proxy(request: NextRequest) {
+  const finish = (res: NextResponse) => {
+    applySecurityHeaders(res, request);
+    applyCacheHeaders(res, request);
+    return res;
+  };
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!url || !anonKey) {
-    return NextResponse.next();
+    return finish(NextResponse.next({ request }));
   }
 
   let supabaseResponse = NextResponse.next({
@@ -64,29 +127,7 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  supabaseResponse.headers.set("X-Content-Type-Options", "nosniff");
-  supabaseResponse.headers.set("X-Frame-Options", "DENY");
-  supabaseResponse.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  supabaseResponse.headers.set(
-    "Permissions-Policy",
-    "camera=(self), microphone=(), geolocation=(), payment=()",
-  );
-  if (shouldNoStore(request)) {
-    supabaseResponse.headers.set(
-      "Cache-Control",
-      "no-store, no-cache, must-revalidate, proxy-revalidate",
-    );
-    supabaseResponse.headers.set("Pragma", "no-cache");
-    supabaseResponse.headers.set("Expires", "0");
-  }
-  if (request.nextUrl.protocol === "https:") {
-    supabaseResponse.headers.set(
-      "Strict-Transport-Security",
-      "max-age=31536000; includeSubDomains",
-    );
-  }
-
-  return supabaseResponse;
+  return finish(supabaseResponse);
 }
 
 export const config = {

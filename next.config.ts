@@ -1,12 +1,11 @@
 import type { NextConfig } from "next";
 
 /**
- * Cloudflare 等の CDN では、HTML / RSC / データ取得を「Cache Everything」で長期キャッシュしないこと。
- * 古い HTML と新しい `/_next/static` チャンクの組み合わせで実行時エラーになり得る。
- *
- * App Router のドキュメント（メタデータ manifest）とホーム画面追加は manifest のみでも利用可能。
+ * セキュリティヘッダー・HTML の Cache-Control は `proxy.ts`（Next の Proxy 規約／旧 middleware）で付与。
+ * `/_next/static` 等は matcher 外のため proxy を通らない（チャンクは Next 既定のキャッシュ）。
  */
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   images: {
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 60 * 60 * 24 * 30,

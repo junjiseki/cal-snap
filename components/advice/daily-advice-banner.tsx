@@ -120,7 +120,7 @@ export function DailyAdviceBanner({
   return (
     <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] right-3 z-50 md:bottom-4 md:right-4">
       {isOpen ? (
-        <aside className="mb-3 w-[min(calc(100vw-1.5rem),26rem)] rounded-lg border border-emerald-200 bg-[#fffdf4] p-3 shadow-lg">
+        <aside className="relative mb-3 w-[min(calc(100vw-1.5rem),26rem)] rounded-lg border border-emerald-200 bg-[#fffdf4] p-3 shadow-lg">
           <button
             type="button"
             onClick={close}

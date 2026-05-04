@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BarChart3 } from "lucide-react";
 import { safeInternalPath } from "@/lib/auth/safe-redirect";
 import { MealPhotoAnalyzer } from "@/components/meals/meal-photo-analyzer";
+import { MAX_MEAL_ITEMS_PER_MEAL, MAX_MEALS_PER_DAY } from "@/lib/meal-analysis";
 import { getAuthenticatedUserCached } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -84,7 +85,7 @@ export default async function NewMealPage({
             </p>
             {plan === "paid" ? (
               <p className="mt-2 text-xs text-muted-foreground/75">
-                登録上限: 1日8件まで / 1食あたり料理14件まで
+                登録上限: 1日{MAX_MEALS_PER_DAY}件まで / 1食あたり料理{MAX_MEAL_ITEMS_PER_MEAL}件まで
               </p>
             ) : null}
           </div>

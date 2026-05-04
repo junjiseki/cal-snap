@@ -111,6 +111,8 @@ export function MealList({
   selectedDateYmd,
   todayDateYmd,
   goalCalories,
+  /** 手入力での新規登録導線は有料のみ（/meals/new の手入力可否と一致） */
+  isPaid,
 }: {
   meals: MealRow[];
   mealsPage: number;
@@ -123,6 +125,7 @@ export function MealList({
   todayDateYmd: string;
   /** 1日の目安（基準）カロリー。これと同じ kcal の食事を1件登録する */
   goalCalories: number;
+  isPaid: boolean;
 }) {
   const router = useRouter();
   const [editingMealId, setEditingMealId] = useState<string | null>(null);
@@ -280,6 +283,14 @@ export function MealList({
                 ? "登録中…"
                 : `基準（${goalCalories} kcal）と同じ摂取で記録`}
             </button>
+            {isPaid ? (
+              <Link
+                href={`/meals/new?manual=1&date=${encodeURIComponent(selectedDateYmd)}`}
+                className="inline-flex h-10 items-center justify-center rounded-md border border-border bg-background px-4 text-sm font-semibold hover:bg-muted"
+              >
+                手入力で記録する
+              </Link>
+            ) : null}
           </div>
           {goalCalories > 0 ? (
             <p className="text-xs leading-relaxed text-muted-foreground">

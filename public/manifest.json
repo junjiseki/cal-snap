@@ -1,0 +1,40 @@
+{
+  "name": "カロスナ - 3秒で終わる食事管理",
+  "short_name": "カロスナ",
+  "description": "食事写真からカロリーとPFCを推定し、毎日の食事管理を続けやすくするアプリです。",
+  "lang": "ja",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#fff3c7",
+  "background_color": "#fffaf0",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "食事写真を記録",
+      "short_name": "食事記録",
+      "url": "/meals/new",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "ダッシュボード",
+      "short_name": "ダッシュボード",
+      "url": "/dashboard",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

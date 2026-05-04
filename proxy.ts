@@ -9,6 +9,22 @@ function hasSupabaseAuthCookie(request: NextRequest) {
     .some((cookie) => cookie.name.startsWith("sb-") && cookie.name.includes("-auth-token"));
 }
 
+function shouldNoStore(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  return (
+    pathname.startsWith("/api/") ||
+    pathname.startsWith("/auth/") ||
+    pathname === "/login" ||
+    pathname === "/signup" ||
+    pathname === "/billing" ||
+    pathname === "/dashboard" ||
+    pathname === "/meals/new" ||
+    pathname === "/profile" ||
+    pathname === "/settings" ||
+    pathname === "/suggestions"
+  );
+}
+
 export async function proxy(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -55,6 +71,14 @@ export async function proxy(request: NextRequest) {
     "Permissions-Policy",
     "camera=(self), microphone=(), geolocation=(), payment=()",
   );
+  if (shouldNoStore(request)) {
+    supabaseResponse.headers.set(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, proxy-revalidate",
+    );
+    supabaseResponse.headers.set("Pragma", "no-cache");
+    supabaseResponse.headers.set("Expires", "0");
+  }
   if (request.nextUrl.protocol === "https:") {
     supabaseResponse.headers.set(
       "Strict-Transport-Security",

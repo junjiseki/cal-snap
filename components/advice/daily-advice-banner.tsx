@@ -65,6 +65,7 @@ export function DailyAdviceBanner({
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isDismissedToday, setIsDismissedToday] = useState(false);
 
   async function openAdvice() {
     if (!userId || plan !== "paid") return;
@@ -91,7 +92,8 @@ export function DailyAdviceBanner({
         return;
       }
       const body = (await response.json()) as AdviceResponse;
-      writeCachedAdvice(userId, date, { response: body });
+      const prev = readCachedAdvice(userId, date) ?? {};
+      writeCachedAdvice(userId, date, { ...prev, response: body });
       setAdvice(body);
     } catch {
       setErrorMessage("通信に失敗しました。接続を確認してもう一度お試しください。");
@@ -104,6 +106,9 @@ export function DailyAdviceBanner({
     if (!userId || plan !== "paid") return;
 
     const cached = readCachedAdvice(userId, date);
+    if (cached?.dismissed) {
+      setIsDismissedToday(true);
+    }
     if (cached?.response) {
       setAdvice(cached.response);
     }
@@ -111,10 +116,16 @@ export function DailyAdviceBanner({
 
   if (!userId || plan !== "paid") return null;
 
+  if (isDismissedToday) return null;
+
   const isInsufficient = advice?.status === "insufficient_data";
 
   function close() {
     setIsOpen(false);
+    if (!userId) return;
+    const prev = readCachedAdvice(userId, date) ?? {};
+    writeCachedAdvice(userId, date, { ...prev, dismissed: true });
+    setIsDismissedToday(true);
   }
 
   return (

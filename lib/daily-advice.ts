@@ -226,12 +226,11 @@ export function selectDailyAdviceIssue(
       `直近7日間で${summary.repeated_meal_names.join("、")}が複数回記録されています`,
     );
   }
-  candidates.set(
-    "consistent_logging",
-    `直近7日間で${summary.recorded_days}日、合計${summary.meal_count}件記録できています`,
-  );
 
   for (const issue of ISSUE_PRIORITY) {
+    if (issue === "consistent_logging") {
+      continue;
+    }
     const reason = candidates.get(issue);
     if (reason) return { selected_issue: issue, reason };
   }

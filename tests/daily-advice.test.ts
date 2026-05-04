@@ -103,6 +103,28 @@ describe("daily advice issue selection", () => {
     expect(selected.selected_issue).toBe("calories_too_low");
   });
 
+  it("falls back to consistent_logging when no other issue matches", () => {
+    const selected = selectDailyAdviceIssue({
+      period: "last_7_days",
+      recorded_days: 5,
+      meal_count: 12,
+      avg_calories: 1900,
+      avg_protein: 80,
+      avg_fat: 60,
+      avg_carbs: 200,
+      recent_3_day_avg_calories: 1880,
+      calorie_diff_from_7_day_avg: -20,
+      pfc_ratio: { protein: 20, fat: 28, carbs: 52 },
+      meal_time_ratio: { morning: 30, lunch: 40, night: 30 },
+      repeated_meal_names: [],
+      goal_calories: 2000,
+    });
+
+    expect(selected.selected_issue).toBe("consistent_logging");
+    expect(selected.reason).toContain("5日");
+    expect(selected.reason).toContain("12件");
+  });
+
   it("builds a concrete summary from recent meals", () => {
     const summary = buildDailyAdviceSummary(enoughMeals(), 2000);
 

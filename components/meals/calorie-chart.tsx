@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/chart";
 import { lastNJstDaysAsc } from "@/lib/japan-calendar";
 import { CALORIE_OVER_WARN_THRESHOLD_KCAL } from "@/lib/meal-analysis";
+import { cn } from "@/lib/utils";
 
 type MealRow = {
   id: string;
@@ -84,6 +85,16 @@ const chartConfig = {
     },
   },
 } satisfies ChartConfig;
+
+/** PFC 凡例で chartConfig と同じ色を CSS 変数に載せる（ChartContainer 外でも var(--color-*) を使えるようにする） */
+const pfcLegendScopeClassName = cn(
+  `[--color-protein:${chartConfig.protein.theme.light.replace(/\s/g, "_")}]`,
+  `dark:[--color-protein:${chartConfig.protein.theme.dark.replace(/\s/g, "_")}]`,
+  `[--color-fat:${chartConfig.fat.theme.light.replace(/\s/g, "_")}]`,
+  `dark:[--color-fat:${chartConfig.fat.theme.dark.replace(/\s/g, "_")}]`,
+  `[--color-carbs:${chartConfig.carbs.theme.light.replace(/\s/g, "_")}]`,
+  `dark:[--color-carbs:${chartConfig.carbs.theme.dark.replace(/\s/g, "_")}]`,
+);
 
 /** Tailwind の `sm`（既定 640px）と同じ値に保つこと */
 const SM_BREAKPOINT_PX = 640;
@@ -372,7 +383,7 @@ export function CalorieChart({
             <span>縦軸: kcal / 破線: 目安 {goalCalories} kcal</span>
             <span>直近7日</span>
           </div>
-          <div className="mt-5 border-t border-border pt-4">
+          <div className={cn("mt-5 border-t border-border pt-4", pfcLegendScopeClassName)}>
             <div className="mb-2 flex items-center justify-between">
               <h3 className="text-sm font-semibold">PFC推移</h3>
               <PfcLegend />
@@ -392,7 +403,7 @@ export function CalorieChart({
               showGoalLabel
             />
           </div>
-          <div>
+          <div className={pfcLegendScopeClassName}>
             <div className="mb-2 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-foreground">PFC</h3>
               <PfcLegend />
@@ -413,13 +424,13 @@ function PfcLegend() {
   return (
     <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
       <span className="inline-flex items-center gap-1">
-        <span className="size-2 rounded-full bg-sky-500" />P
+        <span className="size-2 rounded-full bg-(--color-protein)" />P
       </span>
       <span className="inline-flex items-center gap-1">
-        <span className="size-2 rounded-full bg-yellow-400" />F
+        <span className="size-2 rounded-full bg-(--color-fat)" />F
       </span>
       <span className="inline-flex items-center gap-1">
-        <span className="size-2 rounded-full bg-emerald-500" />C
+        <span className="size-2 rounded-full bg-(--color-carbs)" />C
       </span>
     </div>
   );

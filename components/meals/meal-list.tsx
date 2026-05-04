@@ -264,12 +264,6 @@ export function MealList({
               : "この日はまだ食事が登録されていません。"}
           </p>
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            <Link
-              href={`/meals/new?manual=1&date=${encodeURIComponent(selectedDateYmd)}`}
-              className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm"
-            >
-              手入力で記録する
-            </Link>
             <button
               type="button"
               onClick={() => void registerGoalCalorieMeal()}

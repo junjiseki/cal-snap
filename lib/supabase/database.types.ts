@@ -183,6 +183,7 @@ export type Database = {
           p_model: string;
           p_daily_limit: number;
           p_day_start: string;
+          /** 排他的終端（翌 JST 日 00:00）。`analyzed_at < p_day_end` */
           p_day_end: string;
         };
         Returns: {
@@ -199,6 +200,7 @@ export type Database = {
           p_meal_slot: string;
           p_daily_limit: number;
           p_day_start: string;
+          /** 排他的終端（翌 JST 00:00）。`suggested_at < p_day_end` */
           p_day_end: string;
         };
         Returns: {
@@ -224,6 +226,7 @@ export type Database = {
       get_daily_meal_summary: {
         Args: {
           p_start: string;
+          /** 排他的終端（翌 JST 日 00:00 に相当する timestamptz）。`eaten_at < p_end` */
           p_end: string;
         };
         Returns: {

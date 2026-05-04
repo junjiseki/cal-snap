@@ -110,14 +110,14 @@ async function getTodayUsage(userId: string, plan: Plan) {
   }
 
   const { supabase } = await getAuthenticatedUser();
-  const { start, end } = getTodaySuggestionUsageRange();
+  const { start, endExclusive } = getTodaySuggestionUsageRange();
   const { count, error } = await supabase
     .from("meal_suggestion_logs")
     .select("id", { count: "exact", head: true })
     .eq("user_id", userId)
     .eq("success", true)
     .gte("suggested_at", start)
-    .lte("suggested_at", end);
+    .lt("suggested_at", endExclusive);
 
   if (error) {
     throw error;
@@ -246,7 +246,7 @@ export async function POST(request: Request) {
   }
 
   const model = process.env.GEMINI_MODEL || "gemini-3-flash-preview";
-  const { start, end } = getTodaySuggestionUsageRange();
+  const { start, endExclusive } = getTodaySuggestionUsageRange();
   const { data: claim, error: claimError } = await supabase.rpc(
     "claim_meal_suggestion_slot",
     {
@@ -256,7 +256,7 @@ export async function POST(request: Request) {
       p_meal_slot: parsed.data.slot,
       p_daily_limit: usage.limit,
       p_day_start: start,
-      p_day_end: end,
+      p_day_end: endExclusive,
     },
   );
 

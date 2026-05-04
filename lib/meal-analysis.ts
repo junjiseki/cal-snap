@@ -1,6 +1,8 @@
 import { z } from "zod";
 
 const MAX_NUTRITION_VALUE = 100_000;
+export const MAX_MEALS_PER_DAY = 8;
+export const MAX_MEAL_ITEMS_PER_MEAL = 14;
 
 export const MealAnalysisItemSchema = z.object({
   name: z.string().trim().min(1).max(80),
@@ -19,7 +21,7 @@ export const MealAnalysisSchema = z.object({
   carbs: z.number().min(0).max(MAX_NUTRITION_VALUE),
   ai_confidence: z.number().min(0).max(1),
   memo: z.string().trim().max(1000),
-  items: z.array(MealAnalysisItemSchema).min(1).max(30),
+  items: z.array(MealAnalysisItemSchema).min(1).max(MAX_MEAL_ITEMS_PER_MEAL),
 });
 
 export const MealRegistrationSchema = MealAnalysisSchema.extend({
@@ -75,22 +77,29 @@ export function getTodayRangeInJapan() {
     day: "2-digit",
   });
   const today = formatter.format(new Date());
+  const startMs = new Date(`${today}T00:00:00.000+09:00`).getTime();
 
   return {
     date: today,
-    start: new Date(`${today}T00:00:00.000+09:00`).toISOString(),
+    /** 暦日の開始（含む） */
+    start: new Date(startMs).toISOString(),
+    /** 暦日の「最後の瞬間」表現（表示用。クエリは endExclusive 推奨） */
     end: new Date(`${today}T23:59:59.999+09:00`).toISOString(),
+    /** 翌日 00:00 JST（含まない）— DB / API の半開区間 [start, endExclusive) 用 */
+    endExclusive: new Date(startMs + 24 * 60 * 60 * 1000).toISOString(),
   };
 }
 
 export function getDayRangeInJapan(inputDate?: string) {
   const today = getTodayRangeInJapan();
   const date = /^\d{4}-\d{2}-\d{2}$/.test(inputDate ?? "") ? (inputDate as string) : today.date;
+  const startMs = new Date(`${date}T00:00:00.000+09:00`).getTime();
 
   return {
     date,
-    start: new Date(`${date}T00:00:00.000+09:00`).toISOString(),
+    start: new Date(startMs).toISOString(),
     end: new Date(`${date}T23:59:59.999+09:00`).toISOString(),
+    endExclusive: new Date(startMs + 24 * 60 * 60 * 1000).toISOString(),
     isToday: date === today.date,
   };
 }

@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { dashboardDateHref, toJapanYmd } from "@/lib/japan-calendar";
 import {
+  MAX_MEAL_ITEMS_PER_MEAL,
   type MealAnalysis,
   getCalorieOverLevel,
   toConfidence,
@@ -463,19 +464,24 @@ function StepDot({
 export function MealPhotoAnalyzer({
   initialEntryMode,
   initialEatenAtLocal,
+  plan = "free",
 }: {
   initialEntryMode?: EntryMode;
   /** datetime-local 用（例: YYYY-MM-DDTHH:mm）。日付のみの指定は呼び出し側で時刻を付与 */
   initialEatenAtLocal?: string;
+  plan?: "free" | "paid";
 } = {}) {
+  const canUseManualEntry = plan === "paid";
   const router = useRouter();
   const cameraFileInputRef = useRef<HTMLInputElement>(null);
   const galleryFileInputRef = useRef<HTMLInputElement>(null);
   const saveInFlightRef = useRef(false);
-  const [entryMode, setEntryMode] = useState<EntryMode>(() => initialEntryMode ?? "photo");
+  const [entryMode, setEntryMode] = useState<EntryMode>(() =>
+    initialEntryMode === "manual" && canUseManualEntry ? "manual" : "photo",
+  );
   const [file, setFile] = useState<File | null>(null);
   const [analysis, setAnalysis] = useState<MealAnalysisForm | null>(() =>
-    initialEntryMode === "manual" ? createManualMealDraft() : null,
+    initialEntryMode === "manual" && canUseManualEntry ? createManualMealDraft() : null,
   );
   const [eatenAt, setEatenAt] = useState(() => initialEatenAtLocal ?? todayInputValue());
   const [error, setError] = useState<string | null>(null);
@@ -500,6 +506,13 @@ export function MealPhotoAnalyzer({
   }
 
   function selectEntryMode(mode: EntryMode) {
+    if (mode === "manual" && !canUseManualEntry) {
+      setEntryMode("photo");
+      setAnalysis(null);
+      setError("手入力での記録は有料プランで利用できます。無料プランでは写真解析をご利用ください。");
+      setNotice(null);
+      return;
+    }
     setError(null);
     setNotice(null);
     setFile(null);
@@ -750,6 +763,7 @@ export function MealPhotoAnalyzer({
   }, [analysis, entryMode, manualTotals]);
 
   const canSaveMeal = analysis !== null && isMealFormMacroComplete(analysis, entryMode);
+  const mealItemLimitReached = (analysis?.items.length ?? 0) >= MAX_MEAL_ITEMS_PER_MEAL;
 
   return (
     <div className="grid gap-4 sm:gap-6 lg:grid-cols-[minmax(0,360px)_1fr] lg:items-start">
@@ -757,9 +771,17 @@ export function MealPhotoAnalyzer({
         <div>
           <p className="text-xs font-semibold text-primary">STEP 1</p>
           <h2 className="mt-1 text-lg font-semibold">記録方法を選ぶ</h2>
+          <p className="mt-2 text-xs leading-6 text-muted-foreground">
+            登録上限: 1日8件まで / 1食あたり料理{MAX_MEAL_ITEMS_PER_MEAL}件まで
+          </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-muted/30 p-1">
+        <div
+          className={[
+            "grid gap-2 rounded-lg border border-border bg-muted/30 p-1",
+            canUseManualEntry ? "grid-cols-2" : "grid-cols-1",
+          ].join(" ")}
+        >
           <button
             type="button"
             onClick={() => selectEntryMode("photo")}
@@ -774,20 +796,22 @@ export function MealPhotoAnalyzer({
             <Camera className="size-4 shrink-0" />
             写真
           </button>
-          <button
-            type="button"
-            onClick={() => selectEntryMode("manual")}
-            aria-pressed={entryMode === "manual"}
-            className={[
-              "inline-flex h-10 items-center justify-center gap-2 rounded-md px-3 text-sm font-semibold transition-colors",
-              entryMode === "manual"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
-            ].join(" ")}
-          >
-            <Keyboard className="size-4 shrink-0" />
-            手入力
-          </button>
+          {canUseManualEntry ? (
+            <button
+              type="button"
+              onClick={() => selectEntryMode("manual")}
+              aria-pressed={entryMode === "manual"}
+              className={[
+                "inline-flex h-10 items-center justify-center gap-2 rounded-md px-3 text-sm font-semibold transition-colors",
+                entryMode === "manual"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
+              ].join(" ")}
+            >
+              <Keyboard className="size-4 shrink-0" />
+              手入力
+            </button>
+          ) : null}
         </div>
 
         {entryMode === "photo" ? (
@@ -820,7 +844,7 @@ export function MealPhotoAnalyzer({
           <div className="rounded-md border border-border bg-muted/20 p-4">
             <p className="text-sm font-semibold">手入力モード</p>
             <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-              AI解析は使いません（本日の解析回数は減りません）。右のフォームに栄養値を入力して保存してください。
+              AI解析は使いません（本日の解析回数は減りません）。右のフォームに栄養値を入力して保存してください。1食あたり料理{MAX_MEAL_ITEMS_PER_MEAL}件まで登録できます。
             </p>
           </div>
         )}
@@ -1042,6 +1066,7 @@ export function MealPhotoAnalyzer({
                 <h3 className="font-semibold">料理ごとの内訳</h3>
                 <button
                   type="button"
+                  disabled={mealItemLimitReached}
                   onClick={() =>
                     updateMeal("items", [
                       ...analysis.items,
@@ -1066,12 +1091,17 @@ export function MealPhotoAnalyzer({
                           },
                     ])
                   }
-                  className="inline-flex h-9 items-center gap-1 rounded-md border border-border px-3 text-sm font-semibold hover:bg-muted"
+                  className="inline-flex h-9 items-center gap-1 rounded-md border border-border px-3 text-sm font-semibold hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Plus className="size-4" />
                   追加
                 </button>
               </div>
+              {mealItemLimitReached ? (
+                <p className="text-sm text-muted-foreground">
+                  1つの食事に登録できる料理は{MAX_MEAL_ITEMS_PER_MEAL}件までです。
+                </p>
+              ) : null}
 
               {analysis.items.map((item, index) => (
                 <div

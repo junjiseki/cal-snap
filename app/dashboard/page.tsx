@@ -118,7 +118,7 @@ export default async function DashboardPage({
   }
 
   const { date: todayDate } = getDayRangeInJapan();
-  const { date, start, end, isToday } = getDayRangeInJapan(params.date);
+  const { date, start, endExclusive, isToday } = getDayRangeInJapan(params.date);
   const mealsPage = parseDashboardMealsPage(params.meals_page);
   const mealsRangeFrom = (mealsPage - 1) * DASHBOARD_DAY_MEALS_PAGE_SIZE;
   const mealsRangeTo = mealsRangeFrom + DASHBOARD_DAY_MEALS_PAGE_SIZE - 1;
@@ -145,7 +145,7 @@ export default async function DashboardPage({
   const summaryQuery = supabase
     .rpc("get_daily_meal_summary", {
       p_start: start,
-      p_end: end,
+      p_end: endExclusive,
     })
     .single();
   const chartMealsQuery = isPaid
@@ -173,7 +173,7 @@ export default async function DashboardPage({
     )
     .eq("user_id", user.id)
     .gte("eaten_at", start)
-    .lte("eaten_at", end)
+    .lt("eaten_at", endExclusive)
     .order("eaten_at", { ascending: false })
     .range(mealsRangeFrom, mealsRangeTo);
   const monthMealsQuery = isPaid

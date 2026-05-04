@@ -127,6 +127,26 @@ export function PublicHome() {
               <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
               写真は保存しません。
             </p>
+
+            <div className="mt-6 flex items-center gap-3 rounded-md border-2 border-[#17231f] bg-white p-3 shadow-[4px_4px_0_#17231f]">
+              <div className="relative size-16 shrink-0 overflow-hidden rounded-full border-2 border-[#075c55] bg-[#fff3c7]">
+                <Image
+                  src="/advice-mascot.webp"
+                  alt="カロちゃん"
+                  width={160}
+                  height={160}
+                  sizes="64px"
+                  className="h-full w-full object-cover object-top"
+                />
+              </div>
+              <div>
+                <p className="text-xs font-black text-[#036854]">カロちゃん</p>
+                <p className="text-[11px] font-bold text-[#6b756f]">カロスナ コンシェルジュ</p>
+                <p className="mt-1 text-sm font-bold leading-6 text-[#17231f]">
+                  食べたら写真を1枚。今日のカロリーとPFCをすぐ案内します。
+                </p>
+              </div>
+            </div>
           </div>
 
           <div className="relative min-w-0">
@@ -276,6 +296,21 @@ export function PublicHome() {
             <p className="mt-4 text-base font-medium leading-8 text-[#42504b]">
               外食・自炊・コンビニを選び、朝ご飯・昼食・夜ご飯を指定するだけ。過去の食事傾向から、AIが今日の残りカロリーに合わせたメニュー候補を提案します。有料プランは14日間無料で試せます。
             </p>
+            <div className="mt-5 flex items-start gap-3 rounded-md border-2 border-[#17231f] bg-white p-4 shadow-[4px_4px_0_#17231f]">
+              <div className="relative size-14 shrink-0 overflow-hidden rounded-full border-2 border-[#075c55] bg-[#fff3c7]">
+                <Image
+                  src="/advice-mascot.webp"
+                  alt=""
+                  width={140}
+                  height={140}
+                  sizes="56px"
+                  className="h-full w-full object-cover object-top"
+                />
+              </div>
+              <p className="text-sm font-bold leading-7 text-[#17231f]">
+                「今日は外食」「夜ご飯」などを選ぶだけで、次の食事を一緒に考えます。
+              </p>
+            </div>
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
               {["外食", "自炊", "コンビニ"].map((label) => (
                 <div key={label} className="rounded-md border-2 border-[#17231f] bg-white p-3 text-center text-sm font-bold shadow-[3px_3px_0_#17231f]">

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -84,6 +85,21 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+const SM_BREAKPOINT_PX = 640;
+
+/** display:none 下で Recharts が 0×0 を測定しないよう、ブレークポイントで片方だけマウントする */
+function useIsSmUp() {
+  const [isSmUp, setIsSmUp] = useState<boolean | null>(null);
+  useEffect(() => {
+    const mq = window.matchMedia(`(min-width: ${SM_BREAKPOINT_PX}px)`);
+    const apply = () => setIsSmUp(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+  return isSmUp;
+}
+
 function barFillForCalories(calories: number, goalCalories: number): string {
   if (calories <= goalCalories) return "var(--color-calories)";
   if (calories - goalCalories <= CALORIE_OVER_WARN_THRESHOLD_KCAL) {
@@ -106,8 +122,11 @@ function DailyCaloriesBarChart({
   showGoalLabel: boolean;
 }) {
   return (
-    <ChartContainer config={chartConfig} className={`${heightClassName} w-full`}>
-      <BarChart accessibilityLayer data={data} margin={{ bottom: 0, left: -8, right: 4, top: 8 }}>
+    <ChartContainer
+      config={chartConfig}
+      className={`${heightClassName} w-full min-w-0 [&_.recharts-responsive-container]:min-h-px`}
+    >
+      <BarChart accessibilityLayer data={data} margin={{ bottom: 0, left: 4, right: 4, top: 8 }}>
         <CartesianGrid vertical={false} />
         <XAxis
           dataKey="label"
@@ -121,9 +140,10 @@ function DailyCaloriesBarChart({
         <YAxis
           tickLine={false}
           axisLine={false}
-          tickFormatter={(value) => `${Math.round(Number(value) / 100) / 10}k`}
-          tickMargin={4}
-          width={30}
+          allowDecimals={false}
+          tickFormatter={(value) => `${Math.round(Number(value))}`}
+          tickMargin={6}
+          width={44}
           tick={{ fontSize: 10 }}
         />
         <ChartTooltip
@@ -178,7 +198,10 @@ function DailyPfcLineChart({
   xTickInterval: number | "preserveStartEnd";
 }) {
   return (
-    <ChartContainer config={chartConfig} className={`${heightClassName} w-full`}>
+    <ChartContainer
+      config={chartConfig}
+      className={`${heightClassName} w-full min-w-0 [&_.recharts-responsive-container]:min-h-px`}
+    >
       <LineChart accessibilityLayer data={data} margin={{ bottom: 0, left: 4, right: 8, top: 12 }}>
         <CartesianGrid vertical={false} />
         <XAxis
@@ -303,44 +326,60 @@ export function CalorieChart({
         ? `目安まで ${Math.abs(latestDiff)} kcal`
         : "目安ぴったり";
 
-  return (
-    <div className="max-w-full">
-      <div className="sm:hidden">
-        <div className="mb-3 grid grid-cols-3 gap-2">
-          <div className="rounded-md bg-muted/50 p-2">
-            <p className="text-[11px] text-muted-foreground">直近7日の平均</p>
-            <p className="mt-1 text-base font-bold">{mobileAverageCalories} kcal</p>
-          </div>
-          <div className="rounded-md bg-muted/50 p-2">
-            <p className="text-[11px] text-muted-foreground">最大</p>
-            <p className="mt-1 text-base font-bold">{mobileMaxCalories} kcal</p>
-          </div>
-          <div className="rounded-md bg-muted/50 p-2">
-            <p className="text-[11px] text-muted-foreground">最新</p>
-            <p className="mt-1 text-xs font-bold leading-5 text-primary">{latestDiffLabel}</p>
-          </div>
-        </div>
-        <DailyCaloriesBarChart
-          data={mobileChartData}
-          goalCalories={goalCalories}
-          heightClassName="h-[230px]"
-          xTickInterval={0}
-          showGoalLabel={false}
-        />
-        <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
-          <span>破線: 目安 {goalCalories} kcal</span>
-          <span>直近7日</span>
-        </div>
-        <div className="mt-5 border-t border-border pt-4">
-          <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-sm font-semibold">PFC推移</h3>
-            <PfcLegend />
-          </div>
-          <DailyPfcLineChart data={mobileChartData} heightClassName="h-[190px]" xTickInterval={0} />
-        </div>
-      </div>
+  const isSmUp = useIsSmUp();
 
-      <div className="hidden sm:block">
+  if (isSmUp === null) {
+    return (
+      <div
+        className="max-w-full min-h-112 min-w-0 rounded-md bg-muted/15"
+        aria-busy="true"
+        aria-label="グラフを読み込み中"
+      />
+    );
+  }
+
+  return (
+    <div className="max-w-full min-w-0">
+      {!isSmUp ? (
+        <>
+          <div className="mb-3 grid grid-cols-3 gap-2">
+            <div className="rounded-md bg-muted/50 p-2">
+              <p className="text-[11px] text-muted-foreground">直近7日の平均</p>
+              <p className="mt-1 text-base font-bold">{mobileAverageCalories} kcal</p>
+            </div>
+            <div className="rounded-md bg-muted/50 p-2">
+              <p className="text-[11px] text-muted-foreground">最大</p>
+              <p className="mt-1 text-base font-bold">{mobileMaxCalories} kcal</p>
+            </div>
+            <div className="rounded-md bg-muted/50 p-2">
+              <p className="text-[11px] text-muted-foreground">最新</p>
+              <p className="mt-1 text-xs font-bold leading-5 text-primary">{latestDiffLabel}</p>
+            </div>
+          </div>
+          <div className="-mx-2 overflow-x-auto px-2" aria-label="カロリー推移を横にスライドして確認">
+            <div className="min-w-[430px]">
+              <DailyCaloriesBarChart
+                data={mobileChartData}
+                goalCalories={goalCalories}
+                heightClassName="h-[230px]"
+                xTickInterval={0}
+                showGoalLabel={false}
+              />
+            </div>
+          </div>
+          <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
+            <span>縦軸: kcal / 破線: 目安 {goalCalories} kcal</span>
+            <span>直近7日</span>
+          </div>
+          <div className="mt-5 border-t border-border pt-4">
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="text-sm font-semibold">PFC推移</h3>
+              <PfcLegend />
+            </div>
+            <DailyPfcLineChart data={mobileChartData} heightClassName="h-[190px]" xTickInterval={0} />
+          </div>
+        </>
+      ) : (
         <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
           <div>
             <h3 className="mb-2 text-sm font-semibold text-foreground">カロリー</h3>
@@ -364,7 +403,7 @@ export function CalorieChart({
             />
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

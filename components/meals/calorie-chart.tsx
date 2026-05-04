@@ -85,9 +85,10 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+/** Tailwind の `sm`（既定 640px）と同じ値に保つこと */
 const SM_BREAKPOINT_PX = 640;
 
-/** display:none 下で Recharts が 0×0 を測定しないよう、ブレークポイントで片方だけマウントする */
+/** display:none 下で Recharts が 0×0 を測定しないよう、`sm` 境界で片方だけマウントする */
 function useIsSmUp() {
   const [isSmUp, setIsSmUp] = useState<boolean | null>(null);
   useEffect(() => {
@@ -279,6 +280,18 @@ export function CalorieChart({
   /** JST の YYYY-MM-DD（直近14日の終端＝通常は「今日」） */
   chartEndDate: string;
 }) {
+  const isSmUp = useIsSmUp();
+
+  if (isSmUp === null) {
+    return (
+      <div
+        className="max-w-full min-h-112 min-w-0 rounded-md bg-muted/15"
+        aria-busy="true"
+        aria-label="グラフを読み込み中"
+      />
+    );
+  }
+
   const dayFmt = new Intl.DateTimeFormat("sv-SE", {
     timeZone: "Asia/Tokyo",
     year: "numeric",
@@ -325,18 +338,6 @@ export function CalorieChart({
       : latestDiff < 0
         ? `目安まで ${Math.abs(latestDiff)} kcal`
         : "目安ぴったり";
-
-  const isSmUp = useIsSmUp();
-
-  if (isSmUp === null) {
-    return (
-      <div
-        className="max-w-full min-h-112 min-w-0 rounded-md bg-muted/15"
-        aria-busy="true"
-        aria-label="グラフを読み込み中"
-      />
-    );
-  }
 
   return (
     <div className="max-w-full min-w-0">

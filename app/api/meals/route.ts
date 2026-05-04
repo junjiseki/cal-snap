@@ -1,4 +1,5 @@
 import {
+  MAX_MEAL_ITEMS_PER_MEAL,
   MAX_MEALS_PER_DAY,
   MealRegistrationSchema,
   getDayRangeInJapan,
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
     .select("id", { count: "exact", head: true })
     .eq("user_id", user.id)
     .gte("eaten_at", mealDay.start)
-    .lte("eaten_at", mealDay.end);
+    .lt("eaten_at", mealDay.endExclusive);
 
   if (countError) {
     return errorResponse("食事登録数を確認できません。", 500, "MEAL_LIMIT_CHECK_FAILED");
@@ -98,7 +99,7 @@ export async function POST(request: Request) {
   if (mealError || !mealId) {
     if (mealError?.code === "P0001") {
       const message = mealError.message.includes("meal_items_limit_exceeded")
-        ? "1つの食事に登録できる料理は14件までです。"
+        ? `1つの食事に登録できる料理は${MAX_MEAL_ITEMS_PER_MEAL}件までです。`
         : mealError.message.includes("daily_meal_limit_exceeded")
           ? `1日に登録できる食事は${MAX_MEALS_PER_DAY}件までです。`
           : "食事を登録できません。";

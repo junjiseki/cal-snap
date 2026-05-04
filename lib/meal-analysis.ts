@@ -77,22 +77,29 @@ export function getTodayRangeInJapan() {
     day: "2-digit",
   });
   const today = formatter.format(new Date());
+  const startMs = new Date(`${today}T00:00:00.000+09:00`).getTime();
 
   return {
     date: today,
-    start: new Date(`${today}T00:00:00.000+09:00`).toISOString(),
+    /** 暦日の開始（含む） */
+    start: new Date(startMs).toISOString(),
+    /** 暦日の「最後の瞬間」表現（表示用。クエリは endExclusive 推奨） */
     end: new Date(`${today}T23:59:59.999+09:00`).toISOString(),
+    /** 翌日 00:00 JST（含まない）— DB / API の半開区間 [start, endExclusive) 用 */
+    endExclusive: new Date(startMs + 24 * 60 * 60 * 1000).toISOString(),
   };
 }
 
 export function getDayRangeInJapan(inputDate?: string) {
   const today = getTodayRangeInJapan();
   const date = /^\d{4}-\d{2}-\d{2}$/.test(inputDate ?? "") ? (inputDate as string) : today.date;
+  const startMs = new Date(`${date}T00:00:00.000+09:00`).getTime();
 
   return {
     date,
-    start: new Date(`${date}T00:00:00.000+09:00`).toISOString(),
+    start: new Date(startMs).toISOString(),
     end: new Date(`${date}T23:59:59.999+09:00`).toISOString(),
+    endExclusive: new Date(startMs + 24 * 60 * 60 * 1000).toISOString(),
     isToday: date === today.date,
   };
 }

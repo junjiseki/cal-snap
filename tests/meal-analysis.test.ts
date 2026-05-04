@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   CALORIE_OVER_WARN_THRESHOLD_KCAL,
+  MAX_MEAL_ITEMS_PER_MEAL,
   MealAnalysisSchema,
   MealRegistrationSchema,
   getCalorieOverLevel,
@@ -63,10 +64,20 @@ describe("MealAnalysisSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects more than 30 items", () => {
-    const items = Array.from({ length: 31 }, (_, i) => validItem({ name: `item-${i}` }));
+  it(`rejects more than ${MAX_MEAL_ITEMS_PER_MEAL} items`, () => {
+    const items = Array.from({ length: MAX_MEAL_ITEMS_PER_MEAL + 1 }, (_, i) =>
+      validItem({ name: `item-${i}` }),
+    );
     const result = MealAnalysisSchema.safeParse(validAnalysis({ items }));
     expect(result.success).toBe(false);
+  });
+
+  it(`accepts exactly ${MAX_MEAL_ITEMS_PER_MEAL} items`, () => {
+    const items = Array.from({ length: MAX_MEAL_ITEMS_PER_MEAL }, (_, i) =>
+      validItem({ name: `item-${i}` }),
+    );
+    const result = MealAnalysisSchema.safeParse(validAnalysis({ items }));
+    expect(result.success).toBe(true);
   });
 
   it("rejects negative nutrition values", () => {
@@ -136,6 +147,8 @@ describe("getDayRangeInJapan", () => {
     expect(r.isToday).toBe(false);
     expect(r.start).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(r.end).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    expect(r.endExclusive).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    expect(new Date(r.endExclusive).getTime() - new Date(r.start).getTime()).toBe(86_400_000);
   });
 
   it("falls back to today when date string is invalid", () => {

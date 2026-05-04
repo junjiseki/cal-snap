@@ -116,7 +116,7 @@ async function getOrCreateProfile(userId: string) {
 async function getTodayUsage(userId: string, plan: Plan) {
   const { supabase } = await getAuthenticatedUser();
   const dailyLimit = getDailyAnalysisLimit(plan);
-  const { start, end } = getTodayRangeInJapan();
+  const { start, endExclusive } = getTodayRangeInJapan();
 
   const { count, error } = await supabase
     .from("ai_analysis_logs")
@@ -124,7 +124,7 @@ async function getTodayUsage(userId: string, plan: Plan) {
     .eq("user_id", userId)
     .eq("success", true)
     .gte("analyzed_at", start)
-    .lte("analyzed_at", end);
+    .lt("analyzed_at", endExclusive);
 
   if (error) {
     throw error;
@@ -148,9 +148,9 @@ export async function GET() {
     const profile = await getOrCreateProfile(user.id);
     const plan = profile.plan as Plan;
     const usage = await getTodayUsage(user.id, plan);
-    const { start, end } = getDayRangeInJapan();
+    const { start, endExclusive } = getDayRangeInJapan();
     const { data: summary, error: summaryError } = await supabase
-      .rpc("get_daily_meal_summary", { p_start: start, p_end: end })
+      .rpc("get_daily_meal_summary", { p_start: start, p_end: endExclusive })
       .single();
     if (summaryError) {
       console.error("[meals/analyze GET] get_daily_meal_summary failed", summaryError);
@@ -247,7 +247,7 @@ export async function POST(request: Request) {
   const model = process.env.GEMINI_MODEL || "gemini-3-flash-preview";
   let logId: string | null = null;
 
-  const { start, end } = getTodayRangeInJapan();
+  const { start, endExclusive } = getTodayRangeInJapan();
   const { data: claim, error: claimError } = await supabase.rpc(
     "claim_ai_analysis_slot",
     {
@@ -255,7 +255,7 @@ export async function POST(request: Request) {
       p_model: model,
       p_daily_limit: usage.limit,
       p_day_start: start,
-      p_day_end: end,
+      p_day_end: endExclusive,
     },
   );
 

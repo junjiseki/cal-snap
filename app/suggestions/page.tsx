@@ -38,7 +38,7 @@ export default async function SuggestionsPage() {
     .eq("id", user.id)
     .maybeSingle();
   const isPaid = profile?.plan === "paid";
-  const { start, end } = getTodaySuggestionUsageRange();
+  const { start, endExclusive } = getTodaySuggestionUsageRange();
   const { count } = isPaid
     ? await supabase
         .from("meal_suggestion_logs")
@@ -46,7 +46,7 @@ export default async function SuggestionsPage() {
         .eq("user_id", user.id)
         .eq("success", true)
         .gte("suggested_at", start)
-        .lte("suggested_at", end)
+        .lt("suggested_at", endExclusive)
     : { count: 0 };
 
   return (

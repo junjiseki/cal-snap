@@ -416,6 +416,7 @@ export default async function DashboardPage({
               selectedDateYmd={date}
               todayDateYmd={todayDate}
               goalCalories={goalCalories}
+              isPaid={isPaid}
             />
           </div>
         </section>

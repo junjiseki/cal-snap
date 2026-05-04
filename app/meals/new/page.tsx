@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BarChart3 } from "lucide-react";
 import { safeInternalPath } from "@/lib/auth/safe-redirect";
 import { MealPhotoAnalyzer } from "@/components/meals/meal-photo-analyzer";
+import { MAX_MEAL_ITEMS_PER_MEAL, MAX_MEALS_PER_DAY } from "@/lib/meal-analysis";
 import { getAuthenticatedUserCached } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -78,8 +79,15 @@ export default async function NewMealPage({
               </Link>
             </div>
             <p className="mt-4 max-w-2xl text-sm text-muted-foreground">
-              写真を選んで推定値を確認し、違うところだけ直して保存できます。食事登録は1日8件まで、1つの食事に登録できる料理は14件までです。手入力での記録は有料プランで利用できます。
+              {plan === "paid"
+                ? "写真解析または手入力で記録できます。推定値は保存前に確認・修正できます。"
+                : "無料プランでは写真解析で記録できます。推定値は保存前に確認・修正できます。手入力での記録は有料プランで利用できます。"}
             </p>
+            {plan === "paid" ? (
+              <p className="mt-2 text-xs text-muted-foreground/75">
+                登録上限: 1日{MAX_MEALS_PER_DAY}件まで / 1食あたり料理{MAX_MEAL_ITEMS_PER_MEAL}件まで
+              </p>
+            ) : null}
           </div>
         </div>
       </section>

@@ -26,6 +26,7 @@ import {
 import { dashboardDateHref, toJapanYmd } from "@/lib/japan-calendar";
 import {
   MAX_MEAL_ITEMS_PER_MEAL,
+  MAX_MEALS_PER_DAY,
   type MealAnalysis,
   getCalorieOverLevel,
   toConfidence,
@@ -772,8 +773,15 @@ export function MealPhotoAnalyzer({
           <p className="text-xs font-semibold text-primary">STEP 1</p>
           <h2 className="mt-1 text-lg font-semibold">記録方法を選ぶ</h2>
           <p className="mt-2 text-xs leading-6 text-muted-foreground">
-            登録上限: 1日8件まで / 1食あたり料理{MAX_MEAL_ITEMS_PER_MEAL}件まで
+            {canUseManualEntry
+              ? "有料プラン: 写真解析と手入力が使えます。"
+              : "無料プラン: 写真解析で記録できます。"}
           </p>
+          {canUseManualEntry ? (
+            <p className="mt-1 text-[11px] leading-5 text-muted-foreground/70">
+              上限: 1日{MAX_MEALS_PER_DAY}件 / 1食あたり料理{MAX_MEAL_ITEMS_PER_MEAL}件
+            </p>
+          ) : null}
         </div>
 
         <div

@@ -111,6 +111,8 @@ export function MealList({
   selectedDateYmd,
   todayDateYmd,
   goalCalories,
+  /** 手入力・「基準と同じ摂取で記録」は有料のみ（無料は写真登録） */
+  isPaid,
 }: {
   meals: MealRow[];
   mealsPage: number;
@@ -123,6 +125,7 @@ export function MealList({
   todayDateYmd: string;
   /** 1日の目安（基準）カロリー。これと同じ kcal の食事を1件登録する */
   goalCalories: number;
+  isPaid: boolean;
 }) {
   const router = useRouter();
   const [editingMealId, setEditingMealId] = useState<string | null>(null);
@@ -203,7 +206,7 @@ export function MealList({
   }
 
   async function registerGoalCalorieMeal() {
-    if (goalCalories <= 0 || baselineSaving) return;
+    if (!isPaid || goalCalories <= 0 || baselineSaving) return;
     const kcal = Math.round(goalCalories);
     const ok = window.confirm(
       `選択した日（${selectedDateYmd}）に、1日の目安と同じ ${kcal} kcal の食事を1件追加します。よろしいですか？\n\n※ あとから内容を編集・削除できます。`,
@@ -257,48 +260,63 @@ export function MealList({
         </p>
       ) : null}
       {meals.length === 0 ? (
-        <div className="space-y-4 p-5">
-          <p className="text-sm text-muted-foreground">
+        <div className="space-y-4 p-4 sm:p-5">
+          <p className="text-pretty text-sm text-muted-foreground">
             {selectedDateYmd === todayDateYmd
               ? "今日はまだ食事が登録されていません。"
               : "この日はまだ食事が登録されていません。"}
           </p>
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            <Link
-              href={`/meals/new?manual=1&date=${encodeURIComponent(selectedDateYmd)}`}
-              className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm"
-            >
-              手入力で記録する
-            </Link>
-            <button
-              type="button"
-              onClick={() => void registerGoalCalorieMeal()}
-              disabled={goalCalories <= 0 || baselineSaving}
-              title={
-                goalCalories <= 0
-                  ? "1日の目安カロリーが 0 のため使えません。プロフィールで目安を設定してください。"
-                  : undefined
-              }
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-semibold hover:bg-muted disabled:pointer-events-none disabled:opacity-50"
-            >
-              {baselineSaving ? <Loader2 className="size-4 animate-spin" /> : null}
-              {baselineSaving
-                ? "登録中…"
-                : `基準（${goalCalories} kcal）と同じ摂取で記録`}
-            </button>
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+            {isPaid ? (
+              <button
+                type="button"
+                onClick={() => void registerGoalCalorieMeal()}
+                disabled={goalCalories <= 0 || baselineSaving}
+                title={
+                  goalCalories <= 0
+                    ? "1日の目安カロリーが 0 のため使えません。プロフィールで目安を設定してください。"
+                    : undefined
+                }
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-center text-sm font-semibold hover:bg-muted disabled:pointer-events-none disabled:opacity-50 sm:h-10 sm:w-auto"
+              >
+                {baselineSaving ? <Loader2 className="size-4 animate-spin" /> : null}
+                {baselineSaving
+                  ? "登録中…"
+                  : `基準（${goalCalories} kcal）と同じ摂取で記録`}
+              </button>
+            ) : (
+              <Link
+                href={`/meals/new?date=${encodeURIComponent(selectedDateYmd)}`}
+                className="inline-flex h-11 w-full items-center justify-center rounded-md border border-border bg-background px-4 text-sm font-semibold hover:bg-muted sm:h-10 sm:w-auto"
+              >
+                写真で記録する
+              </Link>
+            )}
+            {isPaid ? (
+              <Link
+                href={`/meals/new?manual=1&date=${encodeURIComponent(selectedDateYmd)}`}
+                className="inline-flex h-11 w-full items-center justify-center rounded-md border border-border bg-background px-4 text-sm font-semibold hover:bg-muted sm:h-10 sm:w-auto"
+              >
+                手入力で記録する
+              </Link>
+            ) : null}
           </div>
-          {goalCalories > 0 ? (
-            <p className="text-xs leading-relaxed text-muted-foreground">
-              「基準と同じ摂取で記録」は、その日の合計として目安カロリーの食事を1件だけ登録します。PFC（たんぱく質・脂質・炭水化物）は
-              0 のまま入ります。あとから一覧から編集できます。
-            </p>
-          ) : (
-            <p className="text-xs leading-relaxed text-muted-foreground">
-              1日の目安カロリーが 0 のため、このショートカットは使えません。{" "}
+          {goalCalories <= 0 ? (
+            <p className="text-pretty text-xs leading-relaxed text-muted-foreground">
+              1日の目安カロリーが 0 のため、基準にそったショートカットは使えません。{" "}
               <Link href="/profile#calorie-goal" className="font-medium text-foreground underline">
                 プロフィールで目安を設定
               </Link>
               してください。
+            </p>
+          ) : isPaid ? (
+            <p className="text-pretty text-xs leading-relaxed text-muted-foreground">
+              「基準と同じ摂取で記録」は、その日の合計として目安カロリーの食事を1件だけ登録します。PFC（たんぱく質・脂質・炭水化物）は
+              0 のまま入ります。あとから一覧から編集できます。
+            </p>
+          ) : (
+            <p className="text-pretty text-xs leading-relaxed text-muted-foreground">
+              「基準と同じ摂取で記録」は有料プランの機能です。無料プランでは写真から食事を登録してください。
             </p>
           )}
         </div>
@@ -308,7 +326,7 @@ export function MealList({
         const isBusy = busyMealId === meal.id;
 
         return (
-          <article key={meal.id} className="space-y-4 p-5">
+          <article key={meal.id} className="space-y-4 p-4 sm:p-5">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">
@@ -422,13 +440,13 @@ export function MealList({
                     className="mt-1 h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
                   />
                 </label>
-                <div className="flex gap-2 md:col-span-3">
+                <div className="flex flex-col gap-2 sm:flex-row md:col-span-3">
                   <button
                     type="button"
                     onClick={saveEdit}
                     disabled={isBusy}
                     aria-busy={isBusy}
-                    className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+                    className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50 sm:h-9"
                   >
                     {isBusy ? <Loader2 className="size-4 animate-spin" /> : null}
                     {isBusy ? "保存中..." : "保存"}
@@ -440,7 +458,7 @@ export function MealList({
                       setForm(null);
                     }}
                     disabled={isBusy}
-                    className="h-9 rounded-md border border-border px-4 text-sm font-semibold disabled:opacity-50"
+                    className="h-11 rounded-md border border-border px-4 text-sm font-semibold disabled:opacity-50 sm:h-9"
                   >
                     キャンセル
                   </button>
@@ -465,7 +483,7 @@ export function MealList({
         );
       })}
       {showPaginationFooter ? (
-        <div className="flex flex-col gap-3 border-t border-border p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+        <div className="flex flex-col gap-3 border-t border-border p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:flex-row sm:items-center sm:justify-between sm:p-5 sm:pb-5">
           <p className="text-xs text-muted-foreground">
             {meals.length === 0
               ? `全 ${totalMealsForDay} 件`

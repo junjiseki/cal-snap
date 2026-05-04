@@ -51,6 +51,23 @@ export async function POST(request: Request) {
   }
 
   const meal = parsed.data;
+
+  if (meal.memo === "基準カロリーによる記録") {
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("plan")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profileError || profile?.plan !== "paid") {
+      return errorResponse(
+        "「基準と同じ摂取で記録」は有料プランで利用できます。",
+        403,
+        "BASELINE_MEAL_PAID_ONLY",
+      );
+    }
+  }
+
   const mealDay = getDayRangeInJapan(formatJstYmd(new Date(meal.eaten_at)));
   const { count: todayMealCount, error: countError } = await supabase
     .from("meals")

@@ -151,12 +151,19 @@ export default async function DashboardPage({
   const chartMealsQuery = isPaid
     ? supabase
         .from("meals")
-        .select("id,eaten_at,total_calories")
+        .select("id,eaten_at,total_calories,protein,fat,carbs")
         .eq("user_id", user.id)
         .gte("eaten_at", last14DaysStart)
         .order("eaten_at", { ascending: true })
     : Promise.resolve({
-        data: [] as { id: string; eaten_at: string; total_calories: number }[] | null,
+        data: [] as {
+          id: string;
+          eaten_at: string;
+          total_calories: number;
+          protein: number;
+          fat: number;
+          carbs: number;
+        }[] | null,
         error: null,
       });
   const mealsQuery = supabase
@@ -343,10 +350,10 @@ export default async function DashboardPage({
 
         <section className="border border-border bg-card">
           <div className="border-b border-border p-4 sm:p-5">
-            <h2 className="text-lg font-semibold sm:text-xl">摂取カロリー推移</h2>
+            <h2 className="text-lg font-semibold sm:text-xl">摂取カロリー・PFC推移</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               {isPaid
-                ? "直近14日の日ごとの合計カロリーです。"
+                ? "直近14日の日ごとの合計カロリーとPFCです。"
                 : "無料プランでは当日の集計のみです。過去の推移は有料プランで表示できます。"}
             </p>
           </div>

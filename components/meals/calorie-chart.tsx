@@ -1,6 +1,16 @@
 "use client";
 
-import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, XAxis, YAxis } from "recharts";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Line,
+  LineChart,
+  ReferenceLine,
+  XAxis,
+  YAxis,
+} from "recharts";
 import {
   ChartContainer,
   ChartTooltip,
@@ -14,6 +24,9 @@ type MealRow = {
   id: string;
   eaten_at: string;
   total_calories: number;
+  protein: number;
+  fat: number;
+  carbs: number;
 };
 
 type ChartDataPoint = {
@@ -21,6 +34,9 @@ type ChartDataPoint = {
   label: string;
   calories: number;
   diff: number;
+  protein: number;
+  fat: number;
+  carbs: number;
 };
 
 const chartConfig = {
@@ -43,6 +59,27 @@ const chartConfig = {
     theme: {
       light: "oklch(0.55 0.22 27)",
       dark: "oklch(0.62 0.2 25)",
+    },
+  },
+  protein: {
+    label: "たんぱく質",
+    theme: {
+      light: "oklch(0.67 0.17 245)",
+      dark: "oklch(0.73 0.14 245)",
+    },
+  },
+  fat: {
+    label: "脂質",
+    theme: {
+      light: "oklch(0.79 0.16 82)",
+      dark: "oklch(0.84 0.14 82)",
+    },
+  },
+  carbs: {
+    label: "炭水化物",
+    theme: {
+      light: "oklch(0.72 0.16 155)",
+      dark: "oklch(0.78 0.13 155)",
     },
   },
 } satisfies ChartConfig;
@@ -131,6 +168,84 @@ function DailyCaloriesBarChart({
   );
 }
 
+function DailyPfcLineChart({
+  data,
+  heightClassName,
+  xTickInterval,
+}: {
+  data: ChartDataPoint[];
+  heightClassName: string;
+  xTickInterval: number | "preserveStartEnd";
+}) {
+  return (
+    <ChartContainer config={chartConfig} className={`${heightClassName} w-full`}>
+      <LineChart accessibilityLayer data={data} margin={{ bottom: 0, left: 4, right: 8, top: 12 }}>
+        <CartesianGrid vertical={false} />
+        <XAxis
+          dataKey="label"
+          tickLine={false}
+          axisLine={false}
+          tickMargin={8}
+          interval={xTickInterval}
+          minTickGap={6}
+          tick={{ fontSize: 11 }}
+        />
+        <YAxis
+          tickLine={false}
+          axisLine={false}
+          allowDecimals={false}
+          tickFormatter={(value) => `${Math.round(Number(value))}g`}
+          tickMargin={6}
+          width={44}
+          tick={{ fontSize: 10 }}
+        />
+        <ChartTooltip
+          cursor={false}
+          content={
+            <ChartTooltipContent
+              formatter={(value, name) => {
+                const label =
+                  name === "protein"
+                    ? "たんぱく質"
+                    : name === "fat"
+                      ? "脂質"
+                      : name === "carbs"
+                        ? "炭水化物"
+                        : String(name);
+                return [`${Math.round(Number(value))} g`, label];
+              }}
+            />
+          }
+        />
+        <Line
+          type="monotone"
+          dataKey="protein"
+          stroke="var(--color-protein)"
+          strokeWidth={2.5}
+          dot={{ r: 2.5, strokeWidth: 2 }}
+          activeDot={{ r: 5 }}
+        />
+        <Line
+          type="monotone"
+          dataKey="fat"
+          stroke="var(--color-fat)"
+          strokeWidth={2.5}
+          dot={{ r: 2.5, strokeWidth: 2 }}
+          activeDot={{ r: 5 }}
+        />
+        <Line
+          type="monotone"
+          dataKey="carbs"
+          stroke="var(--color-carbs)"
+          strokeWidth={2.5}
+          dot={{ r: 2.5, strokeWidth: 2 }}
+          activeDot={{ r: 5 }}
+        />
+      </LineChart>
+    </ChartContainer>
+  );
+}
+
 export function CalorieChart({
   meals,
   goalCalories,
@@ -147,19 +262,28 @@ export function CalorieChart({
     month: "2-digit",
     day: "2-digit",
   });
-  const grouped = new Map<string, number>();
+  const grouped = new Map<string, { calories: number; protein: number; fat: number; carbs: number }>();
   for (const meal of meals) {
     const day = dayFmt.format(new Date(meal.eaten_at));
-    grouped.set(day, (grouped.get(day) ?? 0) + meal.total_calories);
+    const current = grouped.get(day) ?? { calories: 0, protein: 0, fat: 0, carbs: 0 };
+    grouped.set(day, {
+      calories: current.calories + meal.total_calories,
+      protein: current.protein + Number(meal.protein ?? 0),
+      fat: current.fat + Number(meal.fat ?? 0),
+      carbs: current.carbs + Number(meal.carbs ?? 0),
+    });
   }
 
   const chartData = lastNJstDaysAsc(14, chartEndDate).map((day) => {
-    const calories = grouped.get(day) ?? 0;
+    const totals = grouped.get(day) ?? { calories: 0, protein: 0, fat: 0, carbs: 0 };
     return {
       day,
       label: day.slice(5),
-      calories,
-      diff: calories - goalCalories,
+      calories: totals.calories,
+      diff: totals.calories - goalCalories,
+      protein: Math.round(totals.protein),
+      fat: Math.round(totals.fat),
+      carbs: Math.round(totals.carbs),
     };
   });
   const mobileChartData = chartData.slice(-7);
@@ -207,17 +331,56 @@ export function CalorieChart({
           <span>破線: 目安 {goalCalories} kcal</span>
           <span>直近7日</span>
         </div>
+        <div className="mt-5 border-t border-border pt-4">
+          <div className="mb-2 flex items-center justify-between">
+            <h3 className="text-sm font-semibold">PFC推移</h3>
+            <PfcLegend />
+          </div>
+          <DailyPfcLineChart data={mobileChartData} heightClassName="h-[190px]" xTickInterval={0} />
+        </div>
       </div>
 
       <div className="hidden sm:block">
-        <DailyCaloriesBarChart
-          data={chartData}
-          goalCalories={goalCalories}
-          heightClassName="h-[240px]"
-          xTickInterval="preserveStartEnd"
-          showGoalLabel
-        />
+        <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+          <div>
+            <h3 className="mb-2 text-sm font-semibold text-foreground">カロリー</h3>
+            <DailyCaloriesBarChart
+              data={chartData}
+              goalCalories={goalCalories}
+              heightClassName="h-[240px]"
+              xTickInterval="preserveStartEnd"
+              showGoalLabel
+            />
+          </div>
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-foreground">PFC</h3>
+              <PfcLegend />
+            </div>
+            <DailyPfcLineChart
+              data={chartData}
+              heightClassName="h-[240px]"
+              xTickInterval="preserveStartEnd"
+            />
+          </div>
+        </div>
       </div>
+    </div>
+  );
+}
+
+function PfcLegend() {
+  return (
+    <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+      <span className="inline-flex items-center gap-1">
+        <span className="size-2 rounded-full bg-sky-500" />P
+      </span>
+      <span className="inline-flex items-center gap-1">
+        <span className="size-2 rounded-full bg-yellow-400" />F
+      </span>
+      <span className="inline-flex items-center gap-1">
+        <span className="size-2 rounded-full bg-emerald-500" />C
+      </span>
     </div>
   );
 }

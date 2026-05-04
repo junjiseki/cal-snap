@@ -16,6 +16,13 @@ type MealRow = {
   total_calories: number;
 };
 
+type ChartDataPoint = {
+  day: string;
+  label: string;
+  calories: number;
+  diff: number;
+};
+
 const chartConfig = {
   calories: {
     label: "摂取カロリー",
@@ -46,6 +53,82 @@ function barFillForCalories(calories: number, goalCalories: number): string {
     return "var(--color-caloriesOverWarn)";
   }
   return "var(--color-caloriesOver)";
+}
+
+function DailyCaloriesBarChart({
+  data,
+  goalCalories,
+  heightClassName,
+  xTickInterval,
+  showGoalLabel,
+}: {
+  data: ChartDataPoint[];
+  goalCalories: number;
+  heightClassName: string;
+  xTickInterval: number | "preserveStartEnd";
+  showGoalLabel: boolean;
+}) {
+  return (
+    <ChartContainer config={chartConfig} className={`${heightClassName} w-full`}>
+      <BarChart accessibilityLayer data={data} margin={{ bottom: 0, left: -8, right: 4, top: 8 }}>
+        <CartesianGrid vertical={false} />
+        <XAxis
+          dataKey="label"
+          tickLine={false}
+          axisLine={false}
+          tickMargin={8}
+          interval={xTickInterval}
+          minTickGap={6}
+          tick={{ fontSize: 11 }}
+        />
+        <YAxis
+          tickLine={false}
+          axisLine={false}
+          tickFormatter={(value) => `${Math.round(Number(value) / 100) / 10}k`}
+          tickMargin={4}
+          width={30}
+          tick={{ fontSize: 10 }}
+        />
+        <ChartTooltip
+          cursor={false}
+          content={
+            <ChartTooltipContent
+              formatter={(value, name, item) => {
+                if (name === "calories") {
+                  const payload = item?.payload as { diff?: number } | undefined;
+                  const diff = payload?.diff ?? 0;
+                  const sign = diff > 0 ? "+" : "";
+                  return [`${value} kcal (${sign}${diff} kcal)`, "摂取 / 目安差"];
+                }
+                return [`${value}`, String(name)];
+              }}
+            />
+          }
+        />
+        <ReferenceLine
+          y={goalCalories}
+          stroke="var(--muted-foreground)"
+          strokeDasharray="6 6"
+          ifOverflow="extendDomain"
+          label={
+            showGoalLabel
+              ? {
+                  value: `基準値 ${goalCalories} kcal`,
+                  position: "insideTopRight",
+                  fill: "var(--muted-foreground)",
+                  fontSize: 12,
+                }
+              : undefined
+          }
+        />
+        <Bar dataKey="calories" radius={[6, 6, 3, 3]} maxBarSize={42}>
+          {data.map((entry) => (
+            <Cell key={entry.day} fill={barFillForCalories(entry.calories, goalCalories)} />
+          ))}
+        </Bar>
+      </BarChart>
+    </ChartContainer>
+  );
 }
 
 export function CalorieChart({
@@ -79,59 +162,62 @@ export function CalorieChart({
       diff: calories - goalCalories,
     };
   });
+  const mobileChartData = chartData.slice(-7);
+  const activeMobileDays = mobileChartData.filter((day) => day.calories > 0);
+  const mobileAverageCalories = activeMobileDays.length
+    ? Math.round(
+        activeMobileDays.reduce((sum, day) => sum + day.calories, 0) / activeMobileDays.length,
+      )
+    : 0;
+  const mobileMaxCalories = Math.max(...mobileChartData.map((day) => day.calories), 0);
+  const latestRecordedDay = [...mobileChartData].reverse().find((day) => day.calories > 0);
+  const latestDiff = latestRecordedDay ? latestRecordedDay.calories - goalCalories : 0;
+  const latestDiffLabel =
+    latestDiff > 0
+      ? `目安より ${latestDiff} kcal 多め`
+      : latestDiff < 0
+        ? `目安まで ${Math.abs(latestDiff)} kcal`
+        : "目安ぴったり";
 
   return (
-    <div className="-mx-1 max-w-full overflow-x-auto px-1 sm:mx-0 sm:overflow-visible sm:px-0">
-      <ChartContainer
-        config={chartConfig}
-        className="h-[200px] min-w-[min(100%,320px)] w-full sm:h-[240px]"
-      >
-        <BarChart accessibilityLayer data={chartData} margin={{ left: 0, right: 4, top: 8 }}>
-          <CartesianGrid vertical={false} />
-          <XAxis
-            dataKey="label"
-            tickLine={false}
-            axisLine={false}
-            tickMargin={6}
-            minTickGap={8}
-            tick={{ fontSize: 11 }}
-          />
-          <YAxis tickLine={false} axisLine={false} tickMargin={6} width={40} tick={{ fontSize: 11 }} />
-          <ChartTooltip
-            cursor={false}
-            content={
-              <ChartTooltipContent
-                formatter={(value, name, item) => {
-                  if (name === "calories") {
-                    const payload = item?.payload as { diff?: number } | undefined;
-                    const diff = payload?.diff ?? 0;
-                    const sign = diff > 0 ? "+" : "";
-                    return [`${value} kcal (${sign}${diff} kcal)`, "摂取 / 目安差"];
-                  }
-                  return [`${value}`, String(name)];
-                }}
-              />
-            }
-          />
-          <ReferenceLine
-            y={goalCalories}
-            stroke="var(--muted-foreground)"
-            strokeDasharray="6 6"
-            ifOverflow="extendDomain"
-            label={{
-              value: `基準値 ${goalCalories} kcal`,
-              position: "insideTopRight",
-              fill: "var(--muted-foreground)",
-              fontSize: 12,
-            }}
-          />
-          <Bar dataKey="calories" radius={6}>
-            {chartData.map((entry) => (
-              <Cell key={entry.day} fill={barFillForCalories(entry.calories, goalCalories)} />
-            ))}
-          </Bar>
-        </BarChart>
-      </ChartContainer>
+    <div className="max-w-full">
+      <div className="sm:hidden">
+        <div className="mb-3 grid grid-cols-3 gap-2">
+          <div className="rounded-md bg-muted/50 p-2">
+            <p className="text-[11px] text-muted-foreground">直近7日の平均</p>
+            <p className="mt-1 text-base font-bold">{mobileAverageCalories} kcal</p>
+          </div>
+          <div className="rounded-md bg-muted/50 p-2">
+            <p className="text-[11px] text-muted-foreground">最大</p>
+            <p className="mt-1 text-base font-bold">{mobileMaxCalories} kcal</p>
+          </div>
+          <div className="rounded-md bg-muted/50 p-2">
+            <p className="text-[11px] text-muted-foreground">最新</p>
+            <p className="mt-1 text-xs font-bold leading-5 text-primary">{latestDiffLabel}</p>
+          </div>
+        </div>
+        <DailyCaloriesBarChart
+          data={mobileChartData}
+          goalCalories={goalCalories}
+          heightClassName="h-[230px]"
+          xTickInterval={0}
+          showGoalLabel={false}
+        />
+        <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
+          <span>破線: 目安 {goalCalories} kcal</span>
+          <span>直近7日</span>
+        </div>
+      </div>
+
+      <div className="hidden sm:block">
+        <DailyCaloriesBarChart
+          data={chartData}
+          goalCalories={goalCalories}
+          heightClassName="h-[240px]"
+          xTickInterval="preserveStartEnd"
+          showGoalLabel
+        />
+      </div>
     </div>
   );
 }

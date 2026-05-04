@@ -1,6 +1,8 @@
 import { z } from "zod";
 
 const MAX_NUTRITION_VALUE = 100_000;
+export const MAX_MEALS_PER_DAY = 8;
+export const MAX_MEAL_ITEMS_PER_MEAL = 14;
 
 export const MealAnalysisItemSchema = z.object({
   name: z.string().trim().min(1).max(80),
@@ -19,7 +21,7 @@ export const MealAnalysisSchema = z.object({
   carbs: z.number().min(0).max(MAX_NUTRITION_VALUE),
   ai_confidence: z.number().min(0).max(1),
   memo: z.string().trim().max(1000),
-  items: z.array(MealAnalysisItemSchema).min(1).max(30),
+  items: z.array(MealAnalysisItemSchema).min(1).max(MAX_MEAL_ITEMS_PER_MEAL),
 });
 
 export const MealRegistrationSchema = MealAnalysisSchema.extend({

@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { dashboardDateHref, toJapanYmd } from "@/lib/japan-calendar";
 import {
+  MAX_MEAL_ITEMS_PER_MEAL,
   type MealAnalysis,
   getCalorieOverLevel,
   toConfidence,
@@ -762,6 +763,7 @@ export function MealPhotoAnalyzer({
   }, [analysis, entryMode, manualTotals]);
 
   const canSaveMeal = analysis !== null && isMealFormMacroComplete(analysis, entryMode);
+  const mealItemLimitReached = (analysis?.items.length ?? 0) >= MAX_MEAL_ITEMS_PER_MEAL;
 
   return (
     <div className="grid gap-4 sm:gap-6 lg:grid-cols-[minmax(0,360px)_1fr] lg:items-start">
@@ -1061,6 +1063,7 @@ export function MealPhotoAnalyzer({
                 <h3 className="font-semibold">料理ごとの内訳</h3>
                 <button
                   type="button"
+                  disabled={mealItemLimitReached}
                   onClick={() =>
                     updateMeal("items", [
                       ...analysis.items,
@@ -1085,12 +1088,17 @@ export function MealPhotoAnalyzer({
                           },
                     ])
                   }
-                  className="inline-flex h-9 items-center gap-1 rounded-md border border-border px-3 text-sm font-semibold hover:bg-muted"
+                  className="inline-flex h-9 items-center gap-1 rounded-md border border-border px-3 text-sm font-semibold hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Plus className="size-4" />
                   追加
                 </button>
               </div>
+              {mealItemLimitReached ? (
+                <p className="text-sm text-muted-foreground">
+                  1つの食事に登録できる料理は{MAX_MEAL_ITEMS_PER_MEAL}件までです。
+                </p>
+              ) : null}
 
               {analysis.items.map((item, index) => (
                 <div

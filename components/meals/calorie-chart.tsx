@@ -7,6 +7,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
+import { lastNJstDaysAsc } from "@/lib/japan-calendar";
 import { CALORIE_OVER_WARN_THRESHOLD_KCAL } from "@/lib/meal-analysis";
 
 type MealRow = {
@@ -50,29 +51,34 @@ function barFillForCalories(calories: number, goalCalories: number): string {
 export function CalorieChart({
   meals,
   goalCalories,
+  chartEndDate,
 }: {
   meals: MealRow[];
   goalCalories: number;
+  /** JST の YYYY-MM-DD（直近14日の終端＝通常は「今日」） */
+  chartEndDate: string;
 }) {
+  const dayFmt = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
   const grouped = new Map<string, number>();
   for (const meal of meals) {
-    const day = new Intl.DateTimeFormat("sv-SE", {
-      timeZone: "Asia/Tokyo",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).format(new Date(meal.eaten_at));
+    const day = dayFmt.format(new Date(meal.eaten_at));
     grouped.set(day, (grouped.get(day) ?? 0) + meal.total_calories);
   }
 
-  const chartData = Array.from(grouped.entries())
-    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
-    .map(([day, calories]) => ({
+  const chartData = lastNJstDaysAsc(14, chartEndDate).map((day) => {
+    const calories = grouped.get(day) ?? 0;
+    return {
       day,
       label: day.slice(5),
       calories,
       diff: calories - goalCalories,
-    }));
+    };
+  });
 
   return (
     <div className="-mx-1 max-w-full overflow-x-auto px-1 sm:mx-0 sm:overflow-visible sm:px-0">

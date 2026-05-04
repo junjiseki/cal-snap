@@ -11,6 +11,7 @@ import {
   dashboardDateHref,
   dashboardMealsListHref,
   daysInJapanMonth,
+  lastNJstDaysAsc,
   pad2,
   toJapanYmd,
 } from "@/lib/japan-calendar";
@@ -133,9 +134,8 @@ export default async function DashboardPage({
     redirect("/dashboard");
   }
 
-  const last14DaysStart = new Date();
-  last14DaysStart.setDate(last14DaysStart.getDate() - 13);
-  last14DaysStart.setHours(0, 0, 0, 0);
+  const chart14Days = lastNJstDaysAsc(14, todayDate);
+  const last14DaysStart = new Date(`${chart14Days[0]}T00:00:00.000+09:00`).toISOString();
 
   const [cy, cm] = date.split("-").map(Number);
   const monthStartIso = new Date(`${cy}-${pad2(cm)}-01T00:00:00.000+09:00`).toISOString();
@@ -153,7 +153,7 @@ export default async function DashboardPage({
         .from("meals")
         .select("id,eaten_at,total_calories")
         .eq("user_id", user.id)
-        .gte("eaten_at", last14DaysStart.toISOString())
+        .gte("eaten_at", last14DaysStart)
         .order("eaten_at", { ascending: true })
     : Promise.resolve({
         data: [] as { id: string; eaten_at: string; total_calories: number }[] | null,
@@ -195,7 +195,8 @@ export default async function DashboardPage({
     fat: Number(summary?.fat ?? 0),
     carbs: Number(summary?.carbs ?? 0),
   };
-  const goalCalories = profile?.daily_calorie_goal ?? 2000;
+  const defaultCalorieGoal = 2000;
+  const goalCalories = profile?.daily_calorie_goal ?? defaultCalorieGoal;
   const safeGoalCalories = Math.max(goalCalories, 1);
   const dateLabelJa = formatJapanDateHeading(date);
   const calorieDelta = goalCalories - total.calories;
@@ -362,14 +363,11 @@ export default async function DashboardPage({
                   料金・プランを見る
                 </Link>
               </div>
-            ) : (chartMeals ?? []).length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                データがまだないため、グラフは表示されません。
-              </p>
             ) : (
               <CalorieChart
                 meals={(chartMeals ?? []) as MealRow[]}
                 goalCalories={goalCalories}
+                chartEndDate={todayDate}
               />
             )}
           </div>
@@ -412,6 +410,9 @@ export default async function DashboardPage({
                   : null
               }
               prevPageHref={mealsPage > 1 ? dashboardMealsListHref(date, mealsPage - 1) : null}
+              selectedDateYmd={date}
+              todayDateYmd={todayDate}
+              goalCalories={goalCalories}
             />
           </div>
         </section>

@@ -29,6 +29,27 @@ export function toJapanYmd(isoTimestamp: string): string {
   }).format(new Date(isoTimestamp));
 }
 
+const jstYmdFormatter = new Intl.DateTimeFormat("sv-SE", {
+  timeZone: "Asia/Tokyo",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+/**
+ * 終端日 endYmd（JST の YYYY-MM-DD）を含む n 日分の暦日を、古い順で返す。
+ * 加算は固定 24h（日本に夏時間がないため暦日と一致）。
+ */
+export function lastNJstDaysAsc(n: number, endYmd: string): string[] {
+  const anchor = new Date(`${endYmd}T12:00:00+09:00`);
+  const out: string[] = [];
+  for (let k = 0; k < n; k++) {
+    const t = new Date(anchor.getTime() - (n - 1 - k) * 24 * 60 * 60 * 1000);
+    out.push(jstYmdFormatter.format(t));
+  }
+  return out;
+}
+
 /** 同一「日」を保ったまま月だけ delta だけずらす（日付はその月の日数でクランプ） */
 export function shiftMonthJapan(ymd: string, delta: number): string {
   const [y, m, d] = ymd.split("-").map(Number);

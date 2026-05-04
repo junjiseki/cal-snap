@@ -1,12 +1,37 @@
 import Link from "next/link";
 import { BarChart3 } from "lucide-react";
+import { safeInternalPath } from "@/lib/auth/safe-redirect";
 import { MealPhotoAnalyzer } from "@/components/meals/meal-photo-analyzer";
 import { getAuthenticatedUserCached } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-export default async function NewMealPage() {
+export default async function NewMealPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ manual?: string; date?: string }>;
+}) {
+  const params = await searchParams;
+  const openManual =
+    params.manual === "1" || params.manual === "true" || params.manual === "yes";
+  const dateParam = params.date;
+  const initialEatenAtLocal =
+    typeof dateParam === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)
+      ? `${dateParam}T12:00`
+      : undefined;
+
   const { user } = await getAuthenticatedUserCached();
+
+  const nextQs = new URLSearchParams();
+  if (typeof params.manual === "string" && params.manual !== "") {
+    nextQs.set("manual", params.manual);
+  }
+  if (typeof params.date === "string" && params.date !== "") {
+    nextQs.set("date", params.date);
+  }
+  const nextAfterLogin =
+    nextQs.size > 0 ? `/meals/new?${nextQs.toString()}` : "/meals/new";
+  const loginHref = `/login?next=${encodeURIComponent(safeInternalPath(nextAfterLogin, "/meals/new"))}`;
 
   if (!user) {
     return (
@@ -14,7 +39,7 @@ export default async function NewMealPage() {
         <div className="border border-border bg-card p-6">
           <h1 className="text-2xl font-semibold">ログインが必要です</h1>
           <Link
-            href="/login?next=/meals/new"
+            href={loginHref}
             className="mt-5 inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground"
           >
             ログインへ
@@ -51,7 +76,10 @@ export default async function NewMealPage() {
         </div>
       </section>
       <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-8 sm:py-6">
-        <MealPhotoAnalyzer />
+        <MealPhotoAnalyzer
+          initialEntryMode={openManual ? "manual" : undefined}
+          initialEatenAtLocal={initialEatenAtLocal}
+        />
       </div>
     </main>
   );

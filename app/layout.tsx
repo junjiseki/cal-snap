@@ -6,6 +6,7 @@ import { getSiteUrl } from "@/lib/site-url";
 import { cn } from "@/lib/utils";
 import { CleanupStaleSession } from "@/components/auth/cleanup-stale-session";
 import { SessionHydrationRefresh } from "@/components/auth/session-hydration-refresh";
+import { DailyAdvice } from "@/components/advice/daily-advice";
 import { AppHeader } from "@/components/layout/app-header";
 import { PwaInstallPrompt } from "@/components/pwa/install-prompt";
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
@@ -123,6 +124,7 @@ export default async function RootLayout({
           <ServiceWorkerRegister />
           <AppHeader />
           <div className="flex flex-1 flex-col">{children}</div>
+          <DailyAdvice />
           <PwaInstallPrompt />
           <footer className="border-t border-border bg-card pb-20 md:pb-0">
             <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 px-4 py-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8">

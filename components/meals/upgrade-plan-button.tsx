@@ -35,8 +35,11 @@ export function UpgradePlanButton() {
         className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition active:scale-[0.99] disabled:opacity-50"
       >
         {isLoading ? <Loader2 className="size-4 animate-spin" /> : null}
-        {isLoading ? "決済ページを準備中..." : "月額550円で始める"}
+        {isLoading ? "決済ページを準備中..." : "14日間無料で試す"}
       </button>
+      <p className="text-xs leading-relaxed text-muted-foreground">
+        トライアル終了後は月額550円（税込）です。期間中に解約できます。
+      </p>
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
     </div>
   );

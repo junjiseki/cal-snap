@@ -5,7 +5,20 @@ import { getAuthenticatedUserCached } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-export default async function NewMealPage() {
+export default async function NewMealPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ manual?: string; date?: string }>;
+}) {
+  const params = await searchParams;
+  const openManual =
+    params.manual === "1" || params.manual === "true" || params.manual === "yes";
+  const dateParam = params.date;
+  const initialEatenAtLocal =
+    typeof dateParam === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)
+      ? `${dateParam}T12:00`
+      : undefined;
+
   const { user } = await getAuthenticatedUserCached();
 
   if (!user) {
@@ -51,7 +64,10 @@ export default async function NewMealPage() {
         </div>
       </section>
       <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-8 sm:py-6">
-        <MealPhotoAnalyzer />
+        <MealPhotoAnalyzer
+          initialEntryMode={openManual ? "manual" : undefined}
+          initialEatenAtLocal={initialEatenAtLocal}
+        />
       </div>
     </main>
   );

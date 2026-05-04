@@ -65,7 +65,7 @@ export default async function ProfilePage() {
       </section>
 
       <div className="mx-auto grid w-full max-w-4xl gap-5 px-4 py-5 sm:px-8 sm:py-6">
-        <section className="border border-border bg-card p-5">
+        <section id="calorie-goal" className="border border-border bg-card p-5">
           <h2 className="text-lg font-semibold">1日の摂取カロリー</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             ダッシュボードの目安線と進捗バーに反映されます。

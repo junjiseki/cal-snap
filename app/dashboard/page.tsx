@@ -195,7 +195,8 @@ export default async function DashboardPage({
     fat: Number(summary?.fat ?? 0),
     carbs: Number(summary?.carbs ?? 0),
   };
-  const goalCalories = profile?.daily_calorie_goal ?? 2000;
+  const defaultCalorieGoal = 2000;
+  const goalCalories = profile?.daily_calorie_goal ?? defaultCalorieGoal;
   const safeGoalCalories = Math.max(goalCalories, 1);
   const dateLabelJa = formatJapanDateHeading(date);
   const calorieDelta = goalCalories - total.calories;
@@ -409,6 +410,9 @@ export default async function DashboardPage({
                   : null
               }
               prevPageHref={mealsPage > 1 ? dashboardMealsListHref(date, mealsPage - 1) : null}
+              selectedDateYmd={date}
+              todayDateYmd={todayDate}
+              goalCalories={goalCalories}
             />
           </div>
         </section>

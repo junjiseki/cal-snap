@@ -47,5 +47,12 @@ export async function PATCH(request: Request) {
     return errorResponse("摂取カロリーを更新できません。", 500, "PROFILE_UPDATE_FAILED");
   }
 
+  const { error: authMetaError } = await supabase.auth.updateUser({
+    data: { calorie_goal_user_set: true },
+  });
+  if (authMetaError) {
+    console.warn("[calorie-goal] user metadata update failed", authMetaError);
+  }
+
   return Response.json({ ok: true });
 }

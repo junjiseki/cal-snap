@@ -460,15 +460,24 @@ function StepDot({
   );
 }
 
-export function MealPhotoAnalyzer() {
+export function MealPhotoAnalyzer({
+  initialEntryMode,
+  initialEatenAtLocal,
+}: {
+  initialEntryMode?: EntryMode;
+  /** datetime-local 用（例: YYYY-MM-DDTHH:mm）。日付のみの指定は呼び出し側で時刻を付与 */
+  initialEatenAtLocal?: string;
+} = {}) {
   const router = useRouter();
   const cameraFileInputRef = useRef<HTMLInputElement>(null);
   const galleryFileInputRef = useRef<HTMLInputElement>(null);
   const saveInFlightRef = useRef(false);
-  const [entryMode, setEntryMode] = useState<EntryMode>("photo");
+  const [entryMode, setEntryMode] = useState<EntryMode>(() => initialEntryMode ?? "photo");
   const [file, setFile] = useState<File | null>(null);
-  const [analysis, setAnalysis] = useState<MealAnalysisForm | null>(null);
-  const [eatenAt, setEatenAt] = useState(todayInputValue());
+  const [analysis, setAnalysis] = useState<MealAnalysisForm | null>(() =>
+    initialEntryMode === "manual" ? createManualMealDraft() : null,
+  );
+  const [eatenAt, setEatenAt] = useState(() => initialEatenAtLocal ?? todayInputValue());
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);

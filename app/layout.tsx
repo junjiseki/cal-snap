@@ -1,9 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import "./globals.css";
-import { Geist, Noto_Sans_JP } from "next/font/google";
 import { getSiteUrl } from "@/lib/site-url";
-import { cn } from "@/lib/utils";
 import { CleanupStaleSession } from "@/components/auth/cleanup-stale-session";
 import { SessionHydrationRefresh } from "@/components/auth/session-hydration-refresh";
 import { DailyAdvice } from "@/components/advice/daily-advice";
@@ -12,16 +10,6 @@ import { PassiveServiceWorkerRegister } from "@/components/pwa/passive-service-w
 import { PwaInstallPrompt } from "@/components/pwa/install-prompt";
 import { ServiceWorkerLegacyCleanup } from "@/components/pwa/service-worker-legacy-cleanup";
 import { ThemeProvider } from "@/components/theme-provider";
-
-const geist = Geist({
-  subsets: ["latin"],
-  variable: "--font-geist",
-});
-
-const noto = Noto_Sans_JP({
-  subsets: ["latin"],
-  variable: "--font-jp",
-});
 
 export const metadata: Metadata = {
   title: {
@@ -116,7 +104,7 @@ export default async function RootLayout({
     <html
       lang="ja"
       suppressHydrationWarning
-      className={cn("h-full antialiased", "font-sans", geist.variable, noto.variable)}
+      className="h-full font-sans antialiased"
     >
       <body className="flex min-h-full flex-col">
         <ThemeProvider>

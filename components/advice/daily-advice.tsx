@@ -5,7 +5,7 @@ export async function DailyAdvice() {
   const { supabase, user } = await getAuthenticatedUserCached();
 
   if (!user) {
-    return <DailyAdviceBanner userId={null} plan={null} />;
+    return null;
   }
 
   const { data: profile } = await supabase

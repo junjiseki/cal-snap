@@ -46,43 +46,72 @@ function dismissForever() {
   }
 }
 
+function afterInitialRender(callback: () => void) {
+  const run = () => {
+    if ("requestIdleCallback" in window) {
+      window.requestIdleCallback(callback, { timeout: 2500 });
+      return;
+    }
+    globalThis.setTimeout(callback, 1200);
+  };
+
+  if (document.readyState === "complete") {
+    run();
+    return;
+  }
+  window.addEventListener("load", run, { once: true });
+}
+
 export function PwaInstallPrompt() {
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [showIosGuide, setShowIosGuide] = useState(false);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (wasDismissed() || isStandalone()) {
-      return;
-    }
+    let cancelled = false;
+    let removeListeners: (() => void) | null = null;
 
-    if (isIphoneSafari()) {
-      setShowIosGuide(true);
-      setVisible(true);
-    }
-
-    function handleBeforeInstallPrompt(event: Event) {
-      event.preventDefault();
-      if (wasDismissed() || isStandalone()) {
+    afterInitialRender(() => {
+      if (cancelled || wasDismissed() || isStandalone()) {
         return;
       }
-      setInstallEvent(event as BeforeInstallPromptEvent);
-      setShowIosGuide(false);
-      setVisible(true);
-    }
 
-    function handleAppInstalled() {
-      dismissForever();
-      setVisible(false);
-      setInstallEvent(null);
-    }
+      if (isIphoneSafari()) {
+        setShowIosGuide(true);
+        setVisible(true);
+      }
 
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    window.addEventListener("appinstalled", handleAppInstalled);
+      function handleBeforeInstallPrompt(event: Event) {
+        event.preventDefault();
+        if (wasDismissed() || isStandalone()) {
+          return;
+        }
+        setInstallEvent(event as BeforeInstallPromptEvent);
+        setShowIosGuide(false);
+        setVisible(true);
+      }
+
+      function handleAppInstalled() {
+        dismissForever();
+        setVisible(false);
+        setInstallEvent(null);
+      }
+
+      window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.addEventListener("appinstalled", handleAppInstalled);
+      removeListeners = () => {
+        window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+        window.removeEventListener("appinstalled", handleAppInstalled);
+      };
+
+      if (cancelled) {
+        removeListeners();
+      }
+    });
 
     return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-      window.removeEventListener("appinstalled", handleAppInstalled);
+      cancelled = true;
+      removeListeners?.();
     };
   }, []);
 

@@ -23,6 +23,22 @@ function isLegacyCalSnapCacheName(name: string): boolean {
   return name.startsWith("cal-snap-");
 }
 
+function afterInitialRender(callback: () => void) {
+  const run = () => {
+    if ("requestIdleCallback" in window) {
+      window.requestIdleCallback(callback, { timeout: 3000 });
+      return;
+    }
+    globalThis.setTimeout(callback, 1500);
+  };
+
+  if (document.readyState === "complete") {
+    run();
+    return;
+  }
+  window.addEventListener("load", run, { once: true });
+}
+
 export function ServiceWorkerLegacyCleanup() {
   useEffect(() => {
     if (typeof window === "undefined" || process.env.NODE_ENV !== "production") {
@@ -39,7 +55,8 @@ export function ServiceWorkerLegacyCleanup() {
 
     let cancelled = false;
 
-    void (async () => {
+    afterInitialRender(() => {
+      void (async () => {
       try {
         let didUnregister = false;
         let didClearCaches = false;
@@ -87,7 +104,8 @@ export function ServiceWorkerLegacyCleanup() {
       } catch {
         /* 登録解除／キャッシュ削除が失敗した場合はフラグを書かず、次回ロードで再試行 */
       }
-    })();
+      })();
+    });
 
     return () => {
       cancelled = true;

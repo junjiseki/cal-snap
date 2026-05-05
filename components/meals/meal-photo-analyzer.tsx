@@ -23,12 +23,12 @@ import {
   TrendingUp,
   X,
 } from "lucide-react";
+import { getCalorieOverLevel } from "@/lib/calorie-over";
 import { dashboardDateHref, toJapanYmd } from "@/lib/japan-calendar";
 import {
   MAX_MEAL_ITEMS_PER_MEAL,
   MAX_MEALS_PER_DAY,
   type MealAnalysis,
-  getCalorieOverLevel,
   toConfidence,
   toInteger,
 } from "@/lib/meal-analysis";

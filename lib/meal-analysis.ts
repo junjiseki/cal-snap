@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+export {
+  CALORIE_OVER_WARN_THRESHOLD_KCAL,
+  getCalorieOverLevel,
+  type CalorieOverLevel,
+} from "./calorie-over";
+
 const MAX_NUTRITION_VALUE = 100_000;
 export const MAX_MEALS_PER_DAY = 8;
 export const MAX_MEAL_ITEMS_PER_MEAL = 14;
@@ -52,21 +58,6 @@ export const PAID_DAILY_ANALYSIS_LIMIT = readPositiveIntEnv(
 
 export function getDailyAnalysisLimit(plan: "free" | "paid") {
   return plan === "paid" ? PAID_DAILY_ANALYSIS_LIMIT : FREE_DAILY_ANALYSIS_LIMIT;
-}
-
-/**
- * 目標カロリー超過のうち、この kcal までは「警告（イエロー）」、それを超える超過は「重大（レッド）」。
- * ダッシュボード・チャートで共通利用する。
- */
-export const CALORIE_OVER_WARN_THRESHOLD_KCAL = 300;
-
-export type CalorieOverLevel = "none" | "warn" | "severe";
-
-export function getCalorieOverLevel(totalCalories: number, goalCalories: number): CalorieOverLevel {
-  const over = totalCalories - goalCalories;
-  if (over <= 0) return "none";
-  if (over <= CALORIE_OVER_WARN_THRESHOLD_KCAL) return "warn";
-  return "severe";
 }
 
 export function getTodayRangeInJapan() {

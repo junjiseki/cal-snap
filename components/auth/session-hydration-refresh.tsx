@@ -4,8 +4,8 @@ import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-/** ログイン有無で表示が変わる公開ページ（初回 SSR だけ Cookie が遅れることがある） */
-const PATHS = new Set(["/", "/login", "/signup"]);
+/** ログイン直後に表示が変わる認証ページ（初回 SSR だけ Cookie が遅れることがある） */
+const PATHS = new Set(["/login", "/signup"]);
 
 /**
  * OAuth 直後など、ブラウザにはセッション Cookie が付いたが初回 RSC だけ未ログインだった場合に

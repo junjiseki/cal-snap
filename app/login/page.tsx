@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { SessionHydrationRefresh } from "@/components/auth/session-hydration-refresh";
 import { LoginForm } from "@/components/meals/login-form";
 import { safeInternalPath } from "@/lib/auth/safe-redirect";
 import { getAuthenticatedUserCached } from "@/lib/supabase/server";
@@ -23,6 +24,7 @@ export default async function LoginPage({
 
   return (
     <main className="flex flex-1 items-center justify-center bg-[#fff3c7] px-4 py-10 sm:px-8">
+      <SessionHydrationRefresh />
       <div className="w-full max-w-md">
         <LoginForm
           next={safeInternalPath(params.next ?? null, "/meals/new")}

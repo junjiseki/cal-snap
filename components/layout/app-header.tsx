@@ -4,6 +4,7 @@ import {
   PAID_DAILY_ANALYSIS_LIMIT,
 } from "@/lib/meal-analysis";
 import { AppHeaderClient, type AppHeaderAccount } from "@/components/layout/app-header-client";
+import { PublicAppHeaderClient } from "@/components/layout/public-app-header-client";
 
 export async function AppHeader({ className }: { className?: string }) {
   const { supabase, user } = await getAuthenticatedUserCached();
@@ -23,6 +24,10 @@ export async function AppHeader({ className }: { className?: string }) {
       freeDailyAnalysisLimit: FREE_DAILY_ANALYSIS_LIMIT,
       paidDailyAnalysisLimit: PAID_DAILY_ANALYSIS_LIMIT,
     };
+  }
+
+  if (!account) {
+    return <PublicAppHeaderClient className={className} />;
   }
 
   return <AppHeaderClient account={account} className={className} />;

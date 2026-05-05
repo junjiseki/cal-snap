@@ -1,3 +1,4 @@
+import { SessionHydrationRefresh } from "@/components/auth/session-hydration-refresh";
 import { SignupForm } from "@/components/meals/signup-form";
 import { safeInternalPath } from "@/lib/auth/safe-redirect";
 
@@ -10,6 +11,7 @@ export default async function SignupPage({
 
   return (
     <main className="flex flex-1 items-center justify-center bg-[#d6fff2] px-4 py-10 sm:px-8">
+      <SessionHydrationRefresh />
       <div className="w-full max-w-md">
         <SignupForm next={safeInternalPath(params.next ?? null, "/meals/new")} />
       </div>

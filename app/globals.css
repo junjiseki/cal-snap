@@ -6,7 +6,8 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans:
-    var(--font-geist), var(--font-jp), ui-sans-serif, system-ui, sans-serif;
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Hiragino Sans",
+    "Hiragino Kaku Gothic ProN", "Yu Gothic", "YuGothic", "Meiryo", sans-serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -179,10 +180,6 @@
   opacity: 0;
 }
 
-.public-home-fade-slide--paused {
-  animation-play-state: paused;
-}
-
 @keyframes mobile-menu-enter {
   from {
     opacity: 0;
@@ -209,10 +206,6 @@
   }
 
   .public-home-fade-slide:first-child {
-    opacity: 1;
-  }
-
-  .public-home-fade-slide--paused:first-child {
     opacity: 1;
   }
 }

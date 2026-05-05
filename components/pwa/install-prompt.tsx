@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Download, Share, X } from "lucide-react";
 
 const DISMISSED_KEY = "cal-snap-pwa-install-dismissed";
 
@@ -46,43 +45,72 @@ function dismissForever() {
   }
 }
 
+function afterInitialRender(callback: () => void) {
+  const run = () => {
+    if ("requestIdleCallback" in window) {
+      window.requestIdleCallback(callback, { timeout: 2500 });
+      return;
+    }
+    globalThis.setTimeout(callback, 1200);
+  };
+
+  if (document.readyState === "complete") {
+    run();
+    return;
+  }
+  window.addEventListener("load", run, { once: true });
+}
+
 export function PwaInstallPrompt() {
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [showIosGuide, setShowIosGuide] = useState(false);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (wasDismissed() || isStandalone()) {
-      return;
-    }
+    let cancelled = false;
+    let removeListeners: (() => void) | null = null;
 
-    if (isIphoneSafari()) {
-      setShowIosGuide(true);
-      setVisible(true);
-    }
-
-    function handleBeforeInstallPrompt(event: Event) {
-      event.preventDefault();
-      if (wasDismissed() || isStandalone()) {
+    afterInitialRender(() => {
+      if (cancelled || wasDismissed() || isStandalone()) {
         return;
       }
-      setInstallEvent(event as BeforeInstallPromptEvent);
-      setShowIosGuide(false);
-      setVisible(true);
-    }
 
-    function handleAppInstalled() {
-      dismissForever();
-      setVisible(false);
-      setInstallEvent(null);
-    }
+      if (isIphoneSafari()) {
+        setShowIosGuide(true);
+        setVisible(true);
+      }
 
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    window.addEventListener("appinstalled", handleAppInstalled);
+      function handleBeforeInstallPrompt(event: Event) {
+        event.preventDefault();
+        if (wasDismissed() || isStandalone()) {
+          return;
+        }
+        setInstallEvent(event as BeforeInstallPromptEvent);
+        setShowIosGuide(false);
+        setVisible(true);
+      }
+
+      function handleAppInstalled() {
+        dismissForever();
+        setVisible(false);
+        setInstallEvent(null);
+      }
+
+      window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.addEventListener("appinstalled", handleAppInstalled);
+      removeListeners = () => {
+        window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+        window.removeEventListener("appinstalled", handleAppInstalled);
+      };
+
+      if (cancelled) {
+        removeListeners();
+      }
+    });
 
     return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-      window.removeEventListener("appinstalled", handleAppInstalled);
+      cancelled = true;
+      removeListeners?.();
     };
   }, []);
 
@@ -114,7 +142,7 @@ export function PwaInstallPrompt() {
         aria-label="インストール案内を閉じる"
         className="absolute right-2 top-2 inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition active:scale-95 active:bg-muted"
       >
-        <X className="size-4" />
+        <span aria-hidden>×</span>
       </button>
 
       <div className="pr-8">
@@ -130,15 +158,11 @@ export function PwaInstallPrompt() {
           onClick={() => void install()}
           className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition active:scale-[0.99]"
         >
-          <Download className="size-4" />
           ホーム画面に追加
         </button>
       ) : (
         <div className="mt-3 rounded-md bg-muted/50 p-3 text-sm leading-7">
-          <p className="flex items-center gap-2 font-semibold text-foreground">
-            <Share className="size-4" />
-            iPhone Safari の追加手順
-          </p>
+          <p className="font-semibold text-foreground">iPhone Safari の追加手順</p>
           <ol className="mt-2 list-decimal space-y-1 pl-5 text-muted-foreground">
             <li>画面下の共有ボタンを押す</li>
             <li>「ホーム画面に追加」を選ぶ</li>

@@ -8,15 +8,6 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   async headers() {
     return [
-      {
-        source: "/_next/image",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=7776000, stale-while-revalidate=31536000",
-          },
-        ],
-      },
       ...["avif", "webp", "png", "jpg", "jpeg", "gif", "svg", "ico", "woff2"].map(
         (extension) => ({
           source: `/:path*.${extension}`,

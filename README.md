@@ -85,6 +85,11 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 SUPABASE_SECRET_KEY="<supabase-secret-key>"
 NEXT_PUBLIC_TURNSTILE_SITE_KEY="<cloudflare-turnstile-site-key>"
 TURNSTILE_SECRET_KEY="<cloudflare-turnstile-secret-key>"
+LEGAL_SELLER_NAME="<販売事業者名>"
+LEGAL_REPRESENTATIVE_NAME="<運営責任者名>"
+LEGAL_BUSINESS_ADDRESS="<事業者所在地>"
+LEGAL_BUSINESS_PHONE="<電話番号>"
+LEGAL_CONTACT_EMAIL="<問い合わせメールアドレス>"
 ```
 
 `GEMINI_MODEL` は未設定の場合 `gemini-3-flash-preview` を使用します。
@@ -106,6 +111,18 @@ TURNSTILE_SECRET_KEY="1x0000000000000000000000000000000AA"
 ```
 
 本番では必ずCloudflareで発行した実キーを設定してください。
+
+### 特定商取引法に基づく表記
+
+本番環境では `/commerce-disclosure` に販売者情報を表示するため、次の環境変数を必ず設定してください。
+
+- `LEGAL_SELLER_NAME`: 販売事業者名
+- `LEGAL_REPRESENTATIVE_NAME`: 運営責任者名
+- `LEGAL_BUSINESS_ADDRESS`: 所在地
+- `LEGAL_BUSINESS_PHONE`: 電話番号
+- `LEGAL_CONTACT_EMAIL`: 問い合わせメールアドレス
+
+決済審査では、所在地・電話番号・メールアドレスがページ上で確認できることを求められる場合があります。
 
 ### ローカル Supabase で Google ログインを使う場合
 

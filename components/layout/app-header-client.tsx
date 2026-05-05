@@ -105,7 +105,7 @@ export function AppHeaderClient({
           />
           <nav
             id="app-header-mobile-nav"
-            className="absolute inset-x-0 top-0 max-h-[calc(100dvh-4.25rem)] overflow-y-auto border-b border-border bg-card shadow-lg animate-in fade-in slide-in-from-top-2 duration-150"
+            className="mobile-menu-enter absolute inset-x-0 top-0 max-h-[calc(100dvh-4.25rem)] overflow-y-auto border-b border-border bg-card shadow-lg"
             aria-label="モバイルメニュー"
           >
             <div className="mx-auto w-full max-w-7xl px-4 py-4">

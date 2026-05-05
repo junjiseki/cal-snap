@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Download, Share, X } from "lucide-react";
 
 const DISMISSED_KEY = "cal-snap-pwa-install-dismissed";
 
@@ -143,7 +142,7 @@ export function PwaInstallPrompt() {
         aria-label="インストール案内を閉じる"
         className="absolute right-2 top-2 inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition active:scale-95 active:bg-muted"
       >
-        <X className="size-4" />
+        <span aria-hidden>×</span>
       </button>
 
       <div className="pr-8">
@@ -159,15 +158,11 @@ export function PwaInstallPrompt() {
           onClick={() => void install()}
           className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition active:scale-[0.99]"
         >
-          <Download className="size-4" />
           ホーム画面に追加
         </button>
       ) : (
         <div className="mt-3 rounded-md bg-muted/50 p-3 text-sm leading-7">
-          <p className="flex items-center gap-2 font-semibold text-foreground">
-            <Share className="size-4" />
-            iPhone Safari の追加手順
-          </p>
+          <p className="font-semibold text-foreground">iPhone Safari の追加手順</p>
           <ol className="mt-2 list-decimal space-y-1 pl-5 text-muted-foreground">
             <li>画面下の共有ボタンを押す</li>
             <li>「ホーム画面に追加」を選ぶ</li>

@@ -3,7 +3,6 @@ import Link from "next/link";
 import "./globals.css";
 import { getSiteUrl } from "@/lib/site-url";
 import { CleanupStaleSession } from "@/components/auth/cleanup-stale-session";
-import { SessionHydrationRefresh } from "@/components/auth/session-hydration-refresh";
 import { DailyAdvice } from "@/components/advice/daily-advice";
 import { AppHeader } from "@/components/layout/app-header";
 import { PassiveServiceWorkerRegister } from "@/components/pwa/passive-service-worker-register";
@@ -109,7 +108,6 @@ export default async function RootLayout({
       <body className="flex min-h-full flex-col">
         <ThemeProvider>
           <CleanupStaleSession />
-          <SessionHydrationRefresh />
           <ServiceWorkerLegacyCleanup />
           <PassiveServiceWorkerRegister />
           <AppHeader />

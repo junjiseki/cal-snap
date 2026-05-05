@@ -19,7 +19,7 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { lastNJstDaysAsc } from "@/lib/japan-calendar";
-import { CALORIE_OVER_WARN_THRESHOLD_KCAL } from "@/lib/meal-analysis";
+import { CALORIE_OVER_WARN_THRESHOLD_KCAL } from "@/lib/calorie-over";
 import { cn } from "@/lib/utils";
 
 type MealRow = {

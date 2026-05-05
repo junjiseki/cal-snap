@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { getSiteUrl } from "@/lib/site-url";
 import { CleanupStaleSession } from "@/components/auth/cleanup-stale-session";
@@ -15,10 +17,10 @@ export const metadata: Metadata = {
     default: "カロスナ - 3秒で終わる食事管理",
     template: "%s | カロスナ",
   },
+  manifest: "/manifest.json",
   description:
     "食事写真をAIで解析し、1日の摂取カロリーとPFCバランスを記録・可視化できる食事管理アプリです。",
   applicationName: "カロスナ",
-  manifest: "/manifest.json",
   metadataBase: new URL(getSiteUrl()),
   keywords: [
     "カロリー管理",
@@ -134,6 +136,8 @@ export default async function RootLayout({
             </div>
           </footer>
         </ThemeProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

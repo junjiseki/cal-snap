@@ -1,4 +1,4 @@
-import { CALORIE_OVER_WARN_THRESHOLD_KCAL } from "@/lib/meal-analysis";
+import { CALORIE_OVER_WARN_THRESHOLD_KCAL } from "@/lib/calorie-over";
 
 export function CalorieOverLegend({ className }: { className?: string }) {
   const t = CALORIE_OVER_WARN_THRESHOLD_KCAL;

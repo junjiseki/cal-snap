@@ -5,29 +5,31 @@ import type { NextConfig } from "next";
  * `/_next/static` 等は matcher 外のため proxy を通らない（チャンクは Next 既定のキャッシュ）。
  */
 const nextConfig: NextConfig = {
+  experimental: {
+    optimizePackageImports: ["lucide-react", "recharts"],
+  },
   poweredByHeader: false,
   async headers() {
     return [
-      {
-        source: "/_next/image",
+      ...[
+        "avif",
+        "webp",
+        "png",
+        "jpg",
+        "jpeg",
+        "gif",
+        "svg",
+        "ico",
+        "woff2",
+      ].map((extension) => ({
+        source: `/:path*.${extension}`,
         headers: [
           {
             key: "Cache-Control",
-            value: "public, max-age=7776000, stale-while-revalidate=31536000",
+            value: "public, max-age=86400, stale-while-revalidate=604800",
           },
         ],
-      },
-      ...["avif", "webp", "png", "jpg", "jpeg", "gif", "svg", "ico", "woff2"].map(
-        (extension) => ({
-          source: `/:path*.${extension}`,
-          headers: [
-            {
-              key: "Cache-Control",
-              value: "public, max-age=86400, stale-while-revalidate=604800",
-            },
-          ],
-        }),
-      ),
+      })),
     ];
   },
   images: {

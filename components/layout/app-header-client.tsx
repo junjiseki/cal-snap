@@ -51,6 +51,7 @@ export function AppHeaderClient({
               width={40}
               height={40}
               className="size-10 shrink-0 rounded-md sm:size-12"
+              priority
             />
             <span className="truncate text-base font-semibold sm:text-lg">カロスナ</span>
           </Link>

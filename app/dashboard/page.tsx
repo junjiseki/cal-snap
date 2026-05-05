@@ -6,7 +6,7 @@ import { getAuthenticatedUserCached } from "@/lib/supabase/server";
 import { CalorieGoalOnboardingModal } from "@/components/account/calorie-goal-onboarding-modal";
 import { DashboardMealCalendar } from "@/components/meals/dashboard-meal-calendar";
 import { MealList } from "@/components/meals/meal-list";
-import { CalorieChart } from "@/components/meals/calorie-chart";
+import { LazyCalorieChart } from "@/components/meals/lazy-calorie-chart";
 import {
   dashboardDateHref,
   dashboardMealsListHref,
@@ -217,10 +217,12 @@ export default async function DashboardPage({
 
   return (
     <main className="min-h-0 flex-1 bg-background">
-      <CalorieGoalOnboardingModal
-        initialGoal={goalCalories}
-        shouldShow={shouldShowGoalPrompt}
-      />
+      {shouldShowGoalPrompt ? (
+        <CalorieGoalOnboardingModal
+          initialGoal={goalCalories}
+          shouldShow={shouldShowGoalPrompt}
+        />
+      ) : null}
       <section className="border-b border-border bg-card">
         <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-8 sm:py-6">
           <div>
@@ -367,7 +369,7 @@ export default async function DashboardPage({
                 </Link>
               </div>
             ) : (
-              <CalorieChart
+              <LazyCalorieChart
                 meals={(chartMeals ?? []) as MealRow[]}
                 goalCalories={goalCalories}
                 chartEndDate={todayDate}

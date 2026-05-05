@@ -5,9 +5,6 @@ import { getSiteUrl } from "@/lib/site-url";
 import { CleanupStaleSession } from "@/components/auth/cleanup-stale-session";
 import { DailyAdvice } from "@/components/advice/daily-advice";
 import { AppHeader } from "@/components/layout/app-header";
-import { PassiveServiceWorkerRegister } from "@/components/pwa/passive-service-worker-register";
-import { PwaInstallPrompt } from "@/components/pwa/install-prompt";
-import { ServiceWorkerLegacyCleanup } from "@/components/pwa/service-worker-legacy-cleanup";
 import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
@@ -18,7 +15,6 @@ export const metadata: Metadata = {
   description:
     "食事写真をAIで解析し、1日の摂取カロリーとPFCバランスを記録・可視化できる食事管理アプリです。",
   applicationName: "カロスナ",
-  manifest: "/manifest.json",
   metadataBase: new URL(getSiteUrl()),
   keywords: [
     "カロリー管理",
@@ -108,12 +104,9 @@ export default async function RootLayout({
       <body className="flex min-h-full flex-col">
         <ThemeProvider>
           <CleanupStaleSession />
-          <ServiceWorkerLegacyCleanup />
-          <PassiveServiceWorkerRegister />
           <AppHeader />
           <div className="flex flex-1 flex-col">{children}</div>
           <DailyAdvice />
-          <PwaInstallPrompt />
           <footer className="border-t border-border bg-card pb-20 md:pb-0">
             <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 px-4 py-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8">
               <p>© {new Date().getFullYear()} カロスナ</p>

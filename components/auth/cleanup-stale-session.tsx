@@ -4,20 +4,38 @@ import { useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { isStaleRefreshTokenError } from "@/lib/supabase/stale-session";
 
+function afterInitialRender(callback: () => void) {
+  const run = () => {
+    if ("requestIdleCallback" in window) {
+      window.requestIdleCallback(callback, { timeout: 2500 });
+      return;
+    }
+    globalThis.setTimeout(callback, 1200);
+  };
+
+  if (document.readyState === "complete") {
+    run();
+    return;
+  }
+  window.addEventListener("load", run, { once: true });
+}
+
 /** 無効なリフレッシュトークンが Cookie に残っているとき、サイレントに壊れたセッションを掃除する */
 export function CleanupStaleSession() {
   useEffect(() => {
     let cancelled = false;
-    void (async () => {
-      try {
-        const supabase = createClient();
-        const { error } = await supabase.auth.getUser();
-        if (cancelled || !error || !isStaleRefreshTokenError(error)) return;
-        await supabase.auth.signOut();
-      } catch {
-        // createClient が env 未設定で throw する場合は何もしない
-      }
-    })();
+    afterInitialRender(() => {
+      void (async () => {
+        try {
+          const supabase = createClient();
+          const { error } = await supabase.auth.getUser();
+          if (cancelled || !error || !isStaleRefreshTokenError(error)) return;
+          await supabase.auth.signOut();
+        } catch {
+          // createClient が env 未設定で throw する場合は何もしない
+        }
+      })();
+    });
     return () => {
       cancelled = true;
     };

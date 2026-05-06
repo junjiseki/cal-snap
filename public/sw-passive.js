@@ -4,7 +4,7 @@
  * API・認証系レスポンスはキャッシュしない。
  */
 const STATIC_CACHE = "cal-snap-static-v2";
-const APP_SHELL = ["/", "/manifest.json", "/icon-192.png", "/icon-512.png"];
+const APP_SHELL = ["/manifest.json", "/icon-192.png", "/icon-512.png"];
 
 function isCacheableStaticRequest(request) {
   if (request.method !== "GET") return false;

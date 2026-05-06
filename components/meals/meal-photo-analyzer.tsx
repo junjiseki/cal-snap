@@ -472,17 +472,18 @@ export function MealPhotoAnalyzer({
   initialEatenAtLocal?: string;
   plan?: "free" | "paid";
 } = {}) {
-  const canUseManualEntry = plan === "paid";
+  const [resolvedPlan, setResolvedPlan] = useState<"free" | "paid">(plan);
+  const canUseManualEntry = resolvedPlan === "paid";
   const router = useRouter();
   const cameraFileInputRef = useRef<HTMLInputElement>(null);
   const galleryFileInputRef = useRef<HTMLInputElement>(null);
   const saveInFlightRef = useRef(false);
   const [entryMode, setEntryMode] = useState<EntryMode>(() =>
-    initialEntryMode === "manual" && canUseManualEntry ? "manual" : "photo",
+    initialEntryMode === "manual" && plan === "paid" ? "manual" : "photo",
   );
   const [file, setFile] = useState<File | null>(null);
   const [analysis, setAnalysis] = useState<MealAnalysisForm | null>(() =>
-    initialEntryMode === "manual" && canUseManualEntry ? createManualMealDraft() : null,
+    initialEntryMode === "manual" && plan === "paid" ? createManualMealDraft() : null,
   );
   const [eatenAt, setEatenAt] = useState(() => initialEatenAtLocal ?? todayInputValue());
   const [error, setError] = useState<string | null>(null);
@@ -539,12 +540,16 @@ export function MealPhotoAnalyzer({
         const response = await fetch("/api/meals/analyze", { method: "GET" });
         if (!response.ok) return;
         const data = (await response.json()) as {
+          plan?: "free" | "paid";
           usage: { used: number; limit: number; remaining: number };
           goalCalories?: number;
           todaySummaryOk?: boolean;
           todayCalories?: number;
         };
         if (!mounted) return;
+        if (data.plan === "paid" || data.plan === "free") {
+          setResolvedPlan(data.plan);
+        }
         setUsage(data.usage);
         if (
           data.todaySummaryOk === true &&
@@ -561,6 +566,14 @@ export function MealPhotoAnalyzer({
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (resolvedPlan !== "paid") return;
+    if (initialEntryMode !== "manual") return;
+    if (entryMode !== "photo" || analysis) return;
+    setEntryMode("manual");
+    setAnalysis(createManualMealDraft());
+  }, [resolvedPlan, initialEntryMode, entryMode, analysis]);
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0] ?? null;

@@ -21,7 +21,7 @@ export default async function NewMealPage({
       ? `${dateParam}T12:00`
       : undefined;
 
-  const { supabase, user } = await getAuthenticatedUserCached();
+  const { user } = await getAuthenticatedUserCached();
 
   const nextQs = new URLSearchParams();
   if (typeof params.manual === "string" && params.manual !== "") {
@@ -50,14 +50,6 @@ export default async function NewMealPage({
     );
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("plan")
-    .eq("id", user.id)
-    .maybeSingle();
-  const plan = profile?.plan === "paid" ? "paid" : "free";
-  const canUseManualEntry = plan === "paid";
-
   return (
     <main className="min-h-0 flex-1 bg-background">
       <section className="border-b border-border bg-card">
@@ -79,23 +71,19 @@ export default async function NewMealPage({
               </Link>
             </div>
             <p className="mt-4 max-w-2xl text-sm text-muted-foreground">
-              {plan === "paid"
-                ? "写真解析または手入力で記録できます。推定値は保存前に確認・修正できます。"
-                : "無料プランでは写真解析で記録できます。推定値は保存前に確認・修正できます。手入力での記録は有料プランで利用できます。"}
+              写真解析または手入力（有料プラン）で記録できます。推定値は保存前に確認・修正できます。
             </p>
-            {plan === "paid" ? (
-              <p className="mt-2 text-xs text-muted-foreground/75">
-                登録上限: 1日{MAX_MEALS_PER_DAY}件まで / 1食あたり料理{MAX_MEAL_ITEMS_PER_MEAL}件まで
-              </p>
-            ) : null}
+            <p className="mt-2 text-xs text-muted-foreground/75">
+              登録上限: 1日{MAX_MEALS_PER_DAY}件まで / 1食あたり料理{MAX_MEAL_ITEMS_PER_MEAL}件まで
+            </p>
           </div>
         </div>
       </section>
       <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-8 sm:py-6">
         <MealPhotoAnalyzer
-          initialEntryMode={openManual && canUseManualEntry ? "manual" : undefined}
+          initialEntryMode={openManual ? "manual" : undefined}
           initialEatenAtLocal={initialEatenAtLocal}
-          plan={plan}
+          plan="free"
         />
       </div>
     </main>

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
@@ -11,6 +12,21 @@ import { PassiveServiceWorkerRegister } from "@/components/pwa/passive-service-w
 import { PwaInstallPrompt } from "@/components/pwa/install-prompt";
 import { ServiceWorkerLegacyCleanup } from "@/components/pwa/service-worker-legacy-cleanup";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Noto_Sans_JP } from "next/font/google";
+
+const notoSansJp = Noto_Sans_JP({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  display: "swap",
+  fallback: [
+    "Hiragino Sans",
+    "Hiragino Kaku Gothic ProN",
+    "Yu Gothic",
+    "YuGothic",
+    "Meiryo",
+    "sans-serif",
+  ],
+});
 
 export const metadata: Metadata = {
   title: {
@@ -105,16 +121,18 @@ export default async function RootLayout({
     <html
       lang="ja"
       suppressHydrationWarning
-      className="h-full font-sans antialiased"
+      className="h-full antialiased"
     >
-      <body className="flex min-h-full flex-col">
+      <body className={`${notoSansJp.className} flex min-h-full flex-col`}>
         <ThemeProvider>
           <CleanupStaleSession />
           <ServiceWorkerLegacyCleanup />
           <PassiveServiceWorkerRegister />
           <AppHeader />
           <div className="flex flex-1 flex-col">{children}</div>
-          <DailyAdvice />
+          <Suspense fallback={null}>
+            <DailyAdvice />
+          </Suspense>
           <PwaInstallPrompt />
           <footer className="border-t border-border bg-card pb-20 md:pb-0">
             <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 px-4 py-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8">

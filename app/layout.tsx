@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
@@ -121,7 +122,9 @@ export default async function RootLayout({
           <PassiveServiceWorkerRegister />
           <AppHeader />
           <div className="flex flex-1 flex-col">{children}</div>
-          <DailyAdvice />
+          <Suspense fallback={null}>
+            <DailyAdvice />
+          </Suspense>
           <PwaInstallPrompt />
           <footer className="border-t border-border bg-card pb-20 md:pb-0">
             <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 px-4 py-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8">

@@ -11,6 +11,13 @@ import { PassiveServiceWorkerRegister } from "@/components/pwa/passive-service-w
 import { PwaInstallPrompt } from "@/components/pwa/install-prompt";
 import { ServiceWorkerLegacyCleanup } from "@/components/pwa/service-worker-legacy-cleanup";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Noto_Sans_JP } from "next/font/google";
+
+const notoSansJp = Noto_Sans_JP({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -105,9 +112,9 @@ export default async function RootLayout({
     <html
       lang="ja"
       suppressHydrationWarning
-      className="h-full font-sans antialiased"
+      className="h-full antialiased"
     >
-      <body className="flex min-h-full flex-col">
+      <body className={`${notoSansJp.className} flex min-h-full flex-col`}>
         <ThemeProvider>
           <CleanupStaleSession />
           <ServiceWorkerLegacyCleanup />

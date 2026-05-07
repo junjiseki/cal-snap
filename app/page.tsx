@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { PublicHome } from "@/components/landing/public-home";
 
-export const dynamic = "force-static";
-
 export const metadata: Metadata = {
   title: "健康的に痩せたい人の食事写真カロリー管理",
   description:

@@ -1,23 +1,55 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { DailyAdviceBanner } from "@/components/advice/daily-advice-banner";
-import { getAuthenticatedUserCached } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/client";
 
-export async function DailyAdvice() {
-  let user: Awaited<ReturnType<typeof getAuthenticatedUserCached>>["user"] = null;
-  let profile: Awaited<ReturnType<typeof getAuthenticatedUserCached>>["profile"] = null;
-  try {
-    const auth = await getAuthenticatedUserCached();
-    user = auth.user;
-    profile = auth.profile;
-  } catch (error) {
-    if (!(error instanceof Error) || error.message !== "Supabase public environment variables are not configured.") {
-      throw error;
+type AdviceAccount = {
+  userId: string;
+  plan: "free" | "paid";
+};
+
+export function DailyAdvice() {
+  const [account, setAccount] = useState<AdviceAccount | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadAccount() {
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) {
+          if (!cancelled) setAccount(null);
+          return;
+        }
+
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("plan")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (!cancelled) {
+          setAccount({
+            userId: user.id,
+            plan: profile?.plan === "paid" ? "paid" : "free",
+          });
+        }
+      } catch {
+        if (!cancelled) setAccount(null);
+      }
     }
-  }
 
-  if (!user) {
-    return null;
-  }
+    void loadAccount();
 
-  const plan = profile?.plan === "paid" ? "paid" : "free";
-  return <DailyAdviceBanner userId={user.id} plan={plan} />;
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return <DailyAdviceBanner userId={account?.userId ?? null} plan={account?.plan ?? null} />;
 }

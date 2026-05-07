@@ -1,35 +1,60 @@
-import { getAuthenticatedUserCached } from "@/lib/supabase/server";
+"use client";
+
+import { useEffect, useState } from "react";
 import {
   FREE_DAILY_ANALYSIS_LIMIT,
   PAID_DAILY_ANALYSIS_LIMIT,
 } from "@/lib/meal-analysis";
 import { AppHeaderClient, type AppHeaderAccount } from "@/components/layout/app-header-client";
 import { PublicAppHeaderClient } from "@/components/layout/public-app-header-client";
+import { createClient } from "@/lib/supabase/client";
 
-export async function AppHeader({ className }: { className?: string }) {
-  let user: Awaited<ReturnType<typeof getAuthenticatedUserCached>>["user"] = null;
-  let profile: Awaited<ReturnType<typeof getAuthenticatedUserCached>>["profile"] = null;
-  try {
-    const auth = await getAuthenticatedUserCached();
-    user = auth.user;
-    profile = auth.profile;
-  } catch (error) {
-    if (!(error instanceof Error) || error.message !== "Supabase public environment variables are not configured.") {
-      throw error;
+export function AppHeader({ className }: { className?: string }) {
+  const [account, setAccount] = useState<AppHeaderAccount | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadAccount() {
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) {
+          if (!cancelled) setAccount(null);
+          return;
+        }
+
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("plan")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (cancelled) return;
+        setAccount({
+          email: user.email ?? "（メール未設定）",
+          displayName:
+            typeof user.user_metadata?.display_name === "string"
+              ? user.user_metadata.display_name
+              : "",
+          plan: profile?.plan ?? "free",
+          freeDailyAnalysisLimit: FREE_DAILY_ANALYSIS_LIMIT,
+          paidDailyAnalysisLimit: PAID_DAILY_ANALYSIS_LIMIT,
+        });
+      } catch {
+        if (!cancelled) setAccount(null);
+      }
     }
-  }
 
-  let account: AppHeaderAccount | null = null;
-  if (user) {
-    account = {
-      email: user.email ?? "（メール未設定）",
-      displayName:
-        typeof user.user_metadata?.display_name === "string" ? user.user_metadata.display_name : "",
-      plan: profile?.plan ?? "free",
-      freeDailyAnalysisLimit: FREE_DAILY_ANALYSIS_LIMIT,
-      paidDailyAnalysisLimit: PAID_DAILY_ANALYSIS_LIMIT,
+    void loadAccount();
+
+    return () => {
+      cancelled = true;
     };
-  }
+  }, []);
 
   if (!account) {
     return <PublicAppHeaderClient className={className} />;

@@ -7,7 +7,17 @@ import { AppHeaderClient, type AppHeaderAccount } from "@/components/layout/app-
 import { PublicAppHeaderClient } from "@/components/layout/public-app-header-client";
 
 export async function AppHeader({ className }: { className?: string }) {
-  const { user, profile } = await getAuthenticatedUserCached();
+  let user: Awaited<ReturnType<typeof getAuthenticatedUserCached>>["user"] = null;
+  let profile: Awaited<ReturnType<typeof getAuthenticatedUserCached>>["profile"] = null;
+  try {
+    const auth = await getAuthenticatedUserCached();
+    user = auth.user;
+    profile = auth.profile;
+  } catch (error) {
+    if (!(error instanceof Error) || error.message !== "Supabase public environment variables are not configured.") {
+      throw error;
+    }
+  }
 
   let account: AppHeaderAccount | null = null;
   if (user) {

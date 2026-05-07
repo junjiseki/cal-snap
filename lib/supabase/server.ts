@@ -77,11 +77,16 @@ export async function getAuthenticatedUser() {
     return { supabase, user: null };
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error } = await supabase
     .from("profiles")
     .select("deleted_at")
     .eq("id", user.id)
     .maybeSingle();
+
+  if (error) {
+    console.error("[getAuthenticatedUser] profile deleted_at fetch failed", error);
+    return { supabase, user };
+  }
 
   if (profile?.deleted_at) {
     await supabase.auth.signOut();
@@ -91,8 +96,35 @@ export async function getAuthenticatedUser() {
   return { supabase, user };
 }
 
+export async function getAuthenticatedUserWithProfile() {
+  const { supabase, user } = await getAuthSessionUser();
+
+  if (!user) {
+    return { supabase, user: null, profile: null };
+  }
+
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("deleted_at,plan,daily_calorie_goal")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (error) {
+    console.error("[getAuthenticatedUserWithProfile] profile fetch failed", error);
+    return { supabase, user, profile: null };
+  }
+
+  if (profile?.deleted_at) {
+    await supabase.auth.signOut();
+    return { supabase, user: null, profile: null };
+  }
+
+  return { supabase, user, profile };
+}
+
 /**
  * Server Components / Layout 内で同一リクエスト中の認証取得を共有する。
  * Route Handler では副作用やリクエスト境界を明確にするため、通常の getAuthenticatedUser を使う。
  */
 export const getAuthenticatedUserCached = cache(getAuthenticatedUser);
+export const getAuthenticatedUserWithProfileCached = cache(getAuthenticatedUserWithProfile);

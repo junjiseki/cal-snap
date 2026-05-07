@@ -3,7 +3,7 @@ import { BarChart3 } from "lucide-react";
 import { safeInternalPath } from "@/lib/auth/safe-redirect";
 import { MealPhotoAnalyzer } from "@/components/meals/meal-photo-analyzer";
 import { MAX_MEAL_ITEMS_PER_MEAL, MAX_MEALS_PER_DAY } from "@/lib/meal-analysis";
-import { getAuthenticatedUserCached } from "@/lib/supabase/server";
+import { getAuthenticatedUserWithProfileCached } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +21,7 @@ export default async function NewMealPage({
       ? `${dateParam}T12:00`
       : undefined;
 
-  const { user } = await getAuthenticatedUserCached();
+  const { user, profile } = await getAuthenticatedUserWithProfileCached();
 
   const nextQs = new URLSearchParams();
   if (typeof params.manual === "string" && params.manual !== "") {
@@ -83,7 +83,7 @@ export default async function NewMealPage({
         <MealPhotoAnalyzer
           initialEntryMode={openManual ? "manual" : undefined}
           initialEatenAtLocal={initialEatenAtLocal}
-          plan="free"
+          plan={profile?.plan === "paid" ? "paid" : "free"}
         />
       </div>
     </main>

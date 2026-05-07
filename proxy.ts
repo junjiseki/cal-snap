@@ -9,6 +9,7 @@ const DOCUMENT_CACHE_CONTROL =
 
 const PERMISSIONS_POLICY =
   "camera=(self), microphone=(), geolocation=(), payment=()";
+const AUTH_CONTEXT_HEADER = "x-kalosna-auth-context";
 
 function hasSupabaseAuthCookie(request: NextRequest) {
   return request.cookies
@@ -32,6 +33,19 @@ function shouldNoStore(request: NextRequest) {
     pathname === "/profile" ||
     pathname === "/settings" ||
     pathname === "/suggestions"
+  );
+}
+
+function shouldRefreshAuth(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  return (
+    pathname === "/login" ||
+    pathname === "/dashboard" ||
+    pathname === "/meals/new" ||
+    pathname === "/profile" ||
+    pathname === "/settings" ||
+    pathname === "/suggestions" ||
+    pathname === "/billing"
   );
 }
 
@@ -91,16 +105,23 @@ export async function proxy(request: NextRequest) {
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const shouldUseAuthContext = shouldRefreshAuth(request);
+  const requestHeaders = new Headers(request.headers);
+  if (shouldUseAuthContext) {
+    requestHeaders.set(AUTH_CONTEXT_HEADER, "1");
+  } else {
+    requestHeaders.delete(AUTH_CONTEXT_HEADER);
+  }
 
   if (!url || !anonKey) {
-    return finish(NextResponse.next({ request }));
+    return finish(NextResponse.next({ request: { headers: requestHeaders } }));
   }
 
   let supabaseResponse = NextResponse.next({
-    request,
+    request: { headers: requestHeaders },
   });
 
-  if (hasSupabaseAuthCookie(request)) {
+  if (shouldUseAuthContext && hasSupabaseAuthCookie(request)) {
     const supabase = createServerClient<Database>(url, anonKey, {
       cookies: {
         getAll() {
@@ -111,7 +132,7 @@ export async function proxy(request: NextRequest) {
             request.cookies.set(name, value);
           });
           supabaseResponse = NextResponse.next({
-            request,
+            request: { headers: requestHeaders },
           });
           cookiesToSet.forEach(({ name, value, options }) => {
             supabaseResponse.cookies.set(name, value, options);
@@ -132,6 +153,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|manifest\\.json|robots\\.txt|sitemap\\.xml|sw\\.js|sw-passive\\.js|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

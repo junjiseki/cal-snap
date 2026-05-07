@@ -1,9 +1,5 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { PublicHome } from "@/components/landing/public-home";
-import { getAuthenticatedUserCached } from "@/lib/supabase/server";
-
-export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "健康的に痩せたい人の食事写真カロリー管理",
@@ -21,10 +17,6 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function Home() {
-  const { user } = await getAuthenticatedUserCached();
-  if (user) {
-    redirect("/meals/new");
-  }
+export default function Home() {
   return <PublicHome />;
 }

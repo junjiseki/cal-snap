@@ -14,10 +14,12 @@ function createCookieStore(): CookieStore {
 
 function createSupabaseMock({
   authUserId = "user-1",
+  authError = null,
   profileData = null,
   profileError = null,
 }: {
   authUserId?: string | null;
+  authError?: { message: string; code?: string; status?: number } | null;
   profileData?: { deleted_at?: string | null; plan?: "free" | "paid"; daily_calorie_goal?: number } | null;
   profileError?: { message: string } | null;
 }) {
@@ -32,7 +34,7 @@ function createSupabaseMock({
       auth: {
         getUser: vi.fn().mockResolvedValue({
           data: { user: authUserId ? { id: authUserId, user_metadata: {} } : null },
-          error: null,
+          error: authError,
         }),
         signOut,
       },
@@ -127,5 +129,23 @@ describe("supabase server auth guards", () => {
     expect(result.user?.id).toBe("user-with-profile-error");
     expect(result.profile).toBeNull();
     expect(supabase.signOut).not.toHaveBeenCalled();
+  });
+
+  it("getAuthSessionUser does not sign out on non-stale auth error", async () => {
+    const cookieStore = createCookieStore();
+    const supabase = createSupabaseMock({
+      authUserId: null,
+      authError: { message: "temporary auth failure", code: "unexpected_failure", status: 500 },
+    });
+    const { getAuthSessionUser } = await importServerModuleWithMocks({
+      cookieStore,
+      supabaseClient: supabase.client,
+    });
+
+    const result = await getAuthSessionUser();
+
+    expect(result.user).toBeNull();
+    expect(supabase.signOut).not.toHaveBeenCalled();
+    expect(supabase.maybeSingle).not.toHaveBeenCalled();
   });
 });

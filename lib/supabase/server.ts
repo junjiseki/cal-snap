@@ -74,21 +74,21 @@ export async function getAuthenticatedUser() {
   const { supabase, user } = await getAuthSessionUser();
 
   if (!user) {
-    return { supabase, user: null };
+    return { supabase, user: null, profile: null };
   }
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("deleted_at")
+    .select("deleted_at,plan,daily_calorie_goal")
     .eq("id", user.id)
     .maybeSingle();
 
   if (profile?.deleted_at) {
     await supabase.auth.signOut();
-    return { supabase, user: null };
+    return { supabase, user: null, profile: null };
   }
 
-  return { supabase, user };
+  return { supabase, user, profile };
 }
 
 /**

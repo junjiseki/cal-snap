@@ -21,7 +21,7 @@ export default async function NewMealPage({
       ? `${dateParam}T12:00`
       : undefined;
 
-  const { user } = await getAuthenticatedUserCached();
+  const { user, profile } = await getAuthenticatedUserCached();
 
   const nextQs = new URLSearchParams();
   if (typeof params.manual === "string" && params.manual !== "") {
@@ -83,7 +83,7 @@ export default async function NewMealPage({
         <MealPhotoAnalyzer
           initialEntryMode={openManual ? "manual" : undefined}
           initialEatenAtLocal={initialEatenAtLocal}
-          plan="free"
+          plan={profile?.plan === "paid" ? "paid" : "free"}
         />
       </div>
     </main>

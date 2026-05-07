@@ -35,6 +35,18 @@ function shouldNoStore(request: NextRequest) {
   );
 }
 
+function shouldRefreshAuth(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  return (
+    pathname === "/dashboard" ||
+    pathname === "/meals/new" ||
+    pathname === "/profile" ||
+    pathname === "/settings" ||
+    pathname === "/suggestions" ||
+    pathname === "/billing"
+  );
+}
+
 /** next.config の `headers` ソースに相当（ページ HTML のみ弱キャッシュ） */
 function shouldApplyDocumentCachePolicy(request: NextRequest): boolean {
   const p = request.nextUrl.pathname;
@@ -100,7 +112,7 @@ export async function proxy(request: NextRequest) {
     request,
   });
 
-  if (hasSupabaseAuthCookie(request)) {
+  if (shouldRefreshAuth(request) && hasSupabaseAuthCookie(request)) {
     const supabase = createServerClient<Database>(url, anonKey, {
       cookies: {
         getAll() {
@@ -132,6 +144,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|manifest\\.json|robots\\.txt|sitemap\\.xml|sw\\.js|sw-passive\\.js|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

@@ -7,15 +7,10 @@ import { AppHeaderClient, type AppHeaderAccount } from "@/components/layout/app-
 import { PublicAppHeaderClient } from "@/components/layout/public-app-header-client";
 
 export async function AppHeader({ className }: { className?: string }) {
-  const { supabase, user } = await getAuthenticatedUserCached();
+  const { user, profile } = await getAuthenticatedUserCached();
 
   let account: AppHeaderAccount | null = null;
   if (user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("plan")
-      .eq("id", user.id)
-      .maybeSingle();
     account = {
       email: user.email ?? "（メール未設定）",
       displayName:

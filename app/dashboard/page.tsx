@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { Camera, Sparkles, TrendingDown, TrendingUp } from "lucide-react";
 import { getCalorieOverLevel, getDayRangeInJapan } from "@/lib/meal-analysis";
-import { getAuthenticatedUserCached } from "@/lib/supabase/server";
+import { getAuthenticatedUserWithProfileCached } from "@/lib/supabase/server";
 import { CalorieGoalOnboardingModal } from "@/components/account/calorie-goal-onboarding-modal";
 import { DashboardMealCalendar } from "@/components/meals/dashboard-meal-calendar";
 import { MealList } from "@/components/meals/meal-list";
@@ -37,6 +37,10 @@ type MealRow = {
     calories: number;
   }[];
 };
+
+type DashboardSupabaseClient = Awaited<
+  ReturnType<typeof getAuthenticatedUserWithProfileCached>
+>["supabase"];
 
 /** YYYY-MM-DD を日本語の日付表記に（その日の表示用。正午 JST で解釈） */
 function formatJapanDateHeading(ymd: string) {
@@ -88,7 +92,7 @@ export default async function DashboardPage({
     meals_page?: string;
   }>;
 }) {
-  const { supabase, user, profile } = await getAuthenticatedUserCached();
+  const { supabase, user, profile } = await getAuthenticatedUserWithProfileCached();
 
   if (!user) {
     return (
@@ -304,6 +308,8 @@ export default async function DashboardPage({
           <div className="p-4 sm:p-5">
             <Suspense fallback={<DashboardChartSkeleton />}>
               <DashboardChartPanel
+                supabase={supabase}
+                userId={user.id}
                 isPaid={isPaid}
                 goalCalories={goalCalories}
                 todayDate={todayDate}
@@ -333,6 +339,8 @@ export default async function DashboardPage({
           </div>
           <Suspense fallback={<DashboardMealHistorySkeleton isPaid={isPaid} />}>
             <DashboardMealHistorySection
+              supabase={supabase}
+              userId={user.id}
               date={date}
               start={start}
               endExclusive={endExclusive}
@@ -354,10 +362,14 @@ function DashboardChartSkeleton() {
 }
 
 async function DashboardChartPanel({
+  supabase,
+  userId,
   isPaid,
   goalCalories,
   todayDate,
 }: {
+  supabase: DashboardSupabaseClient;
+  userId: string;
   isPaid: boolean;
   goalCalories: number;
   todayDate: string;
@@ -378,15 +390,12 @@ async function DashboardChartPanel({
     );
   }
 
-  const { supabase, user } = await getAuthenticatedUserCached();
-  if (!user) return null;
-
   const chart14Days = lastNJstDaysAsc(14, todayDate);
   const last14DaysStart = new Date(`${chart14Days[0]}T00:00:00.000+09:00`).toISOString();
   const { data: chartMeals, error } = await supabase
     .from("meals")
     .select("id,eaten_at,total_calories,protein,fat,carbs")
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .gte("eaten_at", last14DaysStart)
     .order("eaten_at", { ascending: true });
 
@@ -420,6 +429,8 @@ function DashboardMealHistorySkeleton({ isPaid }: { isPaid: boolean }) {
 }
 
 async function DashboardMealHistorySection({
+  supabase,
+  userId,
   date,
   start,
   endExclusive,
@@ -429,6 +440,8 @@ async function DashboardMealHistorySection({
   mealCount,
   goalCalories,
 }: {
+  supabase: DashboardSupabaseClient;
+  userId: string;
   date: string;
   start: string;
   endExclusive: string;
@@ -438,9 +451,6 @@ async function DashboardMealHistorySection({
   mealCount: number;
   goalCalories: number;
 }) {
-  const { supabase, user } = await getAuthenticatedUserCached();
-  if (!user) return null;
-
   const mealsRangeFrom = (mealsPage - 1) * DASHBOARD_DAY_MEALS_PAGE_SIZE;
   const mealsRangeTo = mealsRangeFrom + DASHBOARD_DAY_MEALS_PAGE_SIZE - 1;
   const [cy, cm] = date.split("-").map(Number);
@@ -453,7 +463,7 @@ async function DashboardMealHistorySection({
     .select(
       "id,eaten_at,total_calories,protein,fat,carbs,memo,meal_items(id,name,estimated_amount,calories)",
     )
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .gte("eaten_at", start)
     .lt("eaten_at", endExclusive)
     .order("eaten_at", { ascending: false })
@@ -462,7 +472,7 @@ async function DashboardMealHistorySection({
     ? supabase
         .from("meals")
         .select("eaten_at")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .gte("eaten_at", monthStartIso)
         .lte("eaten_at", monthEndIso)
     : Promise.resolve({ data: [] as { eaten_at: string }[] | null, error: null });

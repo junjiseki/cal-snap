@@ -12,20 +12,13 @@ import { PassiveServiceWorkerRegister } from "@/components/pwa/passive-service-w
 import { PwaInstallPrompt } from "@/components/pwa/install-prompt";
 import { ServiceWorkerLegacyCleanup } from "@/components/pwa/service-worker-legacy-cleanup";
 import { ThemeProvider } from "@/components/theme-provider";
-import { Noto_Sans_JP } from "next/font/google";
+import { Geist } from 'next/font/google'
 
-const notoSansJp = Noto_Sans_JP({
+const geist = Geist({
   subsets: ["latin"],
-  weight: ["400", "500", "700"],
+  weight: ["500", "600", "700"],
+  variable: "--font-roboto",
   display: "swap",
-  fallback: [
-    "Hiragino Sans",
-    "Hiragino Kaku Gothic ProN",
-    "Yu Gothic",
-    "YuGothic",
-    "Meiryo",
-    "sans-serif",
-  ],
 });
 
 export const metadata: Metadata = {
@@ -123,7 +116,7 @@ export default async function RootLayout({
       suppressHydrationWarning
       className="h-full antialiased"
     >
-      <body className={`${notoSansJp.className} flex min-h-full flex-col`}>
+      <body className={`${geist.className} flex min-h-full flex-col`}>
         <ThemeProvider>
           <CleanupStaleSession />
           <ServiceWorkerLegacyCleanup />

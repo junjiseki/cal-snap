@@ -85,8 +85,7 @@ export async function getAuthenticatedUser() {
 
   if (error) {
     console.error("[getAuthenticatedUser] profile deleted_at fetch failed", error);
-    await supabase.auth.signOut();
-    return { supabase, user: null };
+    return { supabase, user };
   }
 
   if (profile?.deleted_at) {
@@ -112,8 +111,7 @@ export async function getAuthenticatedUserWithProfile() {
 
   if (error) {
     console.error("[getAuthenticatedUserWithProfile] profile fetch failed", error);
-    await supabase.auth.signOut();
-    return { supabase, user: null, profile: null };
+    return { supabase, user, profile: null };
   }
 
   if (profile?.deleted_at) {

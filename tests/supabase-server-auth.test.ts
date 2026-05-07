@@ -92,7 +92,7 @@ describe("supabase server auth guards", () => {
     expect(supabase.signOut).toHaveBeenCalledTimes(1);
   });
 
-  it("getAuthenticatedUser signs out on profile query error", async () => {
+  it("getAuthenticatedUser keeps session on profile query error", async () => {
     const cookieStore = createCookieStore();
     const supabase = createSupabaseMock({
       authUserId: "user-error-case",
@@ -106,11 +106,11 @@ describe("supabase server auth guards", () => {
     const result = await getAuthenticatedUser();
 
     expect(supabase.maybeSingle).toHaveBeenCalledTimes(1);
-    expect(result.user).toBeNull();
-    expect(supabase.signOut).toHaveBeenCalledTimes(1);
+    expect(result.user?.id).toBe("user-error-case");
+    expect(supabase.signOut).not.toHaveBeenCalled();
   });
 
-  it("getAuthenticatedUserWithProfile signs out on profile query error", async () => {
+  it("getAuthenticatedUserWithProfile keeps session on profile query error", async () => {
     const cookieStore = createCookieStore();
     const supabase = createSupabaseMock({
       authUserId: "user-with-profile-error",
@@ -124,8 +124,8 @@ describe("supabase server auth guards", () => {
     const result = await getAuthenticatedUserWithProfile();
 
     expect(supabase.maybeSingle).toHaveBeenCalledTimes(1);
-    expect(result.user).toBeNull();
+    expect(result.user?.id).toBe("user-with-profile-error");
     expect(result.profile).toBeNull();
-    expect(supabase.signOut).toHaveBeenCalledTimes(1);
+    expect(supabase.signOut).not.toHaveBeenCalled();
   });
 });

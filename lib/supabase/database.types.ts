@@ -141,6 +141,89 @@ export type Database = {
         };
         Relationships: [];
       };
+      meal_reminder_settings: {
+        Row: {
+          user_id: string;
+          meal_type:
+            | "breakfast"
+            | "morning_snack"
+            | "lunch"
+            | "afternoon_snack"
+            | "dinner"
+            | "night_snack"
+            | "supplement_1"
+            | "supplement_2";
+          notify_time: string;
+          enabled: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          meal_type:
+            | "breakfast"
+            | "morning_snack"
+            | "lunch"
+            | "afternoon_snack"
+            | "dinner"
+            | "night_snack"
+            | "supplement_1"
+            | "supplement_2";
+          notify_time: string;
+          enabled?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          notify_time?: string;
+          enabled?: boolean;
+        };
+        Relationships: [];
+      };
+      meal_reminder_logs: {
+        Row: {
+          user_id: string;
+          meal_type:
+            | "breakfast"
+            | "morning_snack"
+            | "lunch"
+            | "afternoon_snack"
+            | "dinner"
+            | "night_snack"
+            | "supplement_1"
+            | "supplement_2";
+          target_date: string;
+          first_sent_at: string | null;
+          followup_sent_at: string | null;
+          completed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          meal_type:
+            | "breakfast"
+            | "morning_snack"
+            | "lunch"
+            | "afternoon_snack"
+            | "dinner"
+            | "night_snack"
+            | "supplement_1"
+            | "supplement_2";
+          target_date: string;
+          first_sent_at?: string | null;
+          followup_sent_at?: string | null;
+          completed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          first_sent_at?: string | null;
+          followup_sent_at?: string | null;
+          completed_at?: string | null;
+        };
+        Relationships: [];
+      };
       contact_messages: {
         Row: {
           id: string;

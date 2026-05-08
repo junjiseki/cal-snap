@@ -30,6 +30,7 @@ function shouldNoStore(request: NextRequest) {
     pathname === "/billing" ||
     pathname === "/dashboard" ||
     pathname === "/meals/new" ||
+    pathname === "/meal-reminders" ||
     pathname === "/profile" ||
     pathname === "/settings" ||
     pathname === "/suggestions"
@@ -42,6 +43,7 @@ function shouldRefreshAuth(request: NextRequest) {
     pathname === "/login" ||
     pathname === "/dashboard" ||
     pathname === "/meals/new" ||
+    pathname === "/meal-reminders" ||
     pathname === "/profile" ||
     pathname === "/settings" ||
     pathname === "/suggestions" ||

@@ -3,8 +3,14 @@
  * 静的アセットのみ最小限キャッシュする。
  * API・認証系レスポンスはキャッシュしない。
  */
-const STATIC_CACHE = "cal-snap-static-v2";
-const APP_SHELL = ["/manifest.json", "/icon-192.png", "/icon-512.png"];
+const STATIC_CACHE = "cal-snap-static-v3";
+/** iOS「ホームに追加」が参照するアイコンも先に取っておく */
+const APP_SHELL = [
+  "/manifest.json",
+  "/apple-touch-icon.png",
+  "/icon-192.png",
+  "/icon-512.png",
+];
 
 function isCacheableStaticRequest(request) {
   if (request.method !== "GET") return false;

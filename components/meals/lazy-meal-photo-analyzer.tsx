@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import type { ComponentProps } from "react";
 
 const MealPhotoAnalyzer = dynamic(
   () => import("@/components/meals/meal-photo-analyzer").then((mod) => mod.MealPhotoAnalyzer),
@@ -10,27 +11,17 @@ const MealPhotoAnalyzer = dynamic(
   },
 );
 
-export function LazyMealPhotoAnalyzer({
-  initialEntryMode,
-  initialEatenAtLocal,
-  plan,
-}: {
-  initialEntryMode?: "manual";
-  initialEatenAtLocal?: string;
-  plan?: "free" | "paid";
-}) {
-  return (
-    <MealPhotoAnalyzer
-      initialEntryMode={initialEntryMode}
-      initialEatenAtLocal={initialEatenAtLocal}
-      plan={plan}
-    />
-  );
+export function LazyMealPhotoAnalyzer(props: ComponentProps<typeof MealPhotoAnalyzer>) {
+  return <MealPhotoAnalyzer {...props} />;
 }
 
 function MealPhotoAnalyzerSkeleton() {
   return (
-    <div className="grid gap-4 sm:gap-6 lg:grid-cols-[minmax(0,360px)_1fr] lg:items-start">
+    <div
+      className="grid gap-4 sm:gap-6 lg:grid-cols-[minmax(0,360px)_1fr] lg:items-start"
+      aria-busy="true"
+      aria-label="食事記録フォームを読み込み中"
+    >
       <section className="space-y-4 border border-border bg-card p-4 shadow-sm sm:p-5">
         <div>
           <div className="h-3 w-14 animate-pulse rounded bg-primary/20" />

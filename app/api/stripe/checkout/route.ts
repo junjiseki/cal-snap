@@ -80,6 +80,7 @@ export async function POST(request: Request) {
         userId: user.id,
       },
     },
+    locale: "ja",
   });
 
   return Response.json({ url: session.url });

@@ -3,8 +3,11 @@ import { z } from "zod";
 export const MAX_MEAL_REMINDER_SETTINGS = 8;
 export const MEAL_REMINDER_TIME_STEP_SECONDS = 600;
 
-/** `app/api/cron/meal-reminders` の getDueWindow 既定（分）と一致 */
-export const MEAL_REMINDER_CRON_WINDOW_MINUTES = 10;
+/**
+ * cron 実行が遅延しても取りこぼしにくいよう、実際のスケジュール間隔より長めのローリング窓（分）。
+ * 重複送信は meal_reminder_logs の PK で抑止。
+ */
+export const MEAL_REMINDER_CRON_WINDOW_MINUTES = 25;
 
 /**
  * 食事記録を「この notify 枠」の完了とみなす範囲の手前（分）。

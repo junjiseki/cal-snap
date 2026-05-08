@@ -279,6 +279,15 @@ begin
   where existing.user_id = current_user_id
     and existing.notify_time = incoming.notify_time;
 
+  -- 件数トリガー回避: 入れ替えで8件→別8件のとき、先に不要行を消してから insert する
+  delete from public.meal_reminder_settings existing
+  where existing.user_id = current_user_id
+    and not exists (
+      select 1
+      from _incoming_meal_reminder_settings incoming
+      where incoming.notify_time = existing.notify_time
+    );
+
   insert into public.meal_reminder_settings (user_id, notify_time, enabled)
   select current_user_id, incoming.notify_time, incoming.enabled
   from _incoming_meal_reminder_settings incoming
@@ -288,14 +297,6 @@ begin
     where existing.user_id = current_user_id
       and existing.notify_time = incoming.notify_time
   );
-
-  delete from public.meal_reminder_settings existing
-  where existing.user_id = current_user_id
-    and not exists (
-      select 1
-      from _incoming_meal_reminder_settings incoming
-      where incoming.notify_time = existing.notify_time
-    );
 end;
 $$;
 

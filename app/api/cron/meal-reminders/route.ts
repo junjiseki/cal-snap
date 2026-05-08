@@ -1,4 +1,5 @@
 import webpush from "web-push";
+import { MEAL_REMINDER_CRON_WINDOW_MINUTES } from "@/lib/meal-reminders";
 import { getVapidServerConfig } from "@/lib/push-subscriptions";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -44,7 +45,7 @@ function getJstParts(date: Date) {
   };
 }
 
-function getDueWindow(date = new Date(), minutes = 10) {
+function getDueWindow(date: Date, minutes: number) {
   const due = [];
   for (let i = minutes - 1; i >= 0; i -= 1) {
     due.push(getJstParts(new Date(date.getTime() - i * 60 * 1000)));
@@ -74,7 +75,7 @@ export async function GET(request: Request) {
   webpush.setVapidDetails(vapid.subject, vapid.publicKey, vapid.privateKey);
 
   const supabase = getSupabaseAdminClient();
-  const dueWindow = getDueWindow();
+  const dueWindow = getDueWindow(new Date(), MEAL_REMINDER_CRON_WINDOW_MINUTES);
   const targetDateByNotifyTime = new Map(
     dueWindow.map((item) => [item.notifyTime, item.targetDate]),
   );

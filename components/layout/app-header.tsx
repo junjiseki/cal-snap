@@ -14,10 +14,10 @@ export function AppHeader({ className }: { className?: string }) {
 
   useEffect(() => {
     let cancelled = false;
+    const supabase = createClient();
 
     async function loadAccount() {
       try {
-        const supabase = createClient();
         const {
           data: { user },
         } = await supabase.auth.getUser();
@@ -50,9 +50,14 @@ export function AppHeader({ className }: { className?: string }) {
     }
 
     void loadAccount();
+    const { data: authSubscription } = supabase.auth.onAuthStateChange(() => {
+      if (cancelled) return;
+      void loadAccount();
+    });
 
     return () => {
       cancelled = true;
+      authSubscription.subscription.unsubscribe();
     };
   }, []);
 

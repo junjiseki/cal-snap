@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import {
   MAX_MEAL_REMINDER_SETTINGS,
-  MEAL_REMINDER_TIME_STEP_SECONDS,
   type MealReminderSettingInput,
   isTenMinuteTime,
   normalizeNotifyTime,
@@ -25,11 +24,24 @@ function createClientId() {
   return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
 }
 
+function normalizeToTenMinuteTime(value: string) {
+  const normalized = normalizeNotifyTime(value);
+  if (isTenMinuteTime(normalized)) return normalized;
+
+  const [hoursText = "00", minutesText = "00"] = normalized.split(":");
+  const hours = Number.parseInt(hoursText, 10);
+  const minutes = Number.parseInt(minutesText, 10);
+  const safeHours = Number.isFinite(hours) ? Math.min(23, Math.max(0, hours)) : 0;
+  const safeMinutes = Number.isFinite(minutes) ? Math.min(59, Math.max(0, minutes)) : 0;
+  const roundedMinutes = Math.floor(safeMinutes / 10) * 10;
+  return `${String(safeHours).padStart(2, "0")}:${String(roundedMinutes).padStart(2, "0")}`;
+}
+
 function createInitialSettings(existing: ExistingSetting[]): EditableSetting[] {
   return existing.map((setting) => ({
     id: setting.id,
     clientId: setting.id,
-    notify_time: normalizeNotifyTime(setting.notify_time),
+    notify_time: normalizeToTenMinuteTime(setting.notify_time),
     enabled: setting.enabled,
   }));
 }

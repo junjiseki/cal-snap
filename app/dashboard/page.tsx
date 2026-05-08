@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { Camera, Sparkles, TrendingDown, TrendingUp } from "lucide-react";
 import { getCalorieOverLevel, getDayRangeInJapan } from "@/lib/meal-analysis";
-import { getAuthenticatedUserWithProfileCached } from "@/lib/supabase/server";
+import { getAuthenticatedUserWithProfile } from "@/lib/supabase/server";
 import { CalorieGoalOnboardingModal } from "@/components/account/calorie-goal-onboarding-modal";
 import { DashboardMealCalendar } from "@/components/meals/dashboard-meal-calendar";
 import { MealList } from "@/components/meals/meal-list";
@@ -39,7 +39,7 @@ type MealRow = {
 };
 
 type DashboardSupabaseClient = Awaited<
-  ReturnType<typeof getAuthenticatedUserWithProfileCached>
+  ReturnType<typeof getAuthenticatedUserWithProfile>
 >["supabase"];
 
 /** YYYY-MM-DD を日本語の日付表記に（その日の表示用。正午 JST で解釈） */
@@ -92,7 +92,7 @@ export default async function DashboardPage({
     meals_page?: string;
   }>;
 }) {
-  const { supabase, user, profile } = await getAuthenticatedUserWithProfileCached();
+  const { supabase, user, profile } = await getAuthenticatedUserWithProfile();
 
   if (!user) {
     return (
@@ -117,6 +117,8 @@ export default async function DashboardPage({
   if (params.billing === "success" && params.session_id) {
     try {
       await syncPlanOnBillingSuccess(params.session_id, user.id);
+      // 同期直後の RSC 内 profile とズレないよう、クエリなしで再読込させる
+      redirect("/dashboard");
     } catch (error) {
       console.error("[dashboard] billing success sync failed", error);
     }

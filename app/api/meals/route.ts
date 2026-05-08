@@ -6,6 +6,7 @@ import {
   toConfidence,
   toInteger,
 } from "@/lib/meal-analysis";
+import { pickMealReminderSettingIdForEatenAt } from "@/lib/meal-reminders";
 import { forbiddenOriginResponse, isAllowedOrigin } from "@/lib/security/request";
 import type { Json } from "@/lib/supabase/database.types";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
@@ -123,6 +124,33 @@ export async function POST(request: Request) {
       return errorResponse(message, 429, "MEAL_LIMIT_EXCEEDED");
     }
     return errorResponse("食事を登録できません。", 500, "MEAL_CREATE_FAILED");
+  }
+
+  const eatenDate = new Date(meal.eaten_at);
+  const targetDate = formatJstYmd(eatenDate);
+  const { data: reminderSettings } = await supabase
+    .from("meal_reminder_settings")
+    .select("id, notify_time")
+    .eq("user_id", user.id)
+    .eq("enabled", true);
+
+  const reminderSettingId = pickMealReminderSettingIdForEatenAt(
+    eatenDate,
+    reminderSettings ?? [],
+  );
+
+  if (reminderSettingId) {
+    const { error: reminderLogError } = await supabase
+      .from("meal_reminder_logs")
+      .update({ completed_at: new Date().toISOString() })
+      .eq("user_id", user.id)
+      .eq("meal_reminder_setting_id", reminderSettingId)
+      .eq("target_date", targetDate)
+      .is("completed_at", null);
+
+    if (reminderLogError) {
+      console.warn("[meals] reminder completion update failed", reminderLogError);
+    }
   }
 
   return Response.json({ mealId });

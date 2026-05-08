@@ -3,8 +3,14 @@
  * 静的アセットのみ最小限キャッシュする。
  * API・認証系レスポンスはキャッシュしない。
  */
-const STATIC_CACHE = "cal-snap-static-v2";
-const APP_SHELL = ["/manifest.json", "/icon-192.png", "/icon-512.png"];
+const STATIC_CACHE = "cal-snap-static-v3";
+/** iOS「ホームに追加」が参照するアイコンも先に取っておく */
+const APP_SHELL = [
+  "/manifest.json",
+  "/apple-touch-icon.png",
+  "/icon-192.png",
+  "/icon-512.png",
+];
 
 function isCacheableStaticRequest(request) {
   if (request.method !== "GET") return false;
@@ -59,6 +65,57 @@ self.addEventListener("fetch", (event) => {
         })
         .catch(() => cached);
       return cached ?? fetchPromise;
+    })(),
+  );
+});
+
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    data = {};
+  }
+
+  const title = data.title || "食事の時間です";
+  const url = data.url || "/meals/new";
+
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body: data.body || "写真を撮って、食事を記録しましょう。",
+      icon: "/icon-192.png",
+      badge: "/icon-192.png",
+      tag: data.tag || "meal-reminder",
+      renotify: true,
+      data: { url },
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url || "/meals/new";
+
+  event.waitUntil(
+    (async () => {
+      const clientList = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+      const existing = clientList.find((client) => {
+        try {
+          return new URL(client.url).pathname === new URL(url, self.location.origin).pathname;
+        } catch {
+          return false;
+        }
+      });
+
+      if (existing) {
+        await existing.focus();
+        return;
+      }
+
+      await self.clients.openWindow(url);
     })(),
   );
 });

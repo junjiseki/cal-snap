@@ -141,6 +141,88 @@ export type Database = {
         };
         Relationships: [];
       };
+      meal_reminder_settings: {
+        Row: {
+          id: string;
+          user_id: string;
+          notify_time: string;
+          enabled: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          notify_time: string;
+          enabled?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          notify_time?: string;
+          enabled?: boolean;
+        };
+        Relationships: [];
+      };
+      meal_reminder_logs: {
+        Row: {
+          user_id: string;
+          meal_reminder_setting_id: string;
+          target_date: string;
+          first_sent_at: string | null;
+          followup_sent_at: string | null;
+          completed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          meal_reminder_setting_id: string;
+          target_date: string;
+          first_sent_at?: string | null;
+          followup_sent_at?: string | null;
+          completed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          first_sent_at?: string | null;
+          followup_sent_at?: string | null;
+          completed_at?: string | null;
+        };
+        Relationships: [];
+      };
+      push_subscriptions: {
+        Row: {
+          id: string;
+          user_id: string;
+          endpoint: string;
+          p256dh: string;
+          auth: string;
+          user_agent: string | null;
+          created_at: string;
+          updated_at: string;
+          last_used_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          endpoint: string;
+          p256dh: string;
+          auth: string;
+          user_agent?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          last_used_at?: string | null;
+        };
+        Update: {
+          p256dh?: string;
+          auth?: string;
+          user_agent?: string | null;
+          last_used_at?: string | null;
+        };
+        Relationships: [];
+      };
       contact_messages: {
         Row: {
           id: string;
@@ -236,6 +318,12 @@ export type Database = {
           fat: number;
           carbs: number;
         }[];
+      };
+      replace_meal_reminder_settings: {
+        Args: {
+          p_settings: Json;
+        };
+        Returns: undefined;
       };
     };
     Enums: {

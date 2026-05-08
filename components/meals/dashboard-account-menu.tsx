@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CreditCard, Loader2, LogOut, Settings, User } from "lucide-react";
+import { BellRing, CreditCard, Loader2, LogOut, Settings, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 
@@ -77,6 +77,12 @@ export function DashboardAccountMenu({
       label: billingLabel,
       description: "AI解析枠と支払いを管理",
       icon: CreditCard,
+    },
+    {
+      href: "/meal-reminders",
+      label: "食事時間の登録",
+      description: "1日最大8回の記録時間を設定",
+      icon: BellRing,
     },
     {
       href: "/settings",

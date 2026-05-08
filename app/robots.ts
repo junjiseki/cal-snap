@@ -13,6 +13,7 @@ export default function robots(): MetadataRoute.Robots {
         "/auth/",
         "/dashboard",
         "/meals/",
+        "/meal-reminders",
         "/settings",
         "/profile",
         "/billing",

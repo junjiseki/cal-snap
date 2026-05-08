@@ -38,6 +38,7 @@ export function MealReminderSettingsForm({
   const [isSaving, setIsSaving] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showHowTo, setShowHowTo] = useState(false);
 
   const isDirty = useMemo(
     () => JSON.stringify(settings) !== JSON.stringify(savedSettings),
@@ -56,6 +57,7 @@ export function MealReminderSettingsForm({
     );
     setNotice(null);
     setError(null);
+    setShowHowTo(false);
   }
 
   async function save() {
@@ -81,6 +83,7 @@ export function MealReminderSettingsForm({
 
       setSavedSettings(settings);
       setNotice("食事時間を保存しました。");
+      setShowHowTo(true);
       router.refresh();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "保存に失敗しました。");
@@ -94,7 +97,7 @@ export function MealReminderSettingsForm({
       <div className="rounded-md border border-border bg-muted/25 p-3">
         <p className="text-sm font-semibold">有効な食事時間: {enabledCount} / 8</p>
         <p className="mt-1 text-xs leading-5 text-muted-foreground">
-          必要な時間だけオンにしてください。通知送信処理はこの設定をもとに実装できます。
+          必要な時間だけオンにして保存してください。登録方法は保存後に表示されます。
         </p>
       </div>
 
@@ -154,6 +157,17 @@ export function MealReminderSettingsForm({
         {notice ? <p className="text-sm text-primary">{notice}</p> : null}
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
       </div>
+
+      {showHowTo ? (
+        <div className="rounded-md border border-primary/20 bg-primary/5 p-4">
+          <h3 className="text-sm font-semibold">登録方法</h3>
+          <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm leading-6 text-muted-foreground">
+            <li>記録したい食事だけオンにします。</li>
+            <li>通知したい時間を選びます。</li>
+            <li>「食事時間を保存」を押すと、次回以降この時間を基準に使えます。</li>
+          </ol>
+        </div>
+      ) : null}
     </div>
   );
 }

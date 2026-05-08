@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ArrowLeft, BellRing } from "lucide-react";
 import { MealReminderSettingsForm } from "@/components/meals/meal-reminder-settings-form";
+import { PushNotificationSettings } from "@/components/pwa/push-notification-settings";
+import { getVapidPublicKey } from "@/lib/push-subscriptions";
 import { getAuthenticatedUserCached } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -36,6 +38,7 @@ export default async function MealRemindersPage() {
   ]);
 
   const isPaid = profile?.plan === "paid";
+  const vapidPublicKey = getVapidPublicKey();
 
   return (
     <main className="min-h-0 flex-1 bg-background">
@@ -80,15 +83,27 @@ export default async function MealRemindersPage() {
             </Link>
           </section>
         ) : (
-          <section className="border border-border bg-card p-5">
-            <h2 className="text-lg font-semibold">登録する食事時間</h2>
-            <p className="mt-2 text-sm leading-7 text-muted-foreground">
-              オンにした時間だけ保存されます。あとからいつでも変更できます。
-            </p>
-            <div className="mt-4">
-              <MealReminderSettingsForm initialSettings={settings ?? []} />
-            </div>
-          </section>
+          <>
+            <section className="border border-border bg-card p-5">
+              <h2 className="text-lg font-semibold">通知設定</h2>
+              <p className="mt-2 text-sm leading-7 text-muted-foreground">
+                この端末でWeb Push通知を受け取るには、ブラウザ通知を許可してください。
+              </p>
+              <div className="mt-4">
+                <PushNotificationSettings vapidPublicKey={vapidPublicKey} />
+              </div>
+            </section>
+
+            <section className="border border-border bg-card p-5">
+              <h2 className="text-lg font-semibold">登録する食事時間</h2>
+              <p className="mt-2 text-sm leading-7 text-muted-foreground">
+                オンにした時間だけ保存されます。あとからいつでも変更できます。
+              </p>
+              <div className="mt-4">
+                <MealReminderSettingsForm initialSettings={settings ?? []} />
+              </div>
+            </section>
+          </>
         )}
       </div>
     </main>

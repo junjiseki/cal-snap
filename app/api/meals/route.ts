@@ -25,6 +25,16 @@ function formatJstYmd(date: Date) {
   }).format(date);
 }
 
+function formatJstTime(date: Date) {
+  return new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Asia/Tokyo",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(date);
+}
+
 export async function POST(request: Request) {
   if (!isAllowedOrigin(request)) {
     return forbiddenOriginResponse();
@@ -123,6 +133,33 @@ export async function POST(request: Request) {
       return errorResponse(message, 429, "MEAL_LIMIT_EXCEEDED");
     }
     return errorResponse("食事を登録できません。", 500, "MEAL_CREATE_FAILED");
+  }
+
+  const eatenDate = new Date(meal.eaten_at);
+  const targetDate = formatJstYmd(eatenDate);
+  const eatenTime = formatJstTime(eatenDate);
+  const { data: reminderSetting } = await supabase
+    .from("meal_reminder_settings")
+    .select("meal_type")
+    .eq("user_id", user.id)
+    .eq("enabled", true)
+    .lte("notify_time", eatenTime)
+    .order("notify_time", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (reminderSetting?.meal_type) {
+    const { error: reminderLogError } = await supabase
+      .from("meal_reminder_logs")
+      .update({ completed_at: new Date().toISOString() })
+      .eq("user_id", user.id)
+      .eq("meal_type", reminderSetting.meal_type)
+      .eq("target_date", targetDate)
+      .is("completed_at", null);
+
+    if (reminderLogError) {
+      console.warn("[meals] reminder completion update failed", reminderLogError);
+    }
   }
 
   return Response.json({ mealId });

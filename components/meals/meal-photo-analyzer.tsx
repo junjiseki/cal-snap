@@ -797,21 +797,6 @@ export function MealPhotoAnalyzer({
           ) : null}
         </div>
 
-        {canUseManualEntry ? (
-          <label className="block rounded-md border border-border bg-background p-3 text-sm font-medium">
-            食事時間
-            <input
-              type="datetime-local"
-              value={eatenAt}
-              onChange={(event) => setEatenAt(event.target.value)}
-              className="mt-2 h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
-            />
-            <span className="mt-2 block text-xs font-normal leading-5 text-muted-foreground">
-              有料プランは1日の食事時間を最大{MAX_MEALS_PER_DAY}回まで登録できます。
-            </span>
-          </label>
-        ) : null}
-
         <div
           className={[
             "grid gap-2 rounded-lg border border-border bg-muted/30 p-1",

@@ -77,7 +77,8 @@ export default async function NewMealPage({
               写真解析または手入力（有料プラン）で記録できます。推定値は保存前に確認・修正できます。
             </p>
             <p className="mt-2 text-xs text-muted-foreground/75">
-              登録上限: 1日{MAX_MEALS_PER_DAY}件まで / 1食あたり料理{MAX_MEAL_ITEMS_PER_MEAL}件まで
+              有料プランは食事時間を指定して1日最大{MAX_MEALS_PER_DAY}回まで記録できます。
+              1食あたり料理{MAX_MEAL_ITEMS_PER_MEAL}件まで登録できます。
             </p>
           </div>
         </div>

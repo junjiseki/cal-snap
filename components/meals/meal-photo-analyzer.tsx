@@ -792,10 +792,25 @@ export function MealPhotoAnalyzer({
           </p>
           {canUseManualEntry ? (
             <p className="mt-1 text-[11px] leading-5 text-muted-foreground/70">
-              上限: 1日{MAX_MEALS_PER_DAY}件 / 1食あたり料理{MAX_MEAL_ITEMS_PER_MEAL}件
+              食事時間を指定して、1日最大{MAX_MEALS_PER_DAY}回まで記録できます。
             </p>
           ) : null}
         </div>
+
+        {canUseManualEntry ? (
+          <label className="block rounded-md border border-border bg-background p-3 text-sm font-medium">
+            食事時間
+            <input
+              type="datetime-local"
+              value={eatenAt}
+              onChange={(event) => setEatenAt(event.target.value)}
+              className="mt-2 h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
+            />
+            <span className="mt-2 block text-xs font-normal leading-5 text-muted-foreground">
+              有料プランは1日の食事時間を最大{MAX_MEALS_PER_DAY}回まで登録できます。
+            </span>
+          </label>
+        ) : null}
 
         <div
           className={[
@@ -1030,6 +1045,11 @@ export function MealPhotoAnalyzer({
                   className="mt-2 h-11 w-full max-w-md rounded-md border border-input bg-background px-3 text-sm"
                 />
               </label>
+              {canUseManualEntry ? (
+                <p className="text-xs leading-5 text-muted-foreground">
+                  食事時間は左側の「食事時間」からも変更できます。
+                </p>
+              ) : null}
               <div>
                 <p className="text-sm font-semibold">1食あたりの合計（推定）</p>
                 <p className="mt-1 text-xs text-muted-foreground">

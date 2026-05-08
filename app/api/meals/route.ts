@@ -140,7 +140,7 @@ export async function POST(request: Request) {
   const eatenTime = formatJstTime(eatenDate);
   const { data: reminderSetting } = await supabase
     .from("meal_reminder_settings")
-    .select("meal_type")
+    .select("id")
     .eq("user_id", user.id)
     .eq("enabled", true)
     .lte("notify_time", eatenTime)
@@ -148,12 +148,12 @@ export async function POST(request: Request) {
     .limit(1)
     .maybeSingle();
 
-  if (reminderSetting?.meal_type) {
+  if (reminderSetting?.id) {
     const { error: reminderLogError } = await supabase
       .from("meal_reminder_logs")
       .update({ completed_at: new Date().toISOString() })
       .eq("user_id", user.id)
-      .eq("meal_type", reminderSetting.meal_type)
+      .eq("meal_reminder_setting_id", reminderSetting.id)
       .eq("target_date", targetDate)
       .is("completed_at", null);
 

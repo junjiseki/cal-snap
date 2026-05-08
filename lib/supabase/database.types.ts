@@ -143,32 +143,16 @@ export type Database = {
       };
       meal_reminder_settings: {
         Row: {
+          id: string;
           user_id: string;
-          meal_type:
-            | "breakfast"
-            | "morning_snack"
-            | "lunch"
-            | "afternoon_snack"
-            | "dinner"
-            | "night_snack"
-            | "supplement_1"
-            | "supplement_2";
           notify_time: string;
           enabled: boolean;
           created_at: string;
           updated_at: string;
         };
         Insert: {
+          id?: string;
           user_id: string;
-          meal_type:
-            | "breakfast"
-            | "morning_snack"
-            | "lunch"
-            | "afternoon_snack"
-            | "dinner"
-            | "night_snack"
-            | "supplement_1"
-            | "supplement_2";
           notify_time: string;
           enabled?: boolean;
           created_at?: string;
@@ -183,15 +167,7 @@ export type Database = {
       meal_reminder_logs: {
         Row: {
           user_id: string;
-          meal_type:
-            | "breakfast"
-            | "morning_snack"
-            | "lunch"
-            | "afternoon_snack"
-            | "dinner"
-            | "night_snack"
-            | "supplement_1"
-            | "supplement_2";
+          meal_reminder_setting_id: string;
           target_date: string;
           first_sent_at: string | null;
           followup_sent_at: string | null;
@@ -201,15 +177,7 @@ export type Database = {
         };
         Insert: {
           user_id: string;
-          meal_type:
-            | "breakfast"
-            | "morning_snack"
-            | "lunch"
-            | "afternoon_snack"
-            | "dinner"
-            | "night_snack"
-            | "supplement_1"
-            | "supplement_2";
+          meal_reminder_setting_id: string;
           target_date: string;
           first_sent_at?: string | null;
           followup_sent_at?: string | null;
@@ -350,6 +318,12 @@ export type Database = {
           fat: number;
           carbs: number;
         }[];
+      };
+      replace_meal_reminder_settings: {
+        Args: {
+          p_settings: Json;
+        };
+        Returns: undefined;
       };
     };
     Enums: {

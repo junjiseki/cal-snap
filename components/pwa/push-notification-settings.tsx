@@ -10,12 +10,41 @@ function urlBase64ToUint8Array(base64String: string) {
   return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
 }
 
+function rejectAfter(ms: number, message: string): Promise<never> {
+  return new Promise((_, reject) => {
+    setTimeout(() => reject(new Error(message)), ms);
+  });
+}
+
+function withTimeLimit<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  return Promise.race([promise, rejectAfter(ms, message)]);
+}
+
+function fetchWithTimeout(init: RequestInit & { timeoutMs?: number }): RequestInit {
+  const { timeoutMs = 45_000, ...rest } = init;
+  if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
+    return { ...rest, signal: AbortSignal.timeout(timeoutMs) };
+  }
+  return rest;
+}
+
+function isAbortError(caught: unknown): boolean {
+  return (
+    (caught instanceof DOMException && caught.name === "AbortError") ||
+    (caught instanceof Error && caught.name === "AbortError")
+  );
+}
+
 async function getCurrentSubscription() {
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
     return null;
   }
 
-  const registration = await navigator.serviceWorker.ready;
+  const registration = await withTimeLimit(
+    navigator.serviceWorker.ready,
+    45_000,
+    "サービスワーカーの準備がタイムアウトしました。ページを再読み込みしてから再度お試しください。",
+  );
   return registration.pushManager.getSubscription();
 }
 
@@ -51,27 +80,43 @@ export function PushNotificationSettings({ vapidPublicKey }: { vapidPublicKey: s
     setError(null);
 
     try {
-      const nextPermission = await Notification.requestPermission();
+      const nextPermission = await withTimeLimit(
+        Notification.requestPermission(),
+        120_000,
+        "通知の許可確認が完了しませんでした。ページを再読み込みしてから再度お試しください。",
+      );
       setPermission(nextPermission);
       if (nextPermission !== "granted") {
         setError("通知が許可されませんでした。ブラウザ設定から許可できます。");
         return;
       }
 
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await withTimeLimit(
+        navigator.serviceWorker.ready,
+        45_000,
+        "サービスワーカーの準備がタイムアウトしました。ページを再読み込みしてから再度お試しください。",
+      );
       const existing = await registration.pushManager.getSubscription();
       const subscription =
         existing ??
-        (await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
-        }));
+        (await withTimeLimit(
+          registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+          }),
+          45_000,
+          "通知の登録がタイムアウトしました。通信状況を確認してから再度お試しください。",
+        ));
 
-      const response = await fetch("/api/push-subscriptions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(subscription.toJSON()),
-      });
+      const response = await fetch(
+        "/api/push-subscriptions",
+        fetchWithTimeout({
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(subscription.toJSON()),
+          timeoutMs: 45_000,
+        }),
+      );
 
       if (!response.ok) {
         throw new Error("通知設定を保存できませんでした。");
@@ -80,7 +125,11 @@ export function PushNotificationSettings({ vapidPublicKey }: { vapidPublicKey: s
       setIsSubscribed(true);
       setMessage("この端末で通知を受け取れるようになりました。");
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "通知を有効にできませんでした。");
+      if (isAbortError(caught)) {
+        setError("サーバーへの接続がタイムアウトしました。通信状況を確認してから再度お試しください。");
+      } else {
+        setError(caught instanceof Error ? caught.message : "通知を有効にできませんでした。");
+      }
     } finally {
       setIsBusy(false);
     }
@@ -96,17 +145,25 @@ export function PushNotificationSettings({ vapidPublicKey }: { vapidPublicKey: s
     try {
       const subscription = await getCurrentSubscription();
       if (subscription) {
-        await fetch("/api/push-subscriptions", {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ endpoint: subscription.endpoint }),
-        });
+        await fetch(
+          "/api/push-subscriptions",
+          fetchWithTimeout({
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ endpoint: subscription.endpoint }),
+            timeoutMs: 45_000,
+          }),
+        );
         await subscription.unsubscribe();
       }
       setIsSubscribed(false);
       setMessage("この端末の通知を解除しました。");
-    } catch {
-      setError("通知を解除できませんでした。");
+    } catch (caught) {
+      if (isAbortError(caught)) {
+        setError("サーバーへの接続がタイムアウトしました。通信状況を確認してから再度お試しください。");
+      } else {
+        setError("通知を解除できませんでした。");
+      }
     } finally {
       setIsBusy(false);
     }

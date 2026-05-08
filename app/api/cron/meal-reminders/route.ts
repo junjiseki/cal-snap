@@ -1,13 +1,12 @@
 import webpush from "web-push";
-import { MEAL_REMINDER_TYPES, type MealReminderType } from "@/lib/meal-reminders";
 import { getVapidServerConfig } from "@/lib/push-subscriptions";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
 type ReminderSetting = {
+  id: string;
   user_id: string;
-  meal_type: MealReminderType;
   notify_time: string;
 };
 
@@ -53,10 +52,6 @@ function getDueWindow(date = new Date(), minutes = 10) {
   return due;
 }
 
-function getMealTypeLabel(mealType: MealReminderType) {
-  return MEAL_REMINDER_TYPES.find((type) => type.value === mealType)?.label ?? "食事";
-}
-
 function verifyCronRequest(request: Request) {
   const secret = process.env.CRON_SECRET?.trim();
   if (!secret) return process.env.NODE_ENV !== "production";
@@ -86,7 +81,7 @@ export async function GET(request: Request) {
   const notifyTimes = [...new Set(dueWindow.map((item) => item.notifyTime))];
   const { data: settings, error: settingsError } = await supabase
     .from("meal_reminder_settings")
-    .select("user_id,meal_type,notify_time")
+    .select("id,user_id,notify_time")
     .eq("enabled", true)
     .in("notify_time", notifyTimes);
 
@@ -149,7 +144,7 @@ export async function GET(request: Request) {
     const nowIso = new Date().toISOString();
     const { error: logError } = await supabase.from("meal_reminder_logs").insert({
       user_id: setting.user_id,
-      meal_type: setting.meal_type,
+      meal_reminder_setting_id: setting.id,
       target_date: targetDate,
       first_sent_at: nowIso,
     });
@@ -164,12 +159,11 @@ export async function GET(request: Request) {
       continue;
     }
 
-    const label = getMealTypeLabel(setting.meal_type);
     const payload = JSON.stringify({
-      title: `${label}の時間です`,
+      title: "食事の時間です",
       body: "写真を撮って、3秒で食事を記録しましょう。",
       url: "/meals/new",
-      tag: `meal-reminder:${setting.meal_type}:${targetDate}`,
+      tag: `meal-reminder:${setting.id}:${targetDate}`,
     });
 
     for (const subscription of userSubscriptions) {

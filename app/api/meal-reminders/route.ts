@@ -1,8 +1,6 @@
-import {
-  MEAL_REMINDER_TYPES,
-  MealReminderSettingsPayloadSchema,
-} from "@/lib/meal-reminders";
+import { MealReminderSettingsPayloadSchema } from "@/lib/meal-reminders";
 import { forbiddenOriginResponse, isAllowedOrigin } from "@/lib/security/request";
+import type { Json } from "@/lib/supabase/database.types";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -54,21 +52,19 @@ export async function PATCH(request: Request) {
     return errorResponse("食事時間の設定内容を確認してください。", 400, "VALIDATION_FAILED");
   }
 
-  const mealTypes = new Set(parsed.data.settings.map((setting) => setting.meal_type));
-  if (mealTypes.size !== MEAL_REMINDER_TYPES.length) {
-    return errorResponse("食事時間の種類が重複しています。", 400, "DUPLICATE_MEAL_TYPE");
+  const notifyTimes = new Set(parsed.data.settings.map((setting) => setting.notify_time));
+  if (notifyTimes.size !== parsed.data.settings.length) {
+    return errorResponse("同じ時刻は複数登録できません。", 400, "DUPLICATE_NOTIFY_TIME");
   }
 
   const rows = parsed.data.settings.map((setting) => ({
-    user_id: user.id,
-    meal_type: setting.meal_type,
     notify_time: setting.notify_time,
     enabled: setting.enabled,
   }));
 
-  const { error } = await supabase
-    .from("meal_reminder_settings")
-    .upsert(rows, { onConflict: "user_id,meal_type" });
+  const { error } = await supabase.rpc("replace_meal_reminder_settings", {
+    p_settings: rows as Json,
+  });
 
   if (error) {
     return errorResponse("食事時間を保存できません。", 500, "MEAL_REMINDER_SAVE_FAILED");

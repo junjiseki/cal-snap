@@ -33,8 +33,9 @@ export default async function MealRemindersPage() {
     supabase.from("profiles").select("plan").eq("id", user.id).maybeSingle(),
     supabase
       .from("meal_reminder_settings")
-      .select("meal_type,notify_time,enabled")
-      .eq("user_id", user.id),
+      .select("id,notify_time,enabled")
+      .eq("user_id", user.id)
+      .order("notify_time", { ascending: true }),
   ]);
 
   const isPaid = profile?.plan === "paid";
@@ -63,7 +64,7 @@ export default async function MealRemindersPage() {
             </div>
           </div>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground">
-            朝食・昼食・夕食など、記録を促したい食事時間を最大8回まで登録できます。
+            記録を促したい食事時間を、必要な分だけ最大8回まで登録できます。
           </p>
         </div>
       </section>
@@ -97,7 +98,7 @@ export default async function MealRemindersPage() {
             <section className="border border-border bg-card p-5">
               <h2 className="text-lg font-semibold">登録する食事時間</h2>
               <p className="mt-2 text-sm leading-7 text-muted-foreground">
-                オンにした時間だけ保存されます。あとからいつでも変更できます。
+                最初から固定枠は作りません。必要な時間だけ追加して、あとからいつでも変更できます。
               </p>
               <div className="mt-4">
                 <MealReminderSettingsForm initialSettings={settings ?? []} />

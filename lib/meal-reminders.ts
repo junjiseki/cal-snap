@@ -18,7 +18,7 @@ export const MEAL_REMINDER_COMPLETION_EARLY_MINUTES = 60;
 const TEN_MINUTE_TIME_REGEX = /^(?:[01]\d|2[0-3]):[0-5]0$/;
 
 export const MealReminderSettingSchema = z.object({
-  id: z.string().uuid().optional(),
+  id: z.uuid().optional(),
   notify_time: z.string().regex(TEN_MINUTE_TIME_REGEX),
   enabled: z.boolean(),
 });

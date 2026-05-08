@@ -217,7 +217,7 @@ language plpgsql
 as $$
 declare
   current_user_id uuid := auth.uid();
-  setting jsonb;
+  incoming_count int;
 begin
   if current_user_id is null then
     raise exception 'not_authenticated';
@@ -231,18 +231,54 @@ begin
     raise exception 'meal_reminder_settings_limit_exceeded';
   end if;
 
-  delete from public.meal_reminder_settings
-  where user_id = current_user_id;
+  create temporary table _incoming_meal_reminder_settings (
+    notify_time time not null,
+    enabled boolean not null
+  ) on commit drop;
 
-  for setting in select value from jsonb_array_elements(p_settings)
-  loop
-    insert into public.meal_reminder_settings (user_id, notify_time, enabled)
-    values (
-      current_user_id,
-      (setting->>'notify_time')::time,
-      coalesce((setting->>'enabled')::boolean, true)
+  insert into _incoming_meal_reminder_settings (notify_time, enabled)
+  select
+    (setting->>'notify_time')::time,
+    coalesce((setting->>'enabled')::boolean, true)
+  from jsonb_array_elements(p_settings) as setting;
+
+  select count(*) into incoming_count from _incoming_meal_reminder_settings;
+  if incoming_count > 8 then
+    raise exception 'meal_reminder_settings_limit_exceeded';
+  end if;
+
+  if exists (
+    select 1
+    from _incoming_meal_reminder_settings
+    group by notify_time
+    having count(*) > 1
+  ) then
+    raise exception 'duplicate_notify_time';
+  end if;
+
+  update public.meal_reminder_settings existing
+  set enabled = incoming.enabled
+  from _incoming_meal_reminder_settings incoming
+  where existing.user_id = current_user_id
+    and existing.notify_time = incoming.notify_time;
+
+  insert into public.meal_reminder_settings (user_id, notify_time, enabled)
+  select current_user_id, incoming.notify_time, incoming.enabled
+  from _incoming_meal_reminder_settings incoming
+  where not exists (
+    select 1
+    from public.meal_reminder_settings existing
+    where existing.user_id = current_user_id
+      and existing.notify_time = incoming.notify_time
+  );
+
+  delete from public.meal_reminder_settings existing
+  where existing.user_id = current_user_id
+    and not exists (
+      select 1
+      from _incoming_meal_reminder_settings incoming
+      where incoming.notify_time = existing.notify_time
     );
-  end loop;
 end;
 $$;
 

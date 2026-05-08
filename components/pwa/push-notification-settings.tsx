@@ -1,7 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BellRing, Loader2 } from "lucide-react";
+
+const PUSH_ACTION_TIMEOUT_MS = 20_000;
+const PUSH_STEP_TIMEOUT_MS = 15_000;
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -21,7 +24,7 @@ function withTimeLimit<T>(promise: Promise<T>, ms: number, message: string): Pro
 }
 
 function fetchWithTimeout(init: RequestInit & { timeoutMs?: number }): RequestInit {
-  const { timeoutMs = 45_000, ...rest } = init;
+  const { timeoutMs = PUSH_STEP_TIMEOUT_MS, ...rest } = init;
   if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
     return { ...rest, signal: AbortSignal.timeout(timeoutMs) };
   }
@@ -40,12 +43,39 @@ async function getCurrentSubscription() {
     return null;
   }
 
-  const registration = await withTimeLimit(
-    navigator.serviceWorker.ready,
-    45_000,
-    "サービスワーカーの準備がタイムアウトしました。ページを再読み込みしてから再度お試しください。",
-  );
+  const registration = await ensureServiceWorkerRegistration();
   return registration.pushManager.getSubscription();
+}
+
+async function ensureServiceWorkerRegistration() {
+  if (!("serviceWorker" in navigator)) {
+    throw new Error("このブラウザではサービスワーカーを利用できません。");
+  }
+
+  const existing = await navigator.serviceWorker.getRegistration("/");
+  if (existing?.active || existing?.installing || existing?.waiting) {
+    return existing;
+  }
+
+  const registration = await withTimeLimit(
+    navigator.serviceWorker.register("/sw-passive.js", { scope: "/" }),
+    PUSH_STEP_TIMEOUT_MS,
+    "通知の準備がタイムアウトしました。ページを再読み込みしてから再度お試しください。",
+  );
+
+  return registration;
+}
+
+async function requestNotificationPermission() {
+  if (Notification.permission === "granted") {
+    return "granted" satisfies NotificationPermission;
+  }
+
+  return withTimeLimit(
+    Notification.requestPermission(),
+    PUSH_STEP_TIMEOUT_MS,
+    "通知の許可確認が完了しませんでした。ページを再読み込みしてから再度お試しください。",
+  );
 }
 
 export function PushNotificationSettings({ vapidPublicKey }: { vapidPublicKey: string }) {
@@ -55,6 +85,26 @@ export function PushNotificationSettings({ vapidPublicKey }: { vapidPublicKey: s
   const [isBusy, setIsBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const busyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function startBusy() {
+    if (busyTimerRef.current) {
+      clearTimeout(busyTimerRef.current);
+    }
+    setIsBusy(true);
+    busyTimerRef.current = setTimeout(() => {
+      setIsBusy(false);
+      setError("通知設定の処理がタイムアウトしました。ページを再読み込みしてから再度お試しください。");
+    }, PUSH_ACTION_TIMEOUT_MS);
+  }
+
+  function stopBusy() {
+    if (busyTimerRef.current) {
+      clearTimeout(busyTimerRef.current);
+      busyTimerRef.current = null;
+    }
+    setIsBusy(false);
+  }
 
   useEffect(() => {
     const supported =
@@ -72,30 +122,30 @@ export function PushNotificationSettings({ vapidPublicKey }: { vapidPublicKey: s
       .catch(() => setIsSubscribed(false));
   }, [vapidPublicKey]);
 
+  useEffect(() => {
+    return () => {
+      if (busyTimerRef.current) {
+        clearTimeout(busyTimerRef.current);
+      }
+    };
+  }, []);
+
   async function enableNotification() {
     if (!isSupported || isBusy) return;
 
-    setIsBusy(true);
+    startBusy();
     setMessage(null);
     setError(null);
 
     try {
-      const nextPermission = await withTimeLimit(
-        Notification.requestPermission(),
-        120_000,
-        "通知の許可確認が完了しませんでした。ページを再読み込みしてから再度お試しください。",
-      );
+      const nextPermission = await requestNotificationPermission();
       setPermission(nextPermission);
       if (nextPermission !== "granted") {
         setError("通知が許可されませんでした。ブラウザ設定から許可できます。");
         return;
       }
 
-      const registration = await withTimeLimit(
-        navigator.serviceWorker.ready,
-        45_000,
-        "サービスワーカーの準備がタイムアウトしました。ページを再読み込みしてから再度お試しください。",
-      );
+      const registration = await ensureServiceWorkerRegistration();
       const existing = await registration.pushManager.getSubscription();
       const subscription =
         existing ??
@@ -104,7 +154,7 @@ export function PushNotificationSettings({ vapidPublicKey }: { vapidPublicKey: s
             userVisibleOnly: true,
             applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
           }),
-          45_000,
+          PUSH_STEP_TIMEOUT_MS,
           "通知の登録がタイムアウトしました。通信状況を確認してから再度お試しください。",
         ));
 
@@ -114,12 +164,15 @@ export function PushNotificationSettings({ vapidPublicKey }: { vapidPublicKey: s
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(subscription.toJSON()),
-          timeoutMs: 45_000,
+          timeoutMs: PUSH_STEP_TIMEOUT_MS,
         }),
       );
 
       if (!response.ok) {
-        throw new Error("通知設定を保存できませんでした。");
+        const body = (await response.json().catch(() => null)) as {
+          error?: { message?: string };
+        } | null;
+        throw new Error(body?.error?.message ?? "通知設定を保存できませんでした。");
       }
 
       setIsSubscribed(true);
@@ -131,14 +184,14 @@ export function PushNotificationSettings({ vapidPublicKey }: { vapidPublicKey: s
         setError(caught instanceof Error ? caught.message : "通知を有効にできませんでした。");
       }
     } finally {
-      setIsBusy(false);
+      stopBusy();
     }
   }
 
   async function disableNotification() {
     if (!isSupported || isBusy) return;
 
-    setIsBusy(true);
+    startBusy();
     setMessage(null);
     setError(null);
 
@@ -151,7 +204,7 @@ export function PushNotificationSettings({ vapidPublicKey }: { vapidPublicKey: s
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ endpoint: subscription.endpoint }),
-            timeoutMs: 45_000,
+            timeoutMs: PUSH_STEP_TIMEOUT_MS,
           }),
         );
         await subscription.unsubscribe();
@@ -165,7 +218,7 @@ export function PushNotificationSettings({ vapidPublicKey }: { vapidPublicKey: s
         setError("通知を解除できませんでした。");
       }
     } finally {
-      setIsBusy(false);
+      stopBusy();
     }
   }
 

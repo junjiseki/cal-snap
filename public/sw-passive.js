@@ -3,7 +3,7 @@
  * 静的アセットのみ最小限キャッシュする。
  * API・認証系レスポンスはキャッシュしない。
  */
-const STATIC_CACHE = "cal-snap-static-v3";
+const STATIC_CACHE = "cal-snap-static-v4";
 /** iOS「ホームに追加」が参照するアイコンも先に取っておく */
 const APP_SHELL = [
   "/manifest.json",

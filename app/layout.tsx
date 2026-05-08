@@ -21,6 +21,8 @@ const geist = Geist({
   display: "swap",
 });
 
+const siteBase = new URL(getSiteUrl());
+
 export const metadata: Metadata = {
   title: {
     default: "カロスナ - 3秒で終わる食事管理",
@@ -30,7 +32,7 @@ export const metadata: Metadata = {
   description:
     "食事写真をAIで解析し、1日の摂取カロリーとPFCバランスを記録・可視化できる食事管理アプリです。",
   applicationName: "カロスナ",
-  metadataBase: new URL(getSiteUrl()),
+  metadataBase: siteBase,
   keywords: [
     "カロリー管理",
     "食事管理",
@@ -65,7 +67,13 @@ export const metadata: Metadata = {
       { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
     shortcut: [{ url: "/favicon.ico" }],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    apple: [
+      {
+        url: new URL("/apple-touch-icon.png", siteBase).href,
+        sizes: "180x180",
+        type: "image/png",
+      },
+    ],
   },
   appleWebApp: {
     capable: true,

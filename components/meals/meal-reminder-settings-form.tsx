@@ -42,6 +42,16 @@ function getNextRoundedTime() {
   return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
+function getTenMinuteTimeOptions() {
+  const options: string[] = [];
+  for (let hour = 0; hour < 24; hour += 1) {
+    for (let minute = 0; minute < 60; minute += 10) {
+      options.push(`${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`);
+    }
+  }
+  return options;
+}
+
 function toPayload(settings: EditableSetting[]): MealReminderSettingInput[] {
   return settings
     .map(({ id, notify_time, enabled }) => ({
@@ -72,6 +82,7 @@ export function MealReminderSettingsForm({
   );
   const enabledCount = settings.filter((setting) => setting.enabled).length;
   const canAdd = settings.length < MAX_MEAL_REMINDER_SETTINGS;
+  const timeOptions = useMemo(() => getTenMinuteTimeOptions(), []);
 
   function resetMessages() {
     setNotice(null);
@@ -203,15 +214,19 @@ export function MealReminderSettingsForm({
                   </span>
                 </span>
               </label>
-              <input
-                type="time"
-                step={MEAL_REMINDER_TIME_STEP_SECONDS}
+              <select
                 value={setting.notify_time}
                 onChange={(event) =>
                   updateSetting(setting.clientId, { notify_time: event.target.value })
                 }
                 className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-              />
+              >
+                {timeOptions.map((time) => (
+                  <option key={time} value={time}>
+                    {time}
+                  </option>
+                ))}
+              </select>
               <button
                 type="button"
                 onClick={() => removeSetting(setting.clientId)}

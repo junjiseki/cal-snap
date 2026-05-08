@@ -6,6 +6,7 @@ import {
   toConfidence,
   toInteger,
 } from "@/lib/meal-analysis";
+import { pickMealReminderSettingIdForEatenAt } from "@/lib/meal-reminders";
 import { forbiddenOriginResponse, isAllowedOrigin } from "@/lib/security/request";
 import type { Json } from "@/lib/supabase/database.types";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
@@ -22,16 +23,6 @@ function formatJstYmd(date: Date) {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).format(date);
-}
-
-function formatJstTime(date: Date) {
-  return new Intl.DateTimeFormat("sv-SE", {
-    timeZone: "Asia/Tokyo",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
   }).format(date);
 }
 
@@ -137,23 +128,23 @@ export async function POST(request: Request) {
 
   const eatenDate = new Date(meal.eaten_at);
   const targetDate = formatJstYmd(eatenDate);
-  const eatenTime = formatJstTime(eatenDate);
-  const { data: reminderSetting } = await supabase
+  const { data: reminderSettings } = await supabase
     .from("meal_reminder_settings")
-    .select("id")
+    .select("id, notify_time")
     .eq("user_id", user.id)
-    .eq("enabled", true)
-    .lte("notify_time", eatenTime)
-    .order("notify_time", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .eq("enabled", true);
 
-  if (reminderSetting?.id) {
+  const reminderSettingId = pickMealReminderSettingIdForEatenAt(
+    eatenDate,
+    reminderSettings ?? [],
+  );
+
+  if (reminderSettingId) {
     const { error: reminderLogError } = await supabase
       .from("meal_reminder_logs")
       .update({ completed_at: new Date().toISOString() })
       .eq("user_id", user.id)
-      .eq("meal_reminder_setting_id", reminderSetting.id)
+      .eq("meal_reminder_setting_id", reminderSettingId)
       .eq("target_date", targetDate)
       .is("completed_at", null);
 

@@ -148,20 +148,37 @@ alter table public.meal_reminder_logs
   alter column meal_reminder_setting_id set not null;
 
 do $$
+declare
+  r record;
+  setting_attnum smallint;
 begin
-  if not exists (
-    select 1
-    from pg_constraint
-    where conrelid = 'public.meal_reminder_logs'::regclass
-      and contype = 'f'
-      and conname = 'meal_reminder_logs_setting_id_fkey'
-  ) then
-    alter table public.meal_reminder_logs
-      add constraint meal_reminder_logs_setting_id_fkey
-      foreign key (meal_reminder_setting_id)
-      references public.meal_reminder_settings(id)
-      on delete cascade;
+  select a.attnum
+  into setting_attnum
+  from pg_attribute a
+  where a.attrelid = 'public.meal_reminder_logs'::regclass
+    and a.attname = 'meal_reminder_setting_id'
+    and not a.attisdropped;
+
+  if setting_attnum is null then
+    raise exception 'meal_reminder_logs.meal_reminder_setting_id not found';
   end if;
+
+  for r in
+    select c.conname
+    from pg_constraint c
+    where c.conrelid = 'public.meal_reminder_logs'::regclass
+      and c.contype = 'f'
+      and c.confrelid = 'public.meal_reminder_settings'::regclass
+      and c.conkey = array[setting_attnum]::smallint[]
+  loop
+    execute format('alter table public.meal_reminder_logs drop constraint %I', r.conname);
+  end loop;
+
+  alter table public.meal_reminder_logs
+    add constraint meal_reminder_logs_setting_id_fkey
+    foreign key (meal_reminder_setting_id)
+    references public.meal_reminder_settings(id)
+    on delete cascade;
 end;
 $$;
 

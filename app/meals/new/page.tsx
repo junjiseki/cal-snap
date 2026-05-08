@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { BarChart3 } from "lucide-react";
 import { safeInternalPath } from "@/lib/auth/safe-redirect";
-import { MealPhotoAnalyzer } from "@/components/meals/meal-photo-analyzer";
+import { LazyMealPhotoAnalyzer } from "@/components/meals/lazy-meal-photo-analyzer";
 import { MAX_MEAL_ITEMS_PER_MEAL, MAX_MEALS_PER_DAY } from "@/lib/meal-analysis";
 import { getAuthenticatedUserWithProfileCached } from "@/lib/supabase/server";
 
@@ -50,6 +50,9 @@ export default async function NewMealPage({
     );
   }
 
+  const initialPlan: "free" | "paid" =
+    profile?.plan === "paid" ? "paid" : "free";
+
   return (
     <main className="min-h-0 flex-1 bg-background">
       <section className="border-b border-border bg-card">
@@ -80,10 +83,10 @@ export default async function NewMealPage({
         </div>
       </section>
       <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-8 sm:py-6">
-        <MealPhotoAnalyzer
+        <LazyMealPhotoAnalyzer
           initialEntryMode={openManual ? "manual" : undefined}
           initialEatenAtLocal={initialEatenAtLocal}
-          plan={profile?.plan === "paid" ? "paid" : "free"}
+          plan={initialPlan}
         />
       </div>
     </main>

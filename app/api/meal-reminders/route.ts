@@ -67,6 +67,7 @@ export async function PATCH(request: Request) {
   });
 
   if (error) {
+    console.error("[meal-reminders] save failed", error);
     return errorResponse("食事時間を保存できません。", 500, "MEAL_REMINDER_SAVE_FAILED");
   }
 

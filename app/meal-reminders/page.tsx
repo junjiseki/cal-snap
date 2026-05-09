@@ -97,9 +97,6 @@ export default async function MealRemindersPage() {
 
             <section className="border border-border bg-card p-5">
               <h2 className="text-lg font-semibold">登録する食事時間</h2>
-              <p className="mt-2 text-sm leading-7 text-muted-foreground">
-                最初から固定枠は作りません。必要な時間だけ追加して、あとからいつでも変更できます。
-              </p>
               <div className="mt-4">
                 <MealReminderSettingsForm initialSettings={settings ?? []} />
               </div>

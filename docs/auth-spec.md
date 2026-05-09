@@ -81,6 +81,8 @@
 
 ページ・Route Handler・Server Component では原則これ経由でユーザーを取得する。
 
+**Server Components / Layout:** 同一リクエスト内で複数コンポーネントが認証や `profiles` を参照する場合は、**`getAuthenticatedUserCached` / `getAuthenticatedUserWithProfileCached`**（`React.cache` ラッパー）を使う。クッキー読み取りやプロファイル取得の重複を避けられる。**Route Handler**（`app/api/*`）ではリクエスト境界と副作用を明確にするため、キャッシュされていない **`getAuthenticatedUser` / `getAuthenticatedUserWithProfile`** のままが望ましい。
+
 ---
 
 ## 5. リダイレクトとオープンリダイレクト対策

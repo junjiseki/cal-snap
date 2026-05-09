@@ -117,6 +117,8 @@ export default async function DashboardPage({
   if (params.billing === "success" && params.session_id) {
     try {
       await syncPlanOnBillingSuccess(params.session_id, user.id);
+      // 同期直後の RSC 内 profile とズレないよう、クエリなしで再読込させる
+      redirect("/dashboard");
     } catch (error) {
       console.error("[dashboard] billing success sync failed", error);
     }

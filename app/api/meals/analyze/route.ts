@@ -67,6 +67,38 @@ function errorResponse(message: string, status: number, code: string) {
   return Response.json({ error: { message, code } }, { status });
 }
 
+/** Gemini が 429 / クレジット枯渇などで拒否した場合（アプリの1日上限とは別） */
+function isGeminiProviderQuotaError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const status = "status" in error ? Number((error as { status: unknown }).status) : NaN;
+  if (status === 429) return true;
+
+  const raw =
+    "message" in error && typeof (error as { message: unknown }).message === "string"
+      ? (error as { message: string }).message
+      : error instanceof Error
+        ? error.message
+        : "";
+  if (
+    raw.includes("RESOURCE_EXHAUSTED") ||
+    raw.includes("prepayment credits are depleted") ||
+    raw.includes('"code":429') ||
+    raw.includes('"status":"RESOURCE_EXHAUSTED"')
+  ) {
+    return true;
+  }
+  try {
+    const parsed = JSON.parse(raw) as {
+      error?: { code?: number; status?: string };
+    };
+    if (parsed?.error?.code === 429) return true;
+    if (parsed?.error?.status === "RESOURCE_EXHAUSTED") return true;
+  } catch {
+    /* message が JSON でない */
+  }
+  return false;
+}
+
 function hasExpectedImageSignature(type: string, bytes: Buffer) {
   if (type === "image/jpeg") {
     return bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
@@ -387,6 +419,14 @@ export async function POST(request: Request) {
     }
 
     console.error("[meal-analyze]", error);
+
+    if (isGeminiProviderQuotaError(error)) {
+      return errorResponse(
+        "AIサービス側の利用制限に達しています。時間をおいて再度お試しください。解消しない場合は運営へお問い合わせください。",
+        503,
+        "AI_PROVIDER_QUOTA",
+      );
+    }
 
     return errorResponse("AI解析に失敗しました。", 502, "AI_ANALYSIS_FAILED");
   }

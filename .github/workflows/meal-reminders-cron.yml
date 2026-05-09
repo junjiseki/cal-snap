@@ -31,9 +31,27 @@ jobs:
             exit 1
           fi
 
-          curl --fail --show-error --silent \
-            --max-time 30 \
-            --connect-timeout 10 \
-            --request POST \
-            --header "Authorization: Bearer ${CRON_SECRET}" \
-            "${APP_URL%/}/api/cron/meal-reminders"
+          response_file="$(mktemp)"
+          status_code="$(
+            curl --show-error --silent \
+              --output "${response_file}" \
+              --write-out "%{http_code}" \
+              --retry 2 \
+              --retry-all-errors \
+              --retry-delay 5 \
+              --max-time 30 \
+              --connect-timeout 10 \
+              --request POST \
+              --user-agent "cal-snap-meal-reminder-cron/1.0" \
+              --header "Accept: application/json" \
+              --header "Authorization: Bearer ${CRON_SECRET}" \
+              "${APP_URL%/}/api/cron/meal-reminders"
+          )"
+
+          cat "${response_file}"
+          echo
+
+          if [ "${status_code}" -lt 200 ] || [ "${status_code}" -ge 300 ]; then
+            echo "Meal reminder cron failed with HTTP ${status_code}." >&2
+            exit 1
+          fi

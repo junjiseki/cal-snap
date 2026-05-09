@@ -19,11 +19,19 @@ type PushSubscriptionRow = {
   auth: string;
 };
 
+function errorResponse(message: string, code: string, status = 500) {
+  return Response.json({ error: { message, code } }, { status });
+}
+
 function unauthorizedResponse() {
   return Response.json(
     { error: { message: "Unauthorized", code: "UNAUTHORIZED" } },
     { status: 401 },
   );
+}
+
+function getErrorMessage(caught: unknown) {
+  return caught instanceof Error ? caught.message : String(caught);
 }
 
 function getJstParts(date: Date) {
@@ -66,15 +74,26 @@ async function handleMealReminderCron(request: Request) {
 
   const vapid = getVapidServerConfig();
   if (!vapid) {
-    return Response.json(
-      { error: { message: "VAPID keys are not configured.", code: "VAPID_NOT_CONFIGURED" } },
-      { status: 500 },
-    );
+    return errorResponse("VAPID keys are not configured.", "VAPID_NOT_CONFIGURED");
   }
 
-  webpush.setVapidDetails(vapid.subject, vapid.publicKey, vapid.privateKey);
+  try {
+    webpush.setVapidDetails(vapid.subject, vapid.publicKey, vapid.privateKey);
+  } catch (caught) {
+    console.error("[meal-reminder-cron] invalid VAPID config", caught);
+    return errorResponse("VAPID configuration is invalid.", "INVALID_VAPID_CONFIG");
+  }
 
-  const supabase = getSupabaseAdminClient();
+  let supabase: ReturnType<typeof getSupabaseAdminClient>;
+  try {
+    supabase = getSupabaseAdminClient();
+  } catch (caught) {
+    console.error("[meal-reminder-cron] admin client setup failed", caught);
+    return errorResponse(
+      "Supabase admin client is not configured.",
+      "SUPABASE_ADMIN_NOT_CONFIGURED",
+    );
+  }
   const dueWindow = getDueWindow(new Date(), MEAL_REMINDER_CRON_WINDOW_MINUTES);
   const targetDateByNotifyTime = new Map(
     dueWindow.map((item) => [item.notifyTime, item.targetDate]),
@@ -222,9 +241,19 @@ async function handleMealReminderCron(request: Request) {
 
 /** GitHub Actions の cron は POST。手動確認は GET でも可。 */
 export async function GET(request: Request) {
-  return handleMealReminderCron(request);
+  try {
+    return await handleMealReminderCron(request);
+  } catch (caught) {
+    console.error("[meal-reminder-cron] unhandled failure", caught);
+    return errorResponse(getErrorMessage(caught), "MEAL_REMINDER_CRON_FAILED");
+  }
 }
 
 export async function POST(request: Request) {
-  return handleMealReminderCron(request);
+  try {
+    return await handleMealReminderCron(request);
+  } catch (caught) {
+    console.error("[meal-reminder-cron] unhandled failure", caught);
+    return errorResponse(getErrorMessage(caught), "MEAL_REMINDER_CRON_FAILED");
+  }
 }

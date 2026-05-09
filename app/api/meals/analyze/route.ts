@@ -418,15 +418,18 @@ export async function POST(request: Request) {
       return errorResponse("解析枠の解放に失敗しました。", 500, "LOG_RELEASE_FAILED");
     }
 
-    console.error("[meal-analyze]", error);
-
     if (isGeminiProviderQuotaError(error)) {
+      console.warn(
+        "[meal-analyze] Gemini 側の利用制限または課金（429 / RESOURCE_EXHAUSTED）。AI Studio のプロジェクト課金・クレジットを確認してください。",
+      );
       return errorResponse(
-        "AIサービス側の利用制限に達しています。時間をおいて再度お試しください。解消しない場合は運営へお問い合わせください。",
+        "AI解析サービスが一時的に利用できません。時間をおいて再度お試しください。解消しない場合は運営へお問い合わせください。",
         503,
         "AI_PROVIDER_QUOTA",
       );
     }
+
+    console.error("[meal-analyze]", error);
 
     return errorResponse("AI解析に失敗しました。", 502, "AI_ANALYSIS_FAILED");
   }

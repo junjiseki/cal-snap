@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
-import { getSiteUrl } from "@/lib/site-url";
+import { getRequestOrigin } from "@/lib/request-origin";
 import { CleanupStaleSession } from "@/components/auth/cleanup-stale-session";
 import { DailyAdvice } from "@/components/advice/daily-advice";
 import { AppHeader } from "@/components/layout/app-header";
@@ -21,9 +21,10 @@ const geist = Geist({
   display: "swap",
 });
 
-const siteBase = new URL(getSiteUrl());
+export async function generateMetadata(): Promise<Metadata> {
+  const siteBase = new URL(await getRequestOrigin());
 
-export const metadata: Metadata = {
+  return {
   title: {
     default: "カロスナ - 3秒で終わる食事管理",
     template: "%s | カロスナ",
@@ -67,7 +68,13 @@ export const metadata: Metadata = {
       { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
     shortcut: [{ url: "/favicon.ico" }],
-    // apple-touch-icon は <head> で相対パス指定（metadataBase 由来の絶対URLが実オリジンとズレると iOS で取り逃すため）
+    apple: [
+      {
+        url: "/apple-touch-icon.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
+    ],
   },
   appleWebApp: {
     capable: true,
@@ -98,7 +105,8 @@ export const metadata: Metadata = {
       "食事写真をAIで解析し、1日の摂取カロリーとPFCバランスを記録・可視化できる食事管理アプリです。",
     images: ["/logo.png"],
   },
-};
+  };
+}
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -118,9 +126,6 @@ export default async function RootLayout({
       suppressHydrationWarning
       className="h-full antialiased"
     >
-      <head>
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
-      </head>
       <body className={`${geist.className} flex min-h-full flex-col`}>
         <ThemeProvider>
           <CleanupStaleSession />

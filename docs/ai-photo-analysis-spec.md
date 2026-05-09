@@ -17,7 +17,7 @@
 | 変数 | 用途 |
 |------|------|
 | `GEMINI_API_KEY` | `@google/genai`（`GoogleGenAI`）の API キー。未設定時は `POST /api/meals/analyze` が `500 GEMINI_NOT_CONFIGURED`。 |
-| `GEMINI_MODEL` | 生成モデル ID。未設定時は `gemini-3-flash-preview`。 |
+| `GEMINI_MODEL` | 生成モデル ID。未設定時は `gemini-2.5-flash`。 |
 | `FREE_DAILY_ANALYSIS_LIMIT` | 無料プランの **1 ユーザーあたり 1 日の解析試行上限**（正の整数以外・未設定時はデフォルト `1`）。 |
 | `PAID_DAILY_ANALYSIS_LIMIT` | 有料プランの同上（デフォルト `3`）。 |
 | `SUPABASE_SECRET_KEY` | 解析成功時の `ai_analysis_logs` 更新・失敗時の削除など、サービスロールでの操作に使用。未設定時は `500 SUPABASE_ADMIN_NOT_CONFIGURED`。 |

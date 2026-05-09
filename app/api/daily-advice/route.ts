@@ -95,7 +95,7 @@ export async function GET() {
         }
 
         const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-        const model = process.env.GEMINI_MODEL || "gemini-3-flash-preview";
+        const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
         const response = await ai.models.generateContent({
           model,
           contents: [{ text: buildDailyAdvicePrompt(summary) }],

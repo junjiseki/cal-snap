@@ -245,7 +245,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const model = process.env.GEMINI_MODEL || "gemini-3-flash-preview";
+  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
   const { start, endExclusive } = getTodaySuggestionUsageRange();
   const { data: claim, error: claimError } = await supabase.rpc(
     "claim_meal_suggestion_slot",

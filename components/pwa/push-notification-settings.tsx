@@ -5,6 +5,7 @@ import { BellRing, Loader2 } from "lucide-react";
 
 const PUSH_ACTION_TIMEOUT_MS = 20_000;
 const PUSH_STEP_TIMEOUT_MS = 15_000;
+const PUSH_SW_PATH = "/sw-passive.js";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -52,10 +53,23 @@ async function ensureServiceWorkerRegistration() {
     throw new Error("このブラウザではサービスワーカーを利用できません。");
   }
 
-  const existing = await navigator.serviceWorker.getRegistration("/");
+  let existing = await navigator.serviceWorker.getRegistration("/");
+  const scriptUrl =
+    existing?.active?.scriptURL ?? existing?.waiting?.scriptURL ?? existing?.installing?.scriptURL;
+  const isExpectedWorker = scriptUrl ? new URL(scriptUrl).pathname === PUSH_SW_PATH : false;
+
+  if (existing && !isExpectedWorker) {
+    await withTimeLimit(
+      existing.unregister(),
+      PUSH_STEP_TIMEOUT_MS,
+      "古い通知設定の解除がタイムアウトしました。ページを再読み込みしてから再度お試しください。",
+    );
+    existing = undefined;
+  }
+
   if (!existing) {
     await withTimeLimit(
-      navigator.serviceWorker.register("/sw-passive.js", { scope: "/" }),
+      navigator.serviceWorker.register(PUSH_SW_PATH, { scope: "/" }),
       PUSH_STEP_TIMEOUT_MS,
       "通知の準備がタイムアウトしました。ページを再読み込みしてから再度お試しください。",
     );

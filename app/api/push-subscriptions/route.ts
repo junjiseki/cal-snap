@@ -46,6 +46,7 @@ export async function POST(request: Request) {
   );
 
   if (error) {
+    console.error("[push-subscriptions] save failed", error);
     return errorResponse("通知設定を保存できません。", 500, "PUSH_SUBSCRIPTION_SAVE_FAILED");
   }
 
@@ -81,6 +82,7 @@ export async function DELETE(request: Request) {
     .eq("endpoint", body.endpoint);
 
   if (error) {
+    console.error("[push-subscriptions] delete failed", error);
     return errorResponse("通知設定を解除できません。", 500, "PUSH_SUBSCRIPTION_DELETE_FAILED");
   }
 

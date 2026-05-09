@@ -6,7 +6,7 @@ import { Loader2, Plus, Trash2 } from "lucide-react";
 import {
   MAX_MEAL_REMINDER_SETTINGS,
   type MealReminderSettingInput,
-  isTenMinuteTime,
+  isThirtyMinuteTime,
   normalizeNotifyTime,
 } from "@/lib/meal-reminders";
 
@@ -24,16 +24,16 @@ function createClientId() {
   return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
 }
 
-function normalizeToTenMinuteTime(value: string) {
+function normalizeToThirtyMinuteTime(value: string) {
   const normalized = normalizeNotifyTime(value);
-  if (isTenMinuteTime(normalized)) return normalized;
+  if (isThirtyMinuteTime(normalized)) return normalized;
 
   const [hoursText = "00", minutesText = "00"] = normalized.split(":");
   const hours = Number.parseInt(hoursText, 10);
   const minutes = Number.parseInt(minutesText, 10);
   const safeHours = Number.isFinite(hours) ? Math.min(23, Math.max(0, hours)) : 0;
   const safeMinutes = Number.isFinite(minutes) ? Math.min(59, Math.max(0, minutes)) : 0;
-  const roundedMinutes = Math.floor(safeMinutes / 10) * 10;
+  const roundedMinutes = Math.floor(safeMinutes / 30) * 30;
   return `${String(safeHours).padStart(2, "0")}:${String(roundedMinutes).padStart(2, "0")}`;
 }
 
@@ -41,7 +41,7 @@ function createInitialSettings(existing: ExistingSetting[]): EditableSetting[] {
   return existing.map((setting) => ({
     id: setting.id,
     clientId: setting.id,
-    notify_time: normalizeToTenMinuteTime(setting.notify_time),
+    notify_time: normalizeToThirtyMinuteTime(setting.notify_time),
     enabled: setting.enabled,
   }));
 }
@@ -49,15 +49,15 @@ function createInitialSettings(existing: ExistingSetting[]): EditableSetting[] {
 function getNextRoundedTime() {
   const date = new Date();
   const minutes = date.getMinutes();
-  const roundedMinutes = Math.ceil(minutes / 10) * 10;
+  const roundedMinutes = Math.ceil(minutes / 30) * 30;
   date.setMinutes(roundedMinutes, 0, 0);
   return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
-function getTenMinuteTimeOptions() {
+function getThirtyMinuteTimeOptions() {
   const options: string[] = [];
   for (let hour = 0; hour < 24; hour += 1) {
-    for (let minute = 0; minute < 60; minute += 10) {
+    for (let minute = 0; minute < 60; minute += 30) {
       options.push(`${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`);
     }
   }
@@ -94,7 +94,7 @@ export function MealReminderSettingsForm({
   );
   const enabledCount = settings.filter((setting) => setting.enabled).length;
   const canAdd = settings.length < MAX_MEAL_REMINDER_SETTINGS;
-  const timeOptions = useMemo(() => getTenMinuteTimeOptions(), []);
+  const timeOptions = useMemo(() => getThirtyMinuteTimeOptions(), []);
 
   function resetMessages() {
     setNotice(null);
@@ -148,8 +148,8 @@ export function MealReminderSettingsForm({
       return;
     }
 
-    if (payload.some((setting) => !isTenMinuteTime(setting.notify_time))) {
-      setError("食事時間は10分刻みで選択してください。");
+    if (payload.some((setting) => !isThirtyMinuteTime(setting.notify_time))) {
+      setError("食事時間は30分刻みで選択してください。");
       return;
     }
 
@@ -195,7 +195,7 @@ export function MealReminderSettingsForm({
           <span className="ml-3 text-muted-foreground">有効: {enabledCount}</span>
         </p>
         <p className="mt-1 text-xs leading-5 text-muted-foreground">
-          必要な時刻だけ追加して保存してください。時刻は10分刻みで登録できます。
+          必要な時刻だけ追加して保存してください。時刻は30分刻みで登録できます。
         </p>
       </div>
 

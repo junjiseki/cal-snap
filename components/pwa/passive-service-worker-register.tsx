@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 
+const PASSIVE_SW_PATH = "/sw-passive.js";
+
 /**
  * `/sw-passive.js` のみ登録。レガシー `/sw.js` は `ServiceWorkerLegacyCleanup` が対象。
  * Chrome/Edge の beforeinstallprompt は manifest + SW（fetch あり）が前提になりやすい。
@@ -16,7 +18,17 @@ export function PassiveServiceWorkerRegister() {
     }
 
     function register() {
-      void navigator.serviceWorker.register("/sw-passive.js", { scope: "/" }).catch(() => {
+      void (async () => {
+        const existing = await navigator.serviceWorker.getRegistration("/");
+        const scriptUrl =
+          existing?.active?.scriptURL ??
+          existing?.waiting?.scriptURL ??
+          existing?.installing?.scriptURL;
+        if (scriptUrl && new URL(scriptUrl).pathname !== PASSIVE_SW_PATH) {
+          await existing?.unregister();
+        }
+        await navigator.serviceWorker.register(PASSIVE_SW_PATH, { scope: "/" });
+      })().catch(() => {
         /* 登録失敗は無視（オフライン・ポリシー等） */
       });
     }

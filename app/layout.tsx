@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import dynamic from "next/dynamic";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Geist } from "next/font/google";
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
@@ -23,7 +24,17 @@ const APP_NAME = "カロスナ";
 const SITE_TITLE = `${APP_NAME} - 3秒で終わる食事管理`;
 const SITE_DESCRIPTION =
   "食事写真をAIで解析し、1日の摂取カロリーとPFCバランスを記録・可視化できる食事管理アプリです。";
-
+const KEYWORDS = [
+    "カロリー管理",
+    "食事管理",
+    "PFC",
+    "栄養管理",
+    "ダイエット",
+    "食事写真",
+    "AI解析",
+    "筋トレ",
+    "ジム",
+  ];
 const FOOTER_LINKS = [
   { href: "/contact", label: "お問い合わせ" },
   { href: "/terms", label: "利用規約" },
@@ -31,41 +42,19 @@ const FOOTER_LINKS = [
   { href: "/commerce-disclosure", label: "特商法表記" },
 ] as const;
 
-const VercelAnalytics = dynamic(
-  () => import("@vercel/analytics/next").then((m) => m.Analytics),
-  { ssr: false },
-);
-
-const SpeedInsights = dynamic(
-  () => import("@vercel/speed-insights/next").then((m) => m.SpeedInsights),
-  { ssr: false },
-);
-
 export async function generateMetadata(): Promise<Metadata> {
   const siteBase = new URL(await getRequestOrigin());
 
   return {
     title: {
       default: SITE_TITLE,
-      template: "%s | カロスナ",
+      template: `%s | ${APP_NAME}`,
     },
     manifest: "/manifest.json",
     description: SITE_DESCRIPTION,
     applicationName: APP_NAME,
     metadataBase: siteBase,
-    keywords: [
-      "カロリー管理",
-      "食事管理",
-      "PFC",
-      "栄養管理",
-      "ダイエット",
-      "食事写真",
-      "AI解析",
-      "筋トレ",
-      "ジム",
-      "健康",
-      "生活",
-    ],
+    keywords: [...KEYWORDS],
     alternates: {
       canonical: "/",
     },
@@ -163,7 +152,7 @@ export default function RootLayout({
             </div>
           </footer>
         </ThemeProvider>
-        <VercelAnalytics />
+        <Analytics />
         <SpeedInsights />
       </body>
     </html>

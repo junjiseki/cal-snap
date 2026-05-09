@@ -67,7 +67,7 @@ export const metadata: Metadata = {
       { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
     shortcut: [{ url: "/favicon.ico" }],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    // apple-touch-icon は <head> で相対パス指定（metadataBase 由来の絶対URLが実オリジンとズレると iOS で取り逃すため）
   },
   appleWebApp: {
     capable: true,
@@ -118,6 +118,9 @@ export default async function RootLayout({
       suppressHydrationWarning
       className="h-full antialiased"
     >
+      <head>
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+      </head>
       <body className={`${geist.className} flex min-h-full flex-col`}>
         <ThemeProvider>
           <CleanupStaleSession />

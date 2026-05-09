@@ -1,13 +1,13 @@
 import { z } from "zod";
 
 export const MAX_MEAL_REMINDER_SETTINGS = 8;
-export const MEAL_REMINDER_TIME_STEP_SECONDS = 600;
+export const MEAL_REMINDER_TIME_STEP_SECONDS = 1800;
 
 /**
- * cron 実行が遅延しても取りこぼしにくいよう、実際のスケジュール間隔より長めのローリング窓（分）。
+ * GitHub Actions cron の30分実行が遅延しても取りこぼしにくいよう、少し長めのローリング窓（分）。
  * 重複送信は meal_reminder_logs の PK で抑止。
  */
-export const MEAL_REMINDER_CRON_WINDOW_MINUTES = 25;
+export const MEAL_REMINDER_CRON_WINDOW_MINUTES = 35;
 
 /**
  * 食事記録を「この notify 枠」の完了とみなす範囲の手前（分）。
@@ -15,11 +15,11 @@ export const MEAL_REMINDER_CRON_WINDOW_MINUTES = 25;
  */
 export const MEAL_REMINDER_COMPLETION_EARLY_MINUTES = 60;
 
-const TEN_MINUTE_TIME_REGEX = /^(?:[01]\d|2[0-3]):[0-5]0$/;
+const THIRTY_MINUTE_TIME_REGEX = /^(?:[01]\d|2[0-3]):(?:00|30)$/;
 
 export const MealReminderSettingSchema = z.object({
   id: z.uuid().optional(),
-  notify_time: z.string().regex(TEN_MINUTE_TIME_REGEX),
+  notify_time: z.string().regex(THIRTY_MINUTE_TIME_REGEX),
   enabled: z.boolean(),
 });
 
@@ -33,8 +33,8 @@ export function normalizeNotifyTime(value: string) {
   return value.slice(0, 5);
 }
 
-export function isTenMinuteTime(value: string) {
-  return TEN_MINUTE_TIME_REGEX.test(normalizeNotifyTime(value));
+export function isThirtyMinuteTime(value: string) {
+  return THIRTY_MINUTE_TIME_REGEX.test(normalizeNotifyTime(value));
 }
 
 /** JST の日付内で 0:00 からの経過分（秒は切り捨て） */

@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
+import dynamic from "next/dynamic";
+import { Geist } from "next/font/google";
 import Link from "next/link";
-import { Suspense } from "react";
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Suspense, type ReactNode } from "react";
 import "./globals.css";
 import { getRequestOrigin } from "@/lib/request-origin";
 import { CleanupStaleSession } from "@/components/auth/cleanup-stale-session";
@@ -12,99 +12,116 @@ import { PassiveServiceWorkerRegister } from "@/components/pwa/passive-service-w
 import { PwaInstallPrompt } from "@/components/pwa/install-prompt";
 import { ServiceWorkerLegacyCleanup } from "@/components/pwa/service-worker-legacy-cleanup";
 import { ThemeProvider } from "@/components/theme-provider";
-import { Geist } from 'next/font/google'
 
 const geist = Geist({
   subsets: ["latin"],
   weight: ["500", "600", "700"],
-  variable: "--font-roboto",
   display: "swap",
 });
+
+const APP_NAME = "カロスナ";
+const SITE_TITLE = `${APP_NAME} - 3秒で終わる食事管理`;
+const SITE_DESCRIPTION =
+  "食事写真をAIで解析し、1日の摂取カロリーとPFCバランスを記録・可視化できる食事管理アプリです。";
+
+const FOOTER_LINKS = [
+  { href: "/contact", label: "お問い合わせ" },
+  { href: "/terms", label: "利用規約" },
+  { href: "/privacy", label: "プライバシーポリシー" },
+  { href: "/commerce-disclosure", label: "特商法表記" },
+] as const;
+
+const VercelAnalytics = dynamic(
+  () => import("@vercel/analytics/next").then((m) => m.Analytics),
+  { ssr: false },
+);
+
+const SpeedInsights = dynamic(
+  () => import("@vercel/speed-insights/next").then((m) => m.SpeedInsights),
+  { ssr: false },
+);
 
 export async function generateMetadata(): Promise<Metadata> {
   const siteBase = new URL(await getRequestOrigin());
 
   return {
-  title: {
-    default: "カロスナ - 3秒で終わる食事管理",
-    template: "%s | カロスナ",
-  },
-  manifest: "/manifest.json",
-  description:
-    "食事写真をAIで解析し、1日の摂取カロリーとPFCバランスを記録・可視化できる食事管理アプリです。",
-  applicationName: "カロスナ",
-  metadataBase: siteBase,
-  keywords: [
-    "カロリー管理",
-    "食事管理",
-    "PFC",
-    "栄養管理",
-    "ダイエット",
-    "食事写真",
-    "AI解析",
-    "筋トレ",
-    "ジム",
-    "健康",
-    "生活",
-  ],
-  alternates: {
-    canonical: "/",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
+    title: {
+      default: SITE_TITLE,
+      template: "%s | カロスナ",
+    },
+    manifest: "/manifest.json",
+    description: SITE_DESCRIPTION,
+    applicationName: APP_NAME,
+    metadataBase: siteBase,
+    keywords: [
+      "カロリー管理",
+      "食事管理",
+      "PFC",
+      "栄養管理",
+      "ダイエット",
+      "食事写真",
+      "AI解析",
+      "筋トレ",
+      "ジム",
+      "健康",
+      "生活",
+    ],
+    alternates: {
+      canonical: "/",
+    },
+    robots: {
       index: true,
       follow: true,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-      "max-video-preview": -1,
-    },
-  },
-  icons: {
-    icon: [
-      { url: "/favicon.ico" },
-      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
-    ],
-    shortcut: [{ url: "/favicon.ico" }],
-    apple: [
-      {
-        url: "/apple-touch-icon.png",
-        sizes: "180x180",
-        type: "image/png",
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
       },
-    ],
-  },
-  appleWebApp: {
-    capable: true,
-    title: "カロスナ",
-    statusBarStyle: "default",
-  },
-  formatDetection: {
-    telephone: false,
-  },
-  other: {
-    "mobile-web-app-capable": "yes",
-    "apple-mobile-web-app-title": "カロスナ",
-  },
-  openGraph: {
-    type: "website",
-    locale: "ja_JP",
-    url: "/",
-    siteName: "カロスナ",
-    title: "カロスナ - 3秒で終わる食事管理",
-    description:
-      "食事写真をAIで解析し、1日の摂取カロリーとPFCバランスを記録・可視化できる食事管理アプリです。",
-    images: ["/logo.png"],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "カロスナ - 3秒で終わる食事管理",
-    description:
-      "食事写真をAIで解析し、1日の摂取カロリーとPFCバランスを記録・可視化できる食事管理アプリです。",
-    images: ["/logo.png"],
-  },
+    },
+    icons: {
+      icon: [
+        { url: "/favicon.ico" },
+        { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+        { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+      ],
+      shortcut: [{ url: "/favicon.ico" }],
+      apple: [
+        {
+          url: "/apple-touch-icon.png",
+          sizes: "180x180",
+          type: "image/png",
+        },
+      ],
+    },
+    appleWebApp: {
+      capable: true,
+      title: APP_NAME,
+      statusBarStyle: "default",
+    },
+    formatDetection: {
+      telephone: false,
+    },
+    other: {
+      "mobile-web-app-capable": "yes",
+      "apple-mobile-web-app-title": APP_NAME,
+    },
+    openGraph: {
+      type: "website",
+      locale: "ja_JP",
+      url: "/",
+      siteName: APP_NAME,
+      title: SITE_TITLE,
+      description: SITE_DESCRIPTION,
+      images: ["/logo.png"],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: SITE_TITLE,
+      description: SITE_DESCRIPTION,
+      images: ["/logo.png"],
+    },
   };
 }
 
@@ -115,17 +132,13 @@ export const viewport: Viewport = {
   themeColor: "#fff3c7",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
 }>) {
   return (
-    <html
-      lang="ja"
-      suppressHydrationWarning
-      className="h-full antialiased"
-    >
+    <html lang="ja" suppressHydrationWarning className="h-full antialiased">
       <body className={`${geist.className} flex min-h-full flex-col`}>
         <ThemeProvider>
           <CleanupStaleSession />
@@ -139,25 +152,18 @@ export default async function RootLayout({
           <PwaInstallPrompt />
           <footer className="border-t border-border bg-card pb-20 md:pb-0">
             <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 px-4 py-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8">
-              <p>© {new Date().getFullYear()} カロスナ</p>
+              <p>© {new Date().getFullYear()} {APP_NAME}</p>
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-left sm:flex sm:items-center sm:gap-4">
-                <Link href="/contact" className="hover:text-foreground sm:whitespace-nowrap">
-                  お問い合わせ
-                </Link>
-                <Link href="/terms" className="hover:text-foreground sm:whitespace-nowrap">
-                  利用規約
-                </Link>
-                <Link href="/privacy" className="hover:text-foreground sm:whitespace-nowrap">
-                  プライバシーポリシー
-                </Link>
-                <Link href="/commerce-disclosure" className="hover:text-foreground sm:whitespace-nowrap">
-                  特商法表記
-                </Link>
+                {FOOTER_LINKS.map(({ href, label }) => (
+                  <Link key={href} href={href} className="hover:text-foreground sm:whitespace-nowrap">
+                    {label}
+                  </Link>
+                ))}
               </div>
             </div>
           </footer>
         </ThemeProvider>
-        <Analytics />
+        <VercelAnalytics />
         <SpeedInsights />
       </body>
     </html>

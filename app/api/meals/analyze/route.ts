@@ -310,7 +310,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const model = process.env.GEMINI_MODEL || "gemini-3-flash-preview";
+  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
   let logId: string | null = null;
 
   const { start, endExclusive } = getTodayRangeInJapan();

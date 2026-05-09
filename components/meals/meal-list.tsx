@@ -4,6 +4,10 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import {
+  MEAL_EATEN_TIME_STEP_SECONDS,
+  snapTimeHHmmToThirtyMinutes,
+} from "@/lib/meal-eaten-time";
 
 type MealItem = {
   id: string;
@@ -26,7 +30,7 @@ type MealRow = {
 type EditForm = {
   /** 日本時間の暦日 YYYY-MM-DD */
   eatenDate: string;
-  /** 日本時間の時刻 HH:mm（input type="time"） */
+  /** 日本時間の時刻 HH:mm（30分刻み・input type="time"） */
   eatenTime: string;
   totalCalories: string;
   protein: string;
@@ -92,7 +96,7 @@ function createForm(meal: MealRow): EditForm {
   const { date, time } = toTokyoDateAndTime(meal.eaten_at);
   return {
     eatenDate: date,
-    eatenTime: time,
+    eatenTime: snapTimeHHmmToThirtyMinutes(time),
     totalCalories: String(meal.total_calories),
     protein: String(Number(meal.protein)),
     fat: String(Number(meal.fat)),
@@ -155,7 +159,10 @@ export function MealList({
     setBusyMealId(editingMealId);
     setError(null);
     try {
-      const eatenAtIso = tokyoDateAndTimeToIso(form.eatenDate, form.eatenTime);
+      const eatenAtIso = tokyoDateAndTimeToIso(
+        form.eatenDate,
+        snapTimeHHmmToThirtyMinutes(form.eatenTime),
+      );
       const response = await fetch(`/api/meals/${editingMealId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -380,9 +387,10 @@ export function MealList({
                 </label>
                 <label className="text-sm">
                   食べた時間（日本時間）
+                  <span className="mt-0.5 block text-xs font-normal text-muted-foreground">30分刻み</span>
                   <input
                     type="time"
-                    step={60}
+                    step={MEAL_EATEN_TIME_STEP_SECONDS}
                     value={form.eatenTime}
                     onChange={(e) => setForm({ ...form, eatenTime: e.target.value })}
                     className="mt-1 h-9 w-full rounded-md border border-input bg-background px-2 text-sm"

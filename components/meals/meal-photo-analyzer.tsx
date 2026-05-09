@@ -26,6 +26,10 @@ import {
 import { getCalorieOverLevel } from "@/lib/calorie-over";
 import { dashboardDateHref, toJapanYmd } from "@/lib/japan-calendar";
 import {
+  MEAL_EATEN_TIME_STEP_SECONDS,
+  snapDatetimeLocalToThirtyMinutes,
+} from "@/lib/meal-eaten-time";
+import {
   MAX_MEAL_ITEMS_PER_MEAL,
   MAX_MEALS_PER_DAY,
   type MealAnalysis,
@@ -71,7 +75,7 @@ function todayInputValue() {
     hour12: false,
   });
   const [date, time] = formatter.format(new Date()).split(" ");
-  return `${date}T${time}`;
+  return snapDatetimeLocalToThirtyMinutes(`${date}T${time}`);
 }
 
 function macroNum(v: MacroInput): number {
@@ -468,7 +472,7 @@ export function MealPhotoAnalyzer({
   plan = "free",
 }: {
   initialEntryMode?: EntryMode;
-  /** datetime-local 用（例: YYYY-MM-DDTHH:mm）。日付のみの指定は呼び出し側で時刻を付与 */
+  /** datetime-local 用（例: YYYY-MM-DDTHH:mm）。表示・保存時は30分刻みに丸める */
   initialEatenAtLocal?: string;
   plan?: "free" | "paid";
 } = {}) {
@@ -485,7 +489,9 @@ export function MealPhotoAnalyzer({
   const [analysis, setAnalysis] = useState<MealAnalysisForm | null>(() =>
     initialEntryMode === "manual" && plan === "paid" ? createManualMealDraft() : null,
   );
-  const [eatenAt, setEatenAt] = useState(() => initialEatenAtLocal ?? todayInputValue());
+  const [eatenAt, setEatenAt] = useState(() =>
+    snapDatetimeLocalToThirtyMinutes(initialEatenAtLocal ?? todayInputValue()),
+  );
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -679,7 +685,7 @@ export function MealPhotoAnalyzer({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...normalizeMealAnalysis(payload),
-          eaten_at: new Date(eatenAt).toISOString(),
+          eaten_at: new Date(snapDatetimeLocalToThirtyMinutes(eatenAt)).toISOString(),
         }),
       });
 
@@ -687,7 +693,9 @@ export function MealPhotoAnalyzer({
         throw new Error(await readError(response));
       }
 
-      const dateYmd = toJapanYmd(new Date(eatenAt).toISOString());
+      const dateYmd = toJapanYmd(
+        new Date(snapDatetimeLocalToThirtyMinutes(eatenAt)).toISOString(),
+      );
       router.push(dashboardDateHref(dateYmd));
       router.refresh();
     } catch (caught) {
@@ -1021,11 +1029,13 @@ export function MealPhotoAnalyzer({
                 食事日時
                 <input
                   type="datetime-local"
+                  step={MEAL_EATEN_TIME_STEP_SECONDS}
                   value={eatenAt}
                   onChange={(event) => setEatenAt(event.target.value)}
                   className="mt-2 h-11 w-full max-w-md rounded-md border border-input bg-background px-3 text-sm"
                 />
               </label>
+              <p className="mt-1.5 text-xs text-muted-foreground">時刻は30分刻みで選べます。</p>
               {canUseManualEntry ? (
                 <p className="text-xs leading-5 text-muted-foreground">
                   食事時間は左側の「食事時間」からも変更できます。

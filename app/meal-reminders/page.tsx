@@ -65,6 +65,7 @@ export default async function MealRemindersPage() {
           </div>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground">
             記録を促したい食事時間を、必要な分だけ最大8回まで登録できます。
+            通知の到着は、通信状況・端末の設定・バックグラウンド制限・サーバー側の送信タイミングなどの影響で、登録した時刻から前後にずれることがあります。
           </p>
         </div>
       </section>
@@ -89,6 +90,7 @@ export default async function MealRemindersPage() {
               <h2 className="text-lg font-semibold">通知設定</h2>
               <p className="mt-2 text-sm leading-7 text-muted-foreground">
                 この端末で食事時間のお知らせを受け取るには、通知を許可してください。
+                許可後も、表示どおりの分単位で届くとは限らず、ズレが生じる場合があります。
               </p>
               <div className="mt-4">
                 <PushNotificationSettings vapidPublicKey={vapidPublicKey} />

@@ -196,6 +196,7 @@ export function MealReminderSettingsForm({
         </p>
         <p className="mt-1 text-xs leading-5 text-muted-foreground">
           必要な時刻だけ追加して保存してください。時刻は30分刻みで登録できます。
+          通知は登録時刻ぴったりとは限らず、前後にずれることがあります。
         </p>
       </div>
 
@@ -283,6 +284,9 @@ export function MealReminderSettingsForm({
             <li>「時間を追加」から、記録を促したい時刻を追加します。</li>
             <li>通知したい時刻だけオンにします。</li>
             <li>保存すると、次回以降この時刻を基準に通知します。</li>
+            <li>
+              通知の届くタイミングは、ネットワークや端末・運用の都合で登録時刻とずれることがあります。
+            </li>
           </ol>
         </div>
       ) : null}

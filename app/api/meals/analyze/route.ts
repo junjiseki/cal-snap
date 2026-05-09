@@ -99,6 +99,40 @@ function isGeminiProviderQuotaError(error: unknown): boolean {
   return false;
 }
 
+/** 運用ログ用。ユーザー向けレスポンスには含めない。 */
+function summarizeGeminiClientError(error: unknown): Record<string, unknown> {
+  const summary: Record<string, unknown> = {};
+  if (error == null) {
+    summary.value = error;
+    return summary;
+  }
+  if (typeof error !== "object") {
+    summary.value = error;
+    return summary;
+  }
+  const obj = error as Record<string, unknown>;
+  if (typeof obj.status !== "undefined") {
+    summary.status = obj.status;
+  }
+  if (typeof obj.code !== "undefined") {
+    summary.code = obj.code;
+  }
+  let message: string | undefined;
+  if (typeof obj.message === "string") {
+    message = obj.message;
+  } else if (error instanceof Error) {
+    message = error.message;
+  }
+  if (message !== undefined) {
+    summary.message =
+      message.length > 3000 ? `${message.slice(0, 3000)}…[truncated]` : message;
+  }
+  if (error instanceof Error && error.stack) {
+    summary.stack = error.stack;
+  }
+  return summary;
+}
+
 function hasExpectedImageSignature(type: string, bytes: Buffer) {
   if (type === "image/jpeg") {
     return bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
@@ -420,7 +454,9 @@ export async function POST(request: Request) {
 
     if (isGeminiProviderQuotaError(error)) {
       console.warn(
-        "[meal-analyze] Gemini 側の利用制限または課金（429 / RESOURCE_EXHAUSTED）。AI Studio のプロジェクト課金・クレジットを確認してください。",
+        "[meal-analyze] Gemini 側の利用制限または課金（429 / RESOURCE_EXHAUSTED 等）。AI Studio のプロジェクト課金・クレジットを確認してください。",
+        summarizeGeminiClientError(error),
+        error,
       );
       return errorResponse(
         "AI解析サービスが一時的に利用できません。時間をおいて再度お試しください。解消しない場合は運営へお問い合わせください。",

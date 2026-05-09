@@ -5,6 +5,7 @@ import { Geist } from "next/font/google";
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import "./globals.css";
+import { APPLE_TOUCH_ICON_METADATA } from "@/lib/pwa-static-icon-paths";
 import { getRequestOrigin } from "@/lib/request-origin";
 import { CleanupStaleSession } from "@/components/auth/cleanup-stale-session";
 import { DailyAdvice } from "@/components/advice/daily-advice";
@@ -76,18 +77,7 @@ export async function generateMetadata(): Promise<Metadata> {
         { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
       ],
       shortcut: [{ url: "/favicon.ico" }],
-      apple: [
-        {
-          url: "/apple-touch-icon-180.png",
-          sizes: "180x180",
-          type: "image/png",
-        },
-        {
-          url: "/apple-touch-icon.png",
-          sizes: "180x180",
-          type: "image/png",
-        },
-      ],
+      apple: [...APPLE_TOUCH_ICON_METADATA],
     },
     appleWebApp: {
       capable: true,

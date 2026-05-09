@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { PWA_SHORT_CACHE_PATHS } from "./lib/pwa-static-icon-paths";
 
 /**
  * セキュリティヘッダー・HTML の Cache-Control は `proxy.ts`（Next の Proxy 規約／旧 middleware）で付与。
@@ -11,6 +12,15 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   async headers() {
     return [
+      ...PWA_SHORT_CACHE_PATHS.map((source) => ({
+        source,
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=300, must-revalidate",
+          },
+        ],
+      })),
       ...[
         "avif",
         "webp",

@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { Camera, Sparkles, TrendingDown, TrendingUp } from "lucide-react";
 import { getCalorieOverLevel, getDayRangeInJapan } from "@/lib/meal-analysis";
-import { getAuthenticatedUserWithProfile } from "@/lib/supabase/server";
+import { getAuthenticatedUserWithProfileCached } from "@/lib/supabase/server";
 import { CalorieGoalOnboardingModal } from "@/components/account/calorie-goal-onboarding-modal";
 import { DashboardMealCalendar } from "@/components/meals/dashboard-meal-calendar";
 import { MealList } from "@/components/meals/meal-list";
@@ -39,7 +39,7 @@ type MealRow = {
 };
 
 type DashboardSupabaseClient = Awaited<
-  ReturnType<typeof getAuthenticatedUserWithProfile>
+  ReturnType<typeof getAuthenticatedUserWithProfileCached>
 >["supabase"];
 
 /** YYYY-MM-DD を日本語の日付表記に（その日の表示用。正午 JST で解釈） */
@@ -92,7 +92,7 @@ export default async function DashboardPage({
     meals_page?: string;
   }>;
 }) {
-  const { supabase, user, profile } = await getAuthenticatedUserWithProfile();
+  const { supabase, user, profile } = await getAuthenticatedUserWithProfileCached();
 
   if (!user) {
     return (

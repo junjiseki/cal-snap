@@ -59,7 +59,7 @@ function verifyCronRequest(request: Request) {
   return request.headers.get("authorization") === `Bearer ${secret}`;
 }
 
-export async function GET(request: Request) {
+async function handleMealReminderCron(request: Request) {
   if (!verifyCronRequest(request)) {
     return unauthorizedResponse();
   }
@@ -96,7 +96,7 @@ export async function GET(request: Request) {
 
   const dueSettings = (settings ?? []) as ReminderSetting[];
   if (dueSettings.length === 0) {
-    return Response.json({ ok: true, notifyTimes, due: 0, sent: 0 });
+    return Response.json({ ok: true, notifyTimes, due: 0, sent: 0, skipped: 0, failed: 0 });
   }
 
   const userIds = [...new Set(dueSettings.map((setting) => setting.user_id))];
@@ -167,6 +167,7 @@ export async function GET(request: Request) {
       tag: `meal-reminder:${setting.id}:${targetDate}`,
     });
 
+    let pushSucceeded = false;
     for (const subscription of userSubscriptions) {
       try {
         await webpush.sendNotification(
@@ -179,6 +180,7 @@ export async function GET(request: Request) {
           },
           payload,
         );
+        pushSucceeded = true;
         sent += 1;
         await supabase
           .from("push_subscriptions")
@@ -197,6 +199,15 @@ export async function GET(request: Request) {
         }
       }
     }
+
+    if (!pushSucceeded) {
+      await supabase
+        .from("meal_reminder_logs")
+        .delete()
+        .eq("user_id", setting.user_id)
+        .eq("meal_reminder_setting_id", setting.id)
+        .eq("target_date", targetDate);
+    }
   }
 
   return Response.json({
@@ -207,4 +218,13 @@ export async function GET(request: Request) {
     skipped,
     failed,
   });
+}
+
+/** GitHub Actions の cron は POST。手動確認は GET でも可。 */
+export async function GET(request: Request) {
+  return handleMealReminderCron(request);
+}
+
+export async function POST(request: Request) {
+  return handleMealReminderCron(request);
 }

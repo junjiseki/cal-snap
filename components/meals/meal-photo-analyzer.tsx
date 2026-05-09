@@ -687,12 +687,8 @@ export function MealPhotoAnalyzer({
         throw new Error(await readError(response));
       }
 
-      if (entryMode === "manual") {
-        const dateYmd = toJapanYmd(new Date(eatenAt).toISOString());
-        router.push(dashboardDateHref(dateYmd));
-      } else {
-        router.push("/meals/new");
-      }
+      const dateYmd = toJapanYmd(new Date(eatenAt).toISOString());
+      router.push(dashboardDateHref(dateYmd));
       router.refresh();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "食事を登録できません。");

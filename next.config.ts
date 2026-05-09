@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { PWA_SHORT_CACHE_PATHS } from "./lib/pwa-static-icon-paths";
 
 /**
  * セキュリティヘッダー・HTML の Cache-Control は `proxy.ts`（Next の Proxy 規約／旧 middleware）で付与。
@@ -10,23 +11,36 @@ const nextConfig: NextConfig = {
   },
   poweredByHeader: false,
   async headers() {
+    // 複数ルールがマッチすると後勝ち。`/:path*.png` は `/icon-192.png` 等にもマッチするため、
+    // PWA アイコン用の短期キャッシュは一般静的ルールより後ろに置く。
+    const staticAssetExtensions = [
+      "avif",
+      "webp",
+      "png",
+      "jpg",
+      "jpeg",
+      "gif",
+      "svg",
+      "ico",
+      "woff2",
+    ] as const;
+
     return [
-      ...[
-        "avif",
-        "webp",
-        "png",
-        "jpg",
-        "jpeg",
-        "gif",
-        "svg",
-        "ico",
-        "woff2",
-      ].map((extension) => ({
+      ...staticAssetExtensions.map((extension) => ({
         source: `/:path*.${extension}`,
         headers: [
           {
             key: "Cache-Control",
             value: "public, max-age=86400, stale-while-revalidate=604800",
+          },
+        ],
+      })),
+      ...PWA_SHORT_CACHE_PATHS.map((source) => ({
+        source,
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=300, must-revalidate",
           },
         ],
       })),

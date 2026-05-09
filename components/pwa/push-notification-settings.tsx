@@ -267,7 +267,7 @@ export function PushNotificationSettings({ vapidPublicKey }: { vapidPublicKey: s
   if (!vapidPublicKey) {
     return (
       <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-950">
-        Web Pushの公開鍵が未設定です。`NEXT_PUBLIC_VAPID_PUBLIC_KEY` を設定してください。
+        通知機能の設定が未完了です。管理者にお問い合わせください。
       </div>
     );
   }
@@ -275,7 +275,7 @@ export function PushNotificationSettings({ vapidPublicKey }: { vapidPublicKey: s
   if (!isSupported) {
     return (
       <div className="rounded-md border border-border bg-muted/25 p-3 text-sm leading-6 text-muted-foreground">
-        このブラウザではWeb Push通知を利用できません。iPhoneではホーム画面に追加したPWAから利用できます。
+        このブラウザでは通知を利用できません。iPhoneではホーム画面に追加したアプリ版から利用できます。
       </div>
     );
   }
@@ -289,7 +289,7 @@ export function PushNotificationSettings({ vapidPublicKey }: { vapidPublicKey: s
             この端末で通知を受け取る
           </h3>
           <p className="mt-2 text-xs leading-5 text-muted-foreground">
-            登録した食事時間に、ブラウザ通知で記録を促します。
+            登録した食事時間に、スマホやPCへお知らせします。
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
             現在の許可状態: {permission === "granted" ? "許可済み" : permission === "denied" ? "拒否" : "未設定"}

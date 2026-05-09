@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   ArrowLeft,
   BarChart3,
+  BellRing,
   CalendarDays,
   Camera,
   CheckCircle2,
@@ -78,6 +79,11 @@ const paidBenefitGroups = [
         title: "今日のAIアドバイス",
         body: "画面右下のカロちゃんから、当日の記録をもとにした一言アドバイスを表示できます（有料のみ）。",
       },
+      {
+        icon: BellRing,
+        title: "食事時間の通知",
+        body: "登録した食事時間にスマホやPCへお知らせします。iPhoneではホーム画面に追加したアプリ版で利用できます（有料のみ）。",
+      },
     ],
   },
 ] as const;
@@ -102,6 +108,11 @@ const planComparisonRows = [
     label: "今日のAIアドバイス（カロちゃん）",
     free: "不可",
     paid: "利用可",
+  },
+  {
+    label: "食事時間の通知",
+    free: "不可",
+    paid: "利用可（iPhoneはホーム画面に追加）",
   },
   {
     label: "過去日の履歴・カレンダー・14日グラフ",
@@ -182,7 +193,7 @@ export default async function BillingPage() {
                     <li>手入力での食事登録</li>
                     <li>過去日の履歴・カレンダー・直近14日のグラフ</li>
                     <li>
-                      食事メニュー提案（1日{MEAL_SUGGESTION_DAILY_LIMIT}回）・今日の AI アドバイス
+                      食事メニュー提案（1日{MEAL_SUGGESTION_DAILY_LIMIT}回）・今日の AI アドバイス・食事時間の通知
                     </li>
                     <li>目安カロリーにそった1件ショートカット登録</li>
                   </ul>
@@ -238,7 +249,7 @@ export default async function BillingPage() {
               </li>
               <li className="flex gap-2">
                 <span className="mt-1.5 size-1 shrink-0 rounded-full bg-primary" aria-hidden />
-                <span>手入力・過去日ダッシュボード・14 日グラフ・AI アドバイス・目安ショートカット登録。</span>
+                <span>手入力・過去日ダッシュボード・14 日グラフ・AI アドバイス・食事時間の通知・目安ショートカット登録。</span>
               </li>
             </ul>
             <div className="mt-5">

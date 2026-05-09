@@ -5,6 +5,7 @@ import { FavoriteFoodSlideshow } from "@/components/landing/favorite-food-slides
 import {
   ArrowRight,
   BarChart3,
+  BellRing,
   Camera,
   CheckCircle2,
   HeartPulse,
@@ -294,22 +295,35 @@ export function PublicHome() {
               次に何を食べるかも、AIに相談。
             </h2>
             <p className="mt-4 text-base font-medium leading-8 text-[#42504b]">
-              外食・自炊・コンビニを選び、朝ご飯・昼食・夜ご飯を指定するだけ。過去の食事傾向から、AIが今日の残りカロリーに合わせたメニュー候補を提案します。有料プランは14日間無料で試せます。
+              外食・自炊・コンビニを選び、朝ご飯・昼食・夜ご飯を指定するだけ。過去の食事傾向から、AIが今日の残りカロリーに合わせたメニュー候補を提案します。さらに食事時間を登録すると、記録忘れを通知で思い出せます。有料プランは14日間無料で試せます。
             </p>
-            <div className="mt-5 flex items-start gap-3 rounded-md border-2 border-[#17231f] bg-white p-4 shadow-[4px_4px_0_#17231f]">
-              <div className="relative size-14 shrink-0 overflow-hidden rounded-full border-2 border-[#075c55] bg-[#fff3c7]">
-                <Image
-                  src="/advice-mascot.webp"
-                  alt=""
-                  width={140}
-                  height={140}
-                  sizes="56px"
-                  className="h-full w-full object-cover object-top"
-                />
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <div className="flex items-start gap-3 rounded-md border-2 border-[#17231f] bg-white p-4 shadow-[4px_4px_0_#17231f]">
+                <div className="relative size-14 shrink-0 overflow-hidden rounded-full border-2 border-[#075c55] bg-[#fff3c7]">
+                  <Image
+                    src="/advice-mascot.webp"
+                    alt=""
+                    width={140}
+                    height={140}
+                    sizes="56px"
+                    className="h-full w-full object-cover object-top"
+                  />
+                </div>
+                <p className="text-sm font-bold leading-7 text-[#17231f]">
+                  「今日は外食」「夜ご飯」などを選ぶだけで、次の食事を一緒に考えます。
+                </p>
               </div>
-              <p className="text-sm font-bold leading-7 text-[#17231f]">
-                「今日は外食」「夜ご飯」などを選ぶだけで、次の食事を一緒に考えます。
-              </p>
+              <div className="flex items-start gap-3 rounded-md border-2 border-[#17231f] bg-[#fff3c7] p-4 shadow-[4px_4px_0_#17231f]">
+                <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-md border-2 border-[#17231f] bg-[#d6fff2] text-[#036854]">
+                  <BellRing className="size-5" />
+                </span>
+                <div>
+                  <p className="text-sm font-black text-[#17231f]">食事時間を通知</p>
+                  <p className="mt-1 text-sm font-bold leading-7 text-[#42504b]">
+                    登録した時間に記録を促します。iPhoneはホーム画面に追加したアプリ版で利用できます。
+                  </p>
+                </div>
+              </div>
             </div>
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
               {["外食", "自炊", "コンビニ"].map((label) => (

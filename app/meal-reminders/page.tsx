@@ -88,7 +88,7 @@ export default async function MealRemindersPage() {
             <section className="border border-border bg-card p-5">
               <h2 className="text-lg font-semibold">通知設定</h2>
               <p className="mt-2 text-sm leading-7 text-muted-foreground">
-                この端末でWeb Push通知を受け取るには、ブラウザ通知を許可してください。
+                この端末で食事時間のお知らせを受け取るには、通知を許可してください。
               </p>
               <div className="mt-4">
                 <PushNotificationSettings vapidPublicKey={vapidPublicKey} />

@@ -275,7 +275,7 @@ export function PushNotificationSettings({ vapidPublicKey }: { vapidPublicKey: s
   if (!isSupported) {
     return (
       <div className="rounded-md border border-border bg-muted/25 p-3 text-sm leading-6 text-muted-foreground">
-        このブラウザではWeb Push通知を利用できません。iPhoneではホーム画面に追加したPWAから利用できます。
+        このブラウザでは通知を利用できません。iPhoneではホーム画面に追加したアプリ版から利用できます。
       </div>
     );
   }

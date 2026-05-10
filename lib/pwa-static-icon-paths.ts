@@ -18,7 +18,8 @@ export const PWA_SHORT_CACHE_PATHS = [
 
 /** `<link rel="apple-touch-icon">`（180×180 の複数ファイルは並べない） */
 export const APPLE_TOUCH_ICON_METADATA = [
-  { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+  // iOS のホーム画面追加で古い失敗キャッシュを掴むことがあるため、URL を版管理する。
+  { url: "/apple-touch-icon.png?v=20260510", sizes: "180x180", type: "image/png" },
   { url: "/apple-touch-icon-167x167.png", sizes: "167x167", type: "image/png" },
   { url: "/apple-touch-icon-152x152.png", sizes: "152x152", type: "image/png" },
   { url: "/apple-touch-icon-120x120.png", sizes: "120x120", type: "image/png" },

@@ -12,7 +12,5 @@ export const PWA_SHORT_CACHE_PATHS = [
 
 /** `<link rel="apple-touch-icon">`*/
 export const APPLE_TOUCH_ICON_METADATA = [
-  // iOS のホーム画面追加で古い失敗キャッシュを掴むことがあるため、URL を版管理する。
   { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
 ] as const;
-  

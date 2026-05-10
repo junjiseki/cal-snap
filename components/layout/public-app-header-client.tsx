@@ -17,10 +17,10 @@ export function PublicAppHeaderClient({ className }: { className?: string }) {
             <Image
               src="/logo.webp"
               alt="カロスナ AI ロゴ"
-              width={40}
-              height={40}
+              width={48}
+              height={48}
               className="size-10 shrink-0 rounded-md sm:size-12"
-              priority
+              sizes="48px"
             />
             <span className="truncate text-base font-semibold sm:text-lg">カロスナ</span>
           </Link>

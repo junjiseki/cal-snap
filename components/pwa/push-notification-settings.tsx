@@ -237,7 +237,7 @@ export function PushNotificationSettings({ vapidPublicKey }: { vapidPublicKey: s
       const subscription = await getCurrentSubscription();
       if (!isCurrentAction(actionId)) return;
       if (subscription) {
-        await fetch(
+        const response = await fetch(
           "/api/push-subscriptions",
           fetchWithTimeout({
             method: "DELETE",
@@ -247,7 +247,17 @@ export function PushNotificationSettings({ vapidPublicKey }: { vapidPublicKey: s
           }),
         );
         if (!isCurrentAction(actionId)) return;
-        await subscription.unsubscribe();
+        if (!response.ok) {
+          const body = (await response.json().catch(() => null)) as {
+            error?: { message?: string };
+          } | null;
+          throw new Error(body?.error?.message ?? "通知設定を解除できませんでした。");
+        }
+
+        const unsubscribed = await subscription.unsubscribe();
+        if (!unsubscribed) {
+          throw new Error("ブラウザ側の通知解除に失敗しました。ページを再読み込みしてから再度お試しください。");
+        }
       }
       if (!isCurrentAction(actionId)) return;
       setIsSubscribed(false);
@@ -257,7 +267,7 @@ export function PushNotificationSettings({ vapidPublicKey }: { vapidPublicKey: s
       if (isAbortError(caught)) {
         setError("サーバーへの接続がタイムアウトしました。通信状況を確認してから再度お試しください。");
       } else {
-        setError("通知を解除できませんでした。");
+        setError(caught instanceof Error ? caught.message : "通知を解除できませんでした。");
       }
     } finally {
       stopBusy(actionId);

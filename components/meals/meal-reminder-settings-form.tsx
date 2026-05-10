@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, Loader2, Plus, Trash2 } from "lucide-react";
 import {
   MAX_MEAL_REMINDER_SETTINGS,
   type MealReminderSettingInput,
@@ -86,6 +86,8 @@ export function MealReminderSettingsForm({
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showHowTo, setShowHowTo] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<EditableSetting | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const payload = useMemo(() => toPayload(settings), [settings]);
   const isDirty = useMemo(
@@ -133,7 +135,55 @@ export function MealReminderSettingsForm({
 
   function removeSetting(clientId: string) {
     setSettings((current) => current.filter((setting) => setting.clientId !== clientId));
-    resetMessages();
+    setPendingDelete(null);
+  }
+
+  function requestRemoveSetting(setting: EditableSetting) {
+    setPendingDelete(setting);
+    setNotice(null);
+    setError(null);
+    setShowHowTo(false);
+  }
+
+  async function confirmRemoveSetting() {
+    if (!pendingDelete || isDeleting) return;
+
+    if (!pendingDelete.id) {
+      removeSetting(pendingDelete.clientId);
+      setNotice("食事時間を削除しました。");
+      return;
+    }
+
+    setIsDeleting(true);
+    setNotice(null);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/meal-reminders", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: pendingDelete.id }),
+      });
+
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as {
+          error?: { message?: string };
+        } | null;
+        throw new Error(body?.error?.message ?? "食事時間を削除できません。");
+      }
+
+      setSettings((current) =>
+        current.filter((setting) => setting.clientId !== pendingDelete.clientId),
+      );
+      setSavedSettings((current) => current.filter((setting) => setting.id !== pendingDelete.id));
+      setPendingDelete(null);
+      setNotice("食事時間を削除しました。");
+      router.refresh();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "削除に失敗しました。");
+    } finally {
+      setIsDeleting(false);
+    }
   }
 
   async function save() {
@@ -242,7 +292,7 @@ export function MealReminderSettingsForm({
               </select>
               <button
                 type="button"
-                onClick={() => removeSetting(setting.clientId)}
+                onClick={() => requestRemoveSetting(setting)}
                 className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border px-3 text-sm font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground active:scale-[0.98]"
               >
                 <Trash2 className="size-4" />
@@ -288,6 +338,51 @@ export function MealReminderSettingsForm({
               通知の届くタイミングは、ネットワークや端末・運用の都合で登録時刻とずれることがあります。
             </li>
           </ol>
+        </div>
+      ) : null}
+
+      {pendingDelete ? (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/35 p-4 sm:items-center"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-reminder-title"
+        >
+          <div className="w-full max-w-sm rounded-lg border border-border bg-background p-5 shadow-xl">
+            <div className="flex items-start gap-3">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+                <AlertTriangle className="size-5" />
+              </div>
+              <div>
+                <h3 id="delete-reminder-title" className="text-base font-semibold">
+                  食事時間を削除しますか？
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  {pendingDelete.notify_time} の食事時間を削除します。保存すると通知設定からも削除されます。
+                </p>
+              </div>
+            </div>
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setPendingDelete(null)}
+                disabled={isDeleting}
+                className="inline-flex h-11 items-center justify-center rounded-md border border-border px-4 text-sm font-semibold transition hover:bg-muted active:scale-[0.98]"
+              >
+                キャンセル
+              </button>
+              <button
+                type="button"
+                onClick={() => void confirmRemoveSetting()}
+                disabled={isDeleting}
+                aria-busy={isDeleting}
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-destructive px-4 text-sm font-semibold text-destructive-foreground transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+              >
+                {isDeleting ? <Loader2 className="size-4 animate-spin" /> : null}
+                {isDeleting ? "削除中..." : "削除する"}
+              </button>
+            </div>
+          </div>
         </div>
       ) : null}
     </div>

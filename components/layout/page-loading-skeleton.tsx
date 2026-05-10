@@ -29,7 +29,6 @@ export function PageLoadingSkeleton({ message = DEFAULT_MESSAGE }: PageLoadingSk
         height={80}
         className="size-20 shrink-0 rounded-md"
         sizes="80px"
-        unoptimized
       />
       <div className="flex flex-col items-center gap-3">
         <Loader2

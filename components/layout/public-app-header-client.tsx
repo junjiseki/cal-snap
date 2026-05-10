@@ -20,9 +20,8 @@ export function PublicAppHeaderClient({ className }: { className?: string }) {
               width={48}
               height={48}
               className="size-10 shrink-0 rounded-md sm:size-12"
-              sizes="48px"
+              sizes="(min-width: 640px) 48px, 40px"
               priority
-              unoptimized
             />
             <span className="truncate text-base font-semibold sm:text-lg">カロスナ</span>
           </Link>

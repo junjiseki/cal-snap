@@ -148,7 +148,7 @@ export function PwaInstallPrompt() {
       <div className="pr-8">
         <p className="text-sm font-semibold text-foreground">カロスナをホーム画面に追加</p>
         <p className="mt-1 text-sm leading-6 text-muted-foreground">
-          アプリのようにすぐ開けます。通知やバックグラウンド処理は使いません。
+          アプリのようにすぐ開けます。プッシュ通知はお知らせ設定でオンにしたときだけ使い、常時バックグラウンドで動き続けることはありません。
         </p>
       </div>
 

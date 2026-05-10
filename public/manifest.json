@@ -35,6 +35,22 @@
       "purpose": "maskable"
     }
   ],
+  "screenshots": [
+    {
+      "src": "/1.webp",
+      "sizes": "389x845",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "アプリ画面（例 1）"
+    },
+    {
+      "src": "/2.webp",
+      "sizes": "389x845",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "アプリ画面（例 2）"
+    }
+  ],
   "shortcuts": [
     {
       "name": "食事写真を記録",

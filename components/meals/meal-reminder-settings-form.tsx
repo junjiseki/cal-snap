@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Loader2, Plus, Trash2 } from "lucide-react";
 import {
@@ -88,6 +88,9 @@ export function MealReminderSettingsForm({
   const [showHowTo, setShowHowTo] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<EditableSetting | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const deleteDialogPanelRef = useRef<HTMLDivElement>(null);
+  const isDeletingRef = useRef(false);
+  isDeletingRef.current = isDeleting;
 
   const payload = useMemo(() => toPayload(settings), [settings]);
   const isDirty = useMemo(
@@ -97,6 +100,67 @@ export function MealReminderSettingsForm({
   const enabledCount = settings.filter((setting) => setting.enabled).length;
   const canAdd = settings.length < MAX_MEAL_REMINDER_SETTINGS;
   const timeOptions = useMemo(() => getThirtyMinuteTimeOptions(), []);
+
+  useEffect(() => {
+    if (!pendingDelete) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function focusableInPanel(): HTMLElement[] {
+      const panel = deleteDialogPanelRef.current;
+      if (!panel) return [];
+      return Array.from(
+        panel.querySelectorAll<HTMLElement>(
+          [
+            "button:not([disabled])",
+            "a[href]",
+            "input:not([disabled])",
+            "select:not([disabled])",
+            "textarea:not([disabled])",
+            '[tabindex]:not([tabindex="-1"])',
+          ].join(","),
+        ),
+      );
+    }
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        if (!isDeletingRef.current) setPendingDelete(null);
+        return;
+      }
+      if (e.key !== "Tab") return;
+
+      const els = focusableInPanel();
+      if (els.length === 0) return;
+
+      const first = els[0];
+      const last = els[els.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+
+    const id = requestAnimationFrame(() => {
+      const els = focusableInPanel();
+      els[0]?.focus();
+    });
+
+    return () => {
+      cancelAnimationFrame(id);
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [pendingDelete]);
 
   function resetMessages() {
     setNotice(null);
@@ -344,11 +408,19 @@ export function MealReminderSettingsForm({
       {pendingDelete ? (
         <div
           className="fixed inset-0 z-50 flex items-end justify-center bg-black/35 p-4 sm:items-center"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="delete-reminder-title"
+          role="presentation"
+          onPointerDown={(e) => {
+            if (e.target === e.currentTarget && !isDeletingRef.current) setPendingDelete(null);
+          }}
         >
-          <div className="w-full max-w-sm rounded-lg border border-border bg-background p-5 shadow-xl">
+          <div
+            ref={deleteDialogPanelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-reminder-title"
+            tabIndex={-1}
+            className="w-full max-w-sm rounded-lg border border-border bg-background p-5 shadow-xl outline-none"
+          >
             <div className="flex items-start gap-3">
               <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
                 <AlertTriangle className="size-5" />
@@ -358,7 +430,7 @@ export function MealReminderSettingsForm({
                   食事時間を削除しますか？
                 </h3>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  {pendingDelete.notify_time} の食事時間を削除します。保存すると通知設定からも削除されます。
+                  {pendingDelete.notify_time} の食事時間を、通知対象から取り消します。
                 </p>
               </div>
             </div>

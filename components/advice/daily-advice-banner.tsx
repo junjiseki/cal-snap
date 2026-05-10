@@ -135,7 +135,7 @@ export function DailyAdviceBanner({
           <button
             type="button"
             onClick={close}
-            aria-label="今日のAIアドバイスを閉じる"
+            aria-label="今日のアドバイスを閉じる"
             className="absolute right-2 top-2 inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition active:scale-95 active:bg-emerald-50"
           >
             <X className="size-4" />
@@ -153,15 +153,12 @@ export function DailyAdviceBanner({
                   sizes="64px"
                 />
               </div>
-              <p className="mt-1 text-center text-[10px] font-bold text-primary">AI案内</p>
+              <p className="mt-1 text-center text-[10px] font-bold text-primary">カロちゃん</p>
             </div>
 
             <div className="relative flex-1 rounded-md border border-emerald-100 bg-white p-3 shadow-sm before:absolute before:left-[-7px] before:top-5 before:size-3 before:rotate-45 before:border-b before:border-l before:border-emerald-100 before:bg-white">
-              <p className="text-xs font-bold text-primary">カロちゃん</p>
-              <p className="text-[11px] font-medium text-muted-foreground">
-                カロスナ コンシェルジュ
-              </p>
-              <p className="mt-0.5 text-sm font-semibold text-foreground">今日のAIアドバイス</p>
+              <p className="text-xs font-bold text-primary">コンシェルジュ</p>
+              <p className="mt-0.5 text-sm font-semibold text-foreground">今日のアドバイス</p>
               {isLoading ? (
                 <p className="mt-2 text-sm leading-7 text-muted-foreground">
                   今日の食事データを見ています...
@@ -191,7 +188,7 @@ export function DailyAdviceBanner({
       <button
         type="button"
         onClick={openAdvice}
-        aria-label="今日のAIアドバイスを開く"
+        aria-label="今日のアドバイスを開く"
         className="ml-auto flex items-center gap-2 rounded-full border border-emerald-200 bg-[#fffdf4] py-2 pl-2 pr-4 text-sm font-bold text-primary shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0 active:scale-95"
       >
           <Image

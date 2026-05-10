@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BarChart3, Camera, LogIn, Menu, Sparkles, UserPlus, X } from "lucide-react";
 import { DashboardAccountMenu } from "@/components/meals/dashboard-account-menu";
@@ -48,9 +48,10 @@ export function AppHeaderClient({
             <Image
               src="/logo.webp"
               alt="カロスナ AI ロゴ"
-              width={40}
-              height={40}
+              width={48}
+              height={48}
               className="size-10 shrink-0 rounded-md sm:size-12"
+              sizes="(min-width: 640px) 48px, 40px"
               priority
             />
             <span className="truncate text-base font-semibold sm:text-lg">カロスナ</span>

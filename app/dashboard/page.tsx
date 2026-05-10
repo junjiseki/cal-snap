@@ -182,7 +182,7 @@ export default async function DashboardPage({
               <div>
                 <p className="text-sm font-semibold text-primary">{dateLabelJa}</p>
                 <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-4xl">
-                  {isToday ? "今日の状態" : "選択日の状態"}
+                  カロリーとPFC
                 </h1>
               </div>
               <Link

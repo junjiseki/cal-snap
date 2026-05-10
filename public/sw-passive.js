@@ -3,7 +3,7 @@
  * 静的アセットのみ最小限キャッシュする。
  * API・認証系レスポンスはキャッシュしない。
  */
-const STATIC_CACHE = "cal-snap-static-v7";
+const STATIC_CACHE = "cal-snap-static-v8";
 /**
  * iOS「ホーム画面に追加」は apple-touch-icon を取る際、SW が fetch を横取りすると
  * キャッシュの空応答・古い失敗レスポンスで画像が取れず、サイト名の頭文字（例: カ）だけのアイコンになることがある。

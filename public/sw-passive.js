@@ -3,7 +3,7 @@
  * 静的アセットのみ最小限キャッシュする。
  * API・認証系レスポンスはキャッシュしない。
  */
-const STATIC_CACHE = "cal-snap-static-v9";
+const STATIC_CACHE = "cal-snap-static-v10";
 /**
  * iOS「ホーム画面に追加」は apple-touch-icon を取る際、SW が fetch を横取りすると
  * キャッシュの空応答・古い失敗レスポンスで画像が取れず、サイト名の頭文字（例: カ）だけのアイコンになることがある。
@@ -14,6 +14,8 @@ const APP_SHELL = [];
 /** lib/pwa-static-icon-paths.ts の PWA_SHORT_CACHE_PATHS と一致させること */
 const PWA_SHORT_CACHE_PATHS = [
   "/apple-touch-icon.png",
+  "/icon-192-maskable.png",
+  "/icon-512-maskable.png",
   "/icon-192.png",
   "/icon-512.png",
 ];

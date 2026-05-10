@@ -1,14 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/lib/supabase/database.types";
+import { PERMISSIONS_POLICY } from "@/lib/http-security";
 import { isStaleRefreshTokenError } from "@/lib/supabase/stale-session";
 
 /** next.config から移したものと同一（HTML をエッジ長期キャッシュしない） */
 const DOCUMENT_CACHE_CONTROL =
   "private, no-cache, must-revalidate, max-age=0, s-maxage=0";
 
-const PERMISSIONS_POLICY =
-  "camera=(self), microphone=(), geolocation=(), payment=()";
 const AUTH_CONTEXT_HEADER = "x-kalosna-auth-context";
 
 function hasSupabaseAuthCookie(request: NextRequest) {

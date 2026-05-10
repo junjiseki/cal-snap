@@ -17,7 +17,7 @@
       "purpose": "any"
     },
     {
-      "src": "/icon-192.png",
+      "src": "/icon-192-maskable.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
@@ -29,10 +29,26 @@
       "purpose": "any"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/icon-512-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/1.webp",
+      "sizes": "389x845",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "アプリ画面（例 1）"
+    },
+    {
+      "src": "/2.webp",
+      "sizes": "389x845",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "アプリ画面（例 2）"
     }
   ],
   "shortcuts": [

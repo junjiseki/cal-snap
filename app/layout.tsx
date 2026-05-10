@@ -5,15 +5,17 @@ import { Geist } from "next/font/google";
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import "./globals.css";
-import { APPLE_TOUCH_ICON_METADATA } from "@/lib/pwa-static-icon-paths";
-import { getRequestOrigin } from "@/lib/request-origin";
-import { CleanupStaleSession } from "@/components/auth/cleanup-stale-session";
 import { DailyAdvice } from "@/components/advice/daily-advice";
+import { CleanupStaleSession } from "@/components/auth/cleanup-stale-session";
 import { AppHeader } from "@/components/layout/app-header";
 import { PassiveServiceWorkerRegister } from "@/components/pwa/passive-service-worker-register";
 import { PwaInstallPrompt } from "@/components/pwa/install-prompt";
+import { PwaOfflineNotice } from "@/components/pwa/offline-notice";
 import { ServiceWorkerLegacyCleanup } from "@/components/pwa/service-worker-legacy-cleanup";
 import { ThemeProvider } from "@/components/theme-provider";
+import { APPLE_TOUCH_ICON_METADATA } from "@/lib/pwa-static-icon-paths";
+import { PWA_THEME_COLOR_DARK, PWA_THEME_COLOR_LIGHT } from "@/lib/pwa-theme";
+import { getRequestOrigin } from "@/lib/request-origin";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -116,7 +118,10 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: "#fff3c7",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: PWA_THEME_COLOR_LIGHT },
+    { media: "(prefers-color-scheme: dark)", color: PWA_THEME_COLOR_DARK },
+  ],
 };
 
 export default function RootLayout({
@@ -131,6 +136,7 @@ export default function RootLayout({
           <CleanupStaleSession />
           <ServiceWorkerLegacyCleanup />
           <PassiveServiceWorkerRegister />
+          <PwaOfflineNotice />
           <AppHeader />
           <div className="flex flex-1 flex-col">{children}</div>
           <Suspense fallback={null}>

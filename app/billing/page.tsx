@@ -76,7 +76,7 @@ const paidBenefitGroups = [
       },
       {
         icon: MessageCircle,
-        title: "今日のAIアドバイス",
+        title: "今日のアドバイス",
         body: "画面右下のカロちゃんから、当日の記録をもとにした一言アドバイスを表示できます（有料のみ）。",
       },
       {
@@ -105,7 +105,7 @@ const planComparisonRows = [
     paid: `1日${MEAL_SUGGESTION_DAILY_LIMIT}回`,
   },
   {
-    label: "今日のAIアドバイス（カロちゃん）",
+    label: "今日のアドバイス（カロちゃん）",
     free: "不可",
     paid: "利用可",
   },

@@ -788,12 +788,7 @@ export function MealPhotoAnalyzer({
       <section className="space-y-4 border border-border bg-card p-4 shadow-sm sm:p-5 lg:sticky lg:top-24">
         <div>
           <p className="text-xs font-semibold text-primary">STEP 1</p>
-          <h2 className="mt-1 text-lg font-semibold">記録方法を選ぶ</h2>
-          <p className="mt-2 text-xs leading-6 text-muted-foreground">
-            {canUseManualEntry
-              ? "有料プラン: 写真解析と手入力が使えます。"
-              : "無料プラン: 写真解析で記録できます。"}
-          </p>
+          <h2 className="mt-1 text-lg font-semibold">食事写真を選んで解析</h2>
           {canUseManualEntry ? (
             <p className="mt-1 text-[11px] leading-5 text-muted-foreground/70">
               食事時間を指定して、1日最大{MAX_MEALS_PER_DAY}回まで記録できます。

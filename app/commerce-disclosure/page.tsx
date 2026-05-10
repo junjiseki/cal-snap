@@ -87,7 +87,7 @@ function createDisclosureRows(): DisclosureRow[] {
     {
       label: "有料プランの内容",
       value:
-        `食事写真のAI解析を1日${PAID_DAILY_ANALYSIS_LIMIT}回、食事メニュー提案を1日${MEAL_SUGGESTION_DAILY_LIMIT}回まで利用できます。手入力での食事記録、過去日の履歴・カレンダー、直近14日のカロリー・PFCグラフ、今日のAIアドバイス、目安カロリーにそった1件ショートカット登録を利用できます。`,
+        `食事写真のAI解析を1日${PAID_DAILY_ANALYSIS_LIMIT}回、食事メニュー提案を1日${MEAL_SUGGESTION_DAILY_LIMIT}回まで利用できます。手入力での食事記録、過去日の履歴・カレンダー、直近14日のカロリー・PFCグラフ、今日のアドバイス、目安カロリーにそった1件ショートカット登録を利用できます。`,
     },
     {
       label: "申込期間・販売数量",

@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, Loader2, Plus, Trash2 } from "lucide-react";
 import {
   MAX_MEAL_REMINDER_SETTINGS,
   type MealReminderSettingInput,
@@ -74,6 +74,9 @@ function toPayload(settings: EditableSetting[]): MealReminderSettingInput[] {
     .sort((a, b) => a.notify_time.localeCompare(b.notify_time));
 }
 
+/** DELETE /api/meal-reminders のネットワーク上限（ハング対策） */
+const DELETE_MEAL_REMINDER_TIMEOUT_MS = 30_000;
+
 export function MealReminderSettingsForm({
   initialSettings,
 }: {
@@ -86,6 +89,11 @@ export function MealReminderSettingsForm({
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showHowTo, setShowHowTo] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<EditableSetting | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const deleteDialogPanelRef = useRef<HTMLDivElement>(null);
+  const deleteAbortRef = useRef<AbortController | null>(null);
+  const deleteAbortReasonRef = useRef<"user" | "timeout" | null>(null);
 
   const payload = useMemo(() => toPayload(settings), [settings]);
   const isDirty = useMemo(
@@ -95,6 +103,77 @@ export function MealReminderSettingsForm({
   const enabledCount = settings.filter((setting) => setting.enabled).length;
   const canAdd = settings.length < MAX_MEAL_REMINDER_SETTINGS;
   const timeOptions = useMemo(() => getThirtyMinuteTimeOptions(), []);
+
+  const dismissDeleteModal = useCallback(() => {
+    if (deleteAbortRef.current) {
+      deleteAbortReasonRef.current = "user";
+      deleteAbortRef.current.abort();
+    }
+    deleteAbortRef.current = null;
+    setPendingDelete(null);
+    setIsDeleting(false);
+  }, []);
+
+  useEffect(() => {
+    if (!pendingDelete) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function focusableInPanel(): HTMLElement[] {
+      const panel = deleteDialogPanelRef.current;
+      if (!panel) return [];
+      return Array.from(
+        panel.querySelectorAll<HTMLElement>(
+          [
+            "button:not([disabled])",
+            "a[href]",
+            "input:not([disabled])",
+            "select:not([disabled])",
+            "textarea:not([disabled])",
+            '[tabindex]:not([tabindex="-1"])',
+          ].join(","),
+        ),
+      );
+    }
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        dismissDeleteModal();
+        return;
+      }
+      if (e.key !== "Tab") return;
+
+      const els = focusableInPanel();
+      if (els.length === 0) return;
+
+      const first = els[0];
+      const last = els[els.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+
+    const id = requestAnimationFrame(() => {
+      const els = focusableInPanel();
+      els[0]?.focus();
+    });
+
+    return () => {
+      cancelAnimationFrame(id);
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [pendingDelete, dismissDeleteModal]);
 
   function resetMessages() {
     setNotice(null);
@@ -133,7 +212,78 @@ export function MealReminderSettingsForm({
 
   function removeSetting(clientId: string) {
     setSettings((current) => current.filter((setting) => setting.clientId !== clientId));
-    resetMessages();
+    setPendingDelete(null);
+  }
+
+  function requestRemoveSetting(setting: EditableSetting) {
+    setPendingDelete(setting);
+    setNotice(null);
+    setError(null);
+    setShowHowTo(false);
+  }
+
+  async function confirmRemoveSetting() {
+    if (!pendingDelete || isDeleting) return;
+
+    if (!pendingDelete.id) {
+      removeSetting(pendingDelete.clientId);
+      setNotice("食事時間を削除しました。");
+      return;
+    }
+
+    const settingToRemove = pendingDelete;
+    const controller = new AbortController();
+    deleteAbortRef.current = controller;
+    deleteAbortReasonRef.current = null;
+
+    const timeoutId = window.setTimeout(() => {
+      deleteAbortReasonRef.current = "timeout";
+      controller.abort();
+    }, DELETE_MEAL_REMINDER_TIMEOUT_MS);
+
+    setIsDeleting(true);
+    setNotice(null);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/meal-reminders", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: settingToRemove.id }),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as {
+          error?: { message?: string };
+        } | null;
+        throw new Error(body?.error?.message ?? "食事時間を削除できません。");
+      }
+
+      setSettings((current) =>
+        current.filter((setting) => setting.clientId !== settingToRemove.clientId),
+      );
+      setSavedSettings((current) => current.filter((setting) => setting.id !== settingToRemove.id));
+      setPendingDelete(null);
+      setNotice("食事時間を削除しました。");
+      router.refresh();
+    } catch (caught) {
+      const isAbort = caught instanceof DOMException && caught.name === "AbortError";
+      if (isAbort) {
+        if (deleteAbortReasonRef.current === "timeout") {
+          setError(
+            "削除リクエストがタイムアウトしました。ネットワークを確認するか、しばらくしてから再度お試しください。",
+          );
+        }
+        deleteAbortReasonRef.current = null;
+        return;
+      }
+      setError(caught instanceof Error ? caught.message : "削除に失敗しました。");
+    } finally {
+      window.clearTimeout(timeoutId);
+      deleteAbortRef.current = null;
+      setIsDeleting(false);
+    }
   }
 
   async function save() {
@@ -242,7 +392,7 @@ export function MealReminderSettingsForm({
               </select>
               <button
                 type="button"
-                onClick={() => removeSetting(setting.clientId)}
+                onClick={() => requestRemoveSetting(setting)}
                 className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border px-3 text-sm font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground active:scale-[0.98]"
               >
                 <Trash2 className="size-4" />
@@ -288,6 +438,62 @@ export function MealReminderSettingsForm({
               通知の届くタイミングは、ネットワークや端末・運用の都合で登録時刻とずれることがあります。
             </li>
           </ol>
+        </div>
+      ) : null}
+
+      {pendingDelete ? (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/35 p-4 sm:items-center"
+          role="presentation"
+          onPointerDown={(e) => {
+            if (e.target === e.currentTarget) dismissDeleteModal();
+          }}
+        >
+          <div
+            ref={deleteDialogPanelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-reminder-title"
+            aria-describedby="delete-reminder-description"
+            tabIndex={-1}
+            className="w-full max-w-sm rounded-lg border border-border bg-background p-5 shadow-xl outline-none"
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+                <AlertTriangle className="size-5" />
+              </div>
+              <div>
+                <h3 id="delete-reminder-title" className="text-base font-semibold">
+                  食事時間を削除しますか？
+                </h3>
+                <p
+                  id="delete-reminder-description"
+                  className="mt-2 text-sm leading-6 text-muted-foreground"
+                >
+                  {pendingDelete.notify_time} の食事時間を、通知対象から取り消します。
+                </p>
+              </div>
+            </div>
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => dismissDeleteModal()}
+                className="inline-flex h-11 items-center justify-center rounded-md border border-border px-4 text-sm font-semibold transition hover:bg-muted active:scale-[0.98]"
+              >
+                キャンセル
+              </button>
+              <button
+                type="button"
+                onClick={() => void confirmRemoveSetting()}
+                disabled={isDeleting}
+                aria-busy={isDeleting}
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-destructive px-4 text-sm font-semibold text-destructive-foreground transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+              >
+                {isDeleting ? <Loader2 className="size-4 animate-spin" /> : null}
+                {isDeleting ? "削除中..." : "削除する"}
+              </button>
+            </div>
+          </div>
         </div>
       ) : null}
     </div>

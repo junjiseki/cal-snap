@@ -2,6 +2,7 @@ import { MealReminderSettingsPayloadSchema } from "@/lib/meal-reminders";
 import { forbiddenOriginResponse, isAllowedOrigin } from "@/lib/security/request";
 import type { Json } from "@/lib/supabase/database.types";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
+import { z } from "zod";
 
 export const runtime = "nodejs";
 
@@ -69,6 +70,49 @@ export async function PATCH(request: Request) {
   if (error) {
     console.error("[meal-reminders] save failed", error);
     return errorResponse("食事時間を保存できません。", 500, "MEAL_REMINDER_SAVE_FAILED");
+  }
+
+  return Response.json({ ok: true });
+}
+
+const DeleteMealReminderSettingSchema = z.object({
+  id: z.uuid(),
+});
+
+export async function DELETE(request: Request) {
+  if (!isAllowedOrigin(request)) {
+    return forbiddenOriginResponse();
+  }
+
+  const { supabase, user } = await getAuthenticatedUser();
+  if (!user) {
+    return errorResponse("ログインが必要です。", 401, "UNAUTHENTICATED");
+  }
+
+  const paid = await requirePaidProfile(supabase, user.id);
+  if (!paid.ok) return paid.response;
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return errorResponse("JSONを読み取れません。", 400, "BAD_JSON");
+  }
+
+  const parsed = DeleteMealReminderSettingSchema.safeParse(body);
+  if (!parsed.success) {
+    return errorResponse("削除する食事時間を確認してください。", 400, "VALIDATION_FAILED");
+  }
+
+  const { error } = await supabase
+    .from("meal_reminder_settings")
+    .delete()
+    .eq("id", parsed.data.id)
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("[meal-reminders] delete failed", error);
+    return errorResponse("食事時間を削除できません。", 500, "MEAL_REMINDER_DELETE_FAILED");
   }
 
   return Response.json({ ok: true });

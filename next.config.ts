@@ -1,10 +1,17 @@
 import type { NextConfig } from "next";
+import {
+  PERMISSIONS_POLICY,
+  SERVICE_WORKER_SCRIPT_HEADERS,
+} from "./lib/http-security";
 import { PWA_SHORT_CACHE_PATHS } from "./lib/pwa-static-icon-paths";
 
 /**
- * セキュリティヘッダー・HTML の Cache-Control は `proxy.ts`（Next の Proxy 規約／旧 middleware）で付与。
- * `/_next/static` 等は matcher 外のため proxy を通らない（チャンクは Next 既定のキャッシュ）。
+ * セキュリティヘッダー: `/:path*` で全レスポンスに付与（`proxy.ts` の matcher 外の
+ * `/_next/static`、`/sw.js` 等も含む）。HTML の Cache-Control と HSTS（HTTPS 時）は `proxy.ts`。
+ * Permissions-Policy 等の共有値は `lib/http-security.ts`。
  */
+const SERVICE_WORKER_HEADER_SOURCES = ["/sw.js", "/sw-passive.js"] as const;
+
 const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react", "recharts"],
@@ -26,6 +33,18 @@ const nextConfig: NextConfig = {
     ] as const;
 
     return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          { key: "Permissions-Policy", value: PERMISSIONS_POLICY },
+        ],
+      },
       ...staticAssetExtensions.map((extension) => ({
         source: `/:path*.${extension}`,
         headers: [
@@ -43,6 +62,10 @@ const nextConfig: NextConfig = {
             value: "public, max-age=300, must-revalidate",
           },
         ],
+      })),
+      ...SERVICE_WORKER_HEADER_SOURCES.map((source) => ({
+        source,
+        headers: [...SERVICE_WORKER_SCRIPT_HEADERS],
       })),
     ];
   },

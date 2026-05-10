@@ -130,7 +130,7 @@
 ## 9. ミドルウェア（`proxy.ts`）
 
 - 全リクエストで Supabase `getUser` を実行し、**古いリフレッシュトークン**なら `signOut`。
-- セキュリティヘッダ（`X-Content-Type-Options`、`X-Frame-Options`、`Referrer-Policy` 等）を付与。
+- セキュリティヘッダ（`X-Content-Type-Options`、`X-Frame-Options`、`Referrer-Policy` 等）を付与（matcher 外の静的アセット等は `next.config.ts` の `headers` でも付与。共有値は `lib/http-security.ts`）。
 
 ---
 

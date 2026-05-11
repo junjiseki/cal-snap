@@ -15,11 +15,7 @@ import { ServiceWorkerLegacyCleanup } from "@/components/pwa/service-worker-lega
 import { ThemeProvider } from "@/components/theme-provider";
 import { APPLE_TOUCH_ICON_METADATA } from "@/lib/pwa-static-icon-paths";
 import { PWA_THEME_COLOR_DARK, PWA_THEME_COLOR_LIGHT } from "@/lib/pwa-theme";
-import {
-  absoluteSiteUrl,
-  getSiteUrl,
-  siteHomeAbsoluteUrl,
-} from "@/lib/site-url";
+import { getRequestOrigin } from "@/lib/request-origin";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -49,20 +45,21 @@ const FOOTER_LINKS = [
   { href: "/commerce-disclosure", label: "特商法表記" },
 ] as const;
 
-/** OGP / Twitter / LINE 用（実ファイルと寸法を一致させる。url は必ず絶対 URL） */
-function socialShareLogo(alt: string) {
+/** OGP / Twitter / LINE 用（実ファイルと寸法を一致。url はリクエストオリジン基準の絶対 URL） */
+function socialShareLogo(alt: string, origin: string) {
   return {
-    url: absoluteSiteUrl("/logo.png"),
+    url: new URL("/logo.png", origin).href,
     width: 1024,
     height: 1024,
     alt,
   } as const;
 }
 
-export function generateMetadata(): Metadata {
-  const siteBase = new URL(getSiteUrl());
-  const homeUrl = siteHomeAbsoluteUrl();
-  const shareLogo = socialShareLogo(`${APP_NAME}のロゴ`);
+export async function generateMetadata(): Promise<Metadata> {
+  const origin = await getRequestOrigin();
+  const siteBase = new URL(origin);
+  const homeUrl = new URL("/", origin).href;
+  const shareLogo = socialShareLogo(`${APP_NAME}のロゴ`, origin);
 
   return {
     title: {

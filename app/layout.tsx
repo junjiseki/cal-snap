@@ -45,6 +45,14 @@ const FOOTER_LINKS = [
   { href: "/commerce-disclosure", label: "特商法表記" },
 ] as const;
 
+/** OGP / Twitter Card 用（実ファイルと寸法を一致させる） */
+const SOCIAL_SHARE_IMAGE = {
+  url: "/logo.png",
+  width: 1024,
+  height: 1024,
+  alt: `${APP_NAME}のロゴ`,
+} as const;
+
 export async function generateMetadata(): Promise<Metadata> {
   const siteBase = new URL(await getRequestOrigin());
 
@@ -103,13 +111,13 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: APP_NAME,
       title: SITE_TITLE,
       description: SITE_DESCRIPTION,
-      images: ["/logo.png"],
+      images: [SOCIAL_SHARE_IMAGE],
     },
     twitter: {
       card: "summary_large_image",
       title: SITE_TITLE,
       description: SITE_DESCRIPTION,
-      images: ["/logo.png"],
+      images: [SOCIAL_SHARE_IMAGE],
     },
   };
 }

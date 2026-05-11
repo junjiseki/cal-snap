@@ -15,7 +15,11 @@ import { ServiceWorkerLegacyCleanup } from "@/components/pwa/service-worker-lega
 import { ThemeProvider } from "@/components/theme-provider";
 import { APPLE_TOUCH_ICON_METADATA } from "@/lib/pwa-static-icon-paths";
 import { PWA_THEME_COLOR_DARK, PWA_THEME_COLOR_LIGHT } from "@/lib/pwa-theme";
-import { getRequestOrigin } from "@/lib/request-origin";
+import {
+  absoluteSiteUrl,
+  getSiteUrl,
+  siteHomeAbsoluteUrl,
+} from "@/lib/site-url";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -45,16 +49,20 @@ const FOOTER_LINKS = [
   { href: "/commerce-disclosure", label: "特商法表記" },
 ] as const;
 
-/** OGP / Twitter Card 用（実ファイルと寸法を一致させる） */
-const SOCIAL_SHARE_IMAGE = {
-  url: "/logo.png",
-  width: 1024,
-  height: 1024,
-  alt: `${APP_NAME}のロゴ`,
-} as const;
+/** OGP / Twitter / LINE 用（実ファイルと寸法を一致させる。url は必ず絶対 URL） */
+function socialShareLogo(alt: string) {
+  return {
+    url: absoluteSiteUrl("/logo.png"),
+    width: 1024,
+    height: 1024,
+    alt,
+  } as const;
+}
 
-export async function generateMetadata(): Promise<Metadata> {
-  const siteBase = new URL(await getRequestOrigin());
+export function generateMetadata(): Metadata {
+  const siteBase = new URL(getSiteUrl());
+  const homeUrl = siteHomeAbsoluteUrl();
+  const shareLogo = socialShareLogo(`${APP_NAME}のロゴ`);
 
   return {
     title: {
@@ -67,7 +75,7 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: siteBase,
     keywords: [...KEYWORDS],
     alternates: {
-      canonical: "/",
+      canonical: homeUrl,
     },
     robots: {
       index: true,
@@ -107,17 +115,17 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       type: "website",
       locale: "ja_JP",
-      url: "/",
+      url: homeUrl,
       siteName: APP_NAME,
       title: SITE_TITLE,
       description: SITE_DESCRIPTION,
-      images: [SOCIAL_SHARE_IMAGE],
+      images: [shareLogo],
     },
     twitter: {
       card: "summary_large_image",
       title: SITE_TITLE,
       description: SITE_DESCRIPTION,
-      images: [SOCIAL_SHARE_IMAGE],
+      images: [shareLogo],
     },
   };
 }

@@ -313,6 +313,8 @@ export async function POST(request: Request) {
           text: [
             "You are a Japanese diet meal planner.",
             "Return JSON only, matching the supplied schema.",
+            "All string values in the JSON MUST be written in Japanese.",
+            "Keep JSON property names exactly as the schema defines; only translate values.",
             "Do not recommend extreme restriction. Keep suggestions realistic and easy to choose.",
             "Use the user's recent meals to infer preferences, common calorie range, and foods they often eat.",
             "提案は日本語で、具体的なメニュー名と量が想像できる内容にしてください。",

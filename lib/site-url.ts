@@ -10,3 +10,13 @@ export function getSiteUrl() {
   }
   return "http://localhost:3000";
 }
+
+/** `/logo.png` のような pathname から絶対 URL（LINE 等は og:image の相対パスを解釈しないことがある） */
+export function absoluteSiteUrl(pathname: string): string {
+  return new URL(pathname, getSiteUrl()).href;
+}
+
+/** トップページの絶対 URL（`og:url` / canonical 用） */
+export function siteHomeAbsoluteUrl(): string {
+  return new URL("/", getSiteUrl()).href;
+}

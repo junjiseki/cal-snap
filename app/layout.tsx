@@ -45,8 +45,21 @@ const FOOTER_LINKS = [
   { href: "/commerce-disclosure", label: "特商法表記" },
 ] as const;
 
+/** OGP / Twitter / LINE 用（実ファイルと寸法を一致。url はリクエストオリジン基準の絶対 URL） */
+function socialShareLogo(alt: string, origin: string) {
+  return {
+    url: new URL("/logo.png", origin).href,
+    width: 1024,
+    height: 1024,
+    alt,
+  } as const;
+}
+
 export async function generateMetadata(): Promise<Metadata> {
-  const siteBase = new URL(await getRequestOrigin());
+  const origin = await getRequestOrigin();
+  const siteBase = new URL(origin);
+  const homeUrl = new URL("/", origin).href;
+  const shareLogo = socialShareLogo(`${APP_NAME}のロゴ`, origin);
 
   return {
     title: {
@@ -59,7 +72,7 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: siteBase,
     keywords: [...KEYWORDS],
     alternates: {
-      canonical: "/",
+      canonical: homeUrl,
     },
     robots: {
       index: true,
@@ -99,17 +112,17 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       type: "website",
       locale: "ja_JP",
-      url: "/",
+      url: homeUrl,
       siteName: APP_NAME,
       title: SITE_TITLE,
       description: SITE_DESCRIPTION,
-      images: ["/logo.png"],
+      images: [shareLogo],
     },
     twitter: {
       card: "summary_large_image",
       title: SITE_TITLE,
       description: SITE_DESCRIPTION,
-      images: ["/logo.png"],
+      images: [shareLogo],
     },
   };
 }

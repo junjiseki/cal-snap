@@ -35,7 +35,7 @@ const paidBenefitGroups = [
       {
         icon: Camera,
         title: `AI写真解析（1日${PAID_DAILY_ANALYSIS_LIMIT}回）`,
-        body: "食事写真からカロリーとPFCを推定。無料プランは1日1回まで。",
+        body: "食事写真からカロリーとPFCを推定。有料プランでは無料プランより高精度なAIモデルを使います。",
       },
       {
         icon: Keyboard,
@@ -72,7 +72,7 @@ const paidBenefitGroups = [
       {
         icon: Sparkles,
         title: `食事メニュー提案（1日${MEAL_SUGGESTION_DAILY_LIMIT}回）`,
-        body: "外食・自炊・コンビニと、朝・昼・夜を選ぶと、過去の記録から候補メニューを提案します（有料のみ）。",
+        body: "外食・自炊・コンビニと、朝・昼・夜を選ぶと、より高精度なAIモデルが過去の記録から候補メニューを提案します（有料のみ）。",
       },
       {
         icon: MessageCircle,
@@ -92,7 +92,12 @@ const planComparisonRows = [
   {
     label: "AI写真解析（1日あたり）",
     free: `1日${FREE_DAILY_ANALYSIS_LIMIT}回`,
-    paid: `1日${PAID_DAILY_ANALYSIS_LIMIT}回`,
+    paid: `1日${PAID_DAILY_ANALYSIS_LIMIT}回・高精度AIモデル`,
+  },
+  {
+    label: "利用するAIモデル",
+    free: "標準モデル",
+    paid: "より高精度なモデル",
   },
   {
     label: "手入力で食事を登録",
@@ -189,7 +194,7 @@ export default async function BillingPage() {
                     で次の機能がまとめて使えます。
                   </p>
                   <ul className="list-disc space-y-1.5 pl-5 marker:text-primary">
-                    <li>AI 写真解析（1日{PAID_DAILY_ANALYSIS_LIMIT}回）</li>
+                    <li>高精度AIモデルでの写真解析（1日{PAID_DAILY_ANALYSIS_LIMIT}回）</li>
                     <li>手入力での食事登録</li>
                     <li>過去日の履歴・カレンダー・直近14日のグラフ</li>
                     <li>
@@ -243,8 +248,8 @@ export default async function BillingPage() {
               <li className="flex gap-2">
                 <span className="mt-1.5 size-1 shrink-0 rounded-full bg-primary" aria-hidden />
                 <span>
-                  AI 写真解析 1 日 {PAID_DAILY_ANALYSIS_LIMIT} 回、食事提案 1 日 {MEAL_SUGGESTION_DAILY_LIMIT}{" "}
-                  回。
+                  高精度AIモデルでの写真解析 1 日 {PAID_DAILY_ANALYSIS_LIMIT} 回、食事提案 1 日{" "}
+                  {MEAL_SUGGESTION_DAILY_LIMIT} 回。
                 </span>
               </li>
               <li className="flex gap-2">

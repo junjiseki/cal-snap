@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const getAuthenticatedUserMock = vi.fn();
 
@@ -87,6 +87,10 @@ describe("POST /api/meals", () => {
     getAuthenticatedUserMock.mockReset();
   });
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("warns and still succeeds when meal_reminder_settings fetch fails", async () => {
     const reminderErr = { message: "reminder settings unavailable", code: "TEST" };
     const { from, rpc } = createMockSupabase(reminderErr);
@@ -115,8 +119,6 @@ describe("POST /api/meals", () => {
       "[meals] reminder settings fetch failed",
       reminderErr,
     );
-
-    warnSpy.mockRestore();
 
     expect(from).toHaveBeenCalledWith("meals");
     expect(from).toHaveBeenCalledWith("meal_reminder_settings");

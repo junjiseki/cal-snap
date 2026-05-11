@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { getGeminiModelForPlan } from "@/lib/gemini-models";
 import {
   DailyAdviceSchema,
   type DailyAdviceMeal,
@@ -95,7 +96,7 @@ export async function GET() {
         }
 
         const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-        const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+        const model = getGeminiModelForPlan(profile.plan);
         const response = await ai.models.generateContent({
           model,
           contents: [{ text: buildDailyAdvicePrompt(summary) }],

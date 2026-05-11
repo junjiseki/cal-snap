@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { getGeminiModelForPlan } from "@/lib/gemini-models";
 import {
   MEAL_SUGGESTION_DAILY_LIMIT,
   MealSuggestionRequestSchema,
@@ -245,7 +246,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+  const model = getGeminiModelForPlan(profile.plan);
   const { start, endExclusive } = getTodaySuggestionUsageRange();
   const { data: claim, error: claimError } = await supabase.rpc(
     "claim_meal_suggestion_slot",

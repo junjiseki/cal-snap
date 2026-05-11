@@ -75,7 +75,8 @@ RLS は有効化済みで、自分のデータだけ参照・更新できます�
 NEXT_PUBLIC_SUPABASE_URL="https://<project-ref>.supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="<supabase-anon-key>"
 GEMINI_API_KEY="<gemini-api-key>"
-GEMINI_MODEL="gemini-2.5-flash"
+GEMINI_FREE_MODEL="gemini-2.5-flash-lite"
+GEMINI_PAID_MODEL="gemini-2.5-flash"
 FREE_DAILY_ANALYSIS_LIMIT="1"
 PAID_DAILY_ANALYSIS_LIMIT="3"
 STRIPE_SECRET_KEY="<stripe-secret-key>"
@@ -92,7 +93,7 @@ LEGAL_BUSINESS_PHONE="<電話番号>"
 LEGAL_CONTACT_EMAIL="<問い合わせメールアドレス>"
 ```
 
-`GEMINI_MODEL` は未設定の場合 `gemini-2.5-flash` を使用します。
+`GEMINI_FREE_MODEL` は未設定の場合 `gemini-2.5-flash-lite`、`GEMINI_PAID_MODEL` は未設定の場合 `gemini-2.5-flash` を使用します。互換用に `GEMINI_MODEL` を設定すると、個別設定がないプランのフォールバックとして使われます。
 
 ### Cloudflare Turnstile
 

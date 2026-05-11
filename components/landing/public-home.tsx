@@ -295,7 +295,7 @@ export function PublicHome() {
               次に何を食べるかも、AIに相談。
             </h2>
             <p className="mt-4 text-base font-medium leading-8 text-[#42504b]">
-              外食・自炊・コンビニを選び、朝ご飯・昼食・夜ご飯を指定するだけ。過去の食事傾向から、AIが今日の残りカロリーに合わせたメニュー候補を提案します。さらに食事時間を登録すると、記録忘れを通知で思い出せます。有料プランは14日間無料で試せます。
+              外食・自炊・コンビニを選び、朝ご飯・昼食・夜ご飯を指定するだけ。過去の食事傾向から、AIが今日の残りカロリーに合わせたメニュー候補を提案します。有料プランではより高精度なAIモデルを使い、写真解析や提案の品質を高めます。さらに食事時間を登録すると、記録忘れを通知で思い出せます。有料プランは14日間無料で試せます。
             </p>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               <div className="flex items-start gap-3 rounded-md border-2 border-[#17231f] bg-white p-4 shadow-[4px_4px_0_#17231f]">

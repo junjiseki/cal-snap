@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { getGeminiModelForPlan } from "@/lib/gemini-models";
 import {
   MAX_IMAGE_BYTES,
   MealAnalysisSchema,
@@ -310,7 +311,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+  const model = getGeminiModelForPlan(plan);
   let logId: string | null = null;
 
   const { start, endExclusive } = getTodayRangeInJapan();

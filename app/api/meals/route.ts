@@ -128,11 +128,18 @@ export async function POST(request: Request) {
 
   const eatenDate = new Date(meal.eaten_at);
   const targetDate = formatJstYmd(eatenDate);
-  const { data: reminderSettings } = await supabase
+  const { data: reminderSettings, error: reminderSettingsError } = await supabase
     .from("meal_reminder_settings")
     .select("id, notify_time")
     .eq("user_id", user.id)
     .eq("enabled", true);
+
+  if (reminderSettingsError) {
+    console.warn(
+      "[meals] reminder settings fetch failed",
+      reminderSettingsError,
+    );
+  }
 
   const reminderSettingId = pickMealReminderSettingIdForEatenAt(
     eatenDate,

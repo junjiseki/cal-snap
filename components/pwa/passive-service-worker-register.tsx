@@ -10,7 +10,10 @@ const PASSIVE_SW_PATH = "/sw-passive.js";
  */
 export function PassiveServiceWorkerRegister() {
   useEffect(() => {
-    if (typeof window === "undefined" || process.env.NODE_ENV !== "production") {
+    if (
+      typeof window === "undefined" ||
+      process.env.NODE_ENV !== "production"
+    ) {
       return;
     }
     if (!("serviceWorker" in navigator)) {

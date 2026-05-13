@@ -24,7 +24,8 @@ function getExpectedOrigin(request: Request) {
     }
   }
 
-  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  const host =
+    request.headers.get("x-forwarded-host") ?? request.headers.get("host");
   if (!host) return null;
 
   const proto = request.headers.get("x-forwarded-proto") ?? "http";

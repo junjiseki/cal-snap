@@ -129,14 +129,19 @@ export default function TermsPage() {
               特定商取引法に基づく表記
             </Link>
           </div>
-          <p className="mt-3 text-sm text-muted-foreground">制定日: 2026年5月3日</p>
+          <p className="mt-3 text-sm text-muted-foreground">
+            制定日: 2026年5月3日
+          </p>
         </div>
       </section>
 
       <section className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-8 sm:py-10">
         <div className="space-y-5">
           {sections.map((section) => (
-            <article key={section.title} className="border border-border bg-card p-5 sm:p-6">
+            <article
+              key={section.title}
+              className="border border-border bg-card p-5 sm:p-6"
+            >
               <h2 className="text-lg font-semibold">{section.title}</h2>
               <div className="mt-3 space-y-3 text-sm leading-7 text-muted-foreground">
                 {section.body.map((paragraph) => (

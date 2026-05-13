@@ -1,5 +1,8 @@
 import { MealReminderSettingsPayloadSchema } from "@/lib/meal-reminders";
-import { forbiddenOriginResponse, isAllowedOrigin } from "@/lib/security/request";
+import {
+  forbiddenOriginResponse,
+  isAllowedOrigin,
+} from "@/lib/security/request";
 import type { Json } from "@/lib/supabase/database.types";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 import { z } from "zod";
@@ -10,7 +13,10 @@ function errorResponse(message: string, status: number, code: string) {
   return Response.json({ error: { message, code } }, { status });
 }
 
-async function requirePaidProfile(supabase: Awaited<ReturnType<typeof getAuthenticatedUser>>["supabase"], userId: string) {
+async function requirePaidProfile(
+  supabase: Awaited<ReturnType<typeof getAuthenticatedUser>>["supabase"],
+  userId: string,
+) {
   const { data: profile, error } = await supabase
     .from("profiles")
     .select("plan")
@@ -18,11 +24,25 @@ async function requirePaidProfile(supabase: Awaited<ReturnType<typeof getAuthent
     .maybeSingle();
 
   if (error) {
-    return { ok: false as const, response: errorResponse("プランを確認できません。", 500, "PROFILE_FETCH_FAILED") };
+    return {
+      ok: false as const,
+      response: errorResponse(
+        "プランを確認できません。",
+        500,
+        "PROFILE_FETCH_FAILED",
+      ),
+    };
   }
 
   if (profile?.plan !== "paid") {
-    return { ok: false as const, response: errorResponse("食事時間の登録は有料プランで利用できます。", 403, "PAID_PLAN_REQUIRED") };
+    return {
+      ok: false as const,
+      response: errorResponse(
+        "食事時間の登録は有料プランで利用できます。",
+        403,
+        "PAID_PLAN_REQUIRED",
+      ),
+    };
   }
 
   return { ok: true as const };
@@ -50,12 +70,22 @@ export async function PATCH(request: Request) {
 
   const parsed = MealReminderSettingsPayloadSchema.safeParse(body);
   if (!parsed.success) {
-    return errorResponse("食事時間の設定内容を確認してください。", 400, "VALIDATION_FAILED");
+    return errorResponse(
+      "食事時間の設定内容を確認してください。",
+      400,
+      "VALIDATION_FAILED",
+    );
   }
 
-  const notifyTimes = new Set(parsed.data.settings.map((setting) => setting.notify_time));
+  const notifyTimes = new Set(
+    parsed.data.settings.map((setting) => setting.notify_time),
+  );
   if (notifyTimes.size !== parsed.data.settings.length) {
-    return errorResponse("同じ時刻は複数登録できません。", 400, "DUPLICATE_NOTIFY_TIME");
+    return errorResponse(
+      "同じ時刻は複数登録できません。",
+      400,
+      "DUPLICATE_NOTIFY_TIME",
+    );
   }
 
   const rows = parsed.data.settings.map((setting) => ({
@@ -69,7 +99,11 @@ export async function PATCH(request: Request) {
 
   if (error) {
     console.error("[meal-reminders] save failed", error);
-    return errorResponse("食事時間を保存できません。", 500, "MEAL_REMINDER_SAVE_FAILED");
+    return errorResponse(
+      "食事時間を保存できません。",
+      500,
+      "MEAL_REMINDER_SAVE_FAILED",
+    );
   }
 
   return Response.json({ ok: true });
@@ -101,7 +135,11 @@ export async function DELETE(request: Request) {
 
   const parsed = DeleteMealReminderSettingSchema.safeParse(body);
   if (!parsed.success) {
-    return errorResponse("削除する食事時間を確認してください。", 400, "VALIDATION_FAILED");
+    return errorResponse(
+      "削除する食事時間を確認してください。",
+      400,
+      "VALIDATION_FAILED",
+    );
   }
 
   const { error } = await supabase
@@ -112,7 +150,11 @@ export async function DELETE(request: Request) {
 
   if (error) {
     console.error("[meal-reminders] delete failed", error);
-    return errorResponse("食事時間を削除できません。", 500, "MEAL_REMINDER_DELETE_FAILED");
+    return errorResponse(
+      "食事時間を削除できません。",
+      500,
+      "MEAL_REMINDER_DELETE_FAILED",
+    );
   }
 
   return Response.json({ ok: true });

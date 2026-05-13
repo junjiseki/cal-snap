@@ -1,14 +1,19 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.4.13/schema.json",
   "vcs": {
-    "enabled": false,
+    "enabled": true,
     "clientKind": "git",
-    "useIgnoreFile": true
+    "useIgnoreFile": true,
+    "defaultBranch": "main"
   },
   "files": {
     "ignoreUnknown": false,
     "includes": [
-      "src/**/*.{js,jsx,ts,tsx,mts,cts,json,jsonc}",
+      "app/**/*.{js,jsx,ts,tsx,mts,cts,json,jsonc}",
+      "components/**/*.{js,jsx,ts,tsx,mts,cts,json,jsonc}",
+      "lib/**/*.{js,jsx,ts,tsx,mts,cts,json,jsonc}",
+      "tests/**/*.{js,jsx,ts,tsx,mts,cts,json,jsonc}",
+      "scripts/**/*.{js,jsx,ts,tsx,mts,cts,json,jsonc}",
       "*.{js,jsx,ts,tsx,mts,cts,json,jsonc}"
     ]
   },
@@ -58,5 +63,17 @@
         "organizeImports": "off" // import文の自動整理機能を無効化。
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["components/meals/meal-photo-analyzer.tsx"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noArrayIndexKey": "off"
+          }
+        }
+      }
+    }
+  ]
 }

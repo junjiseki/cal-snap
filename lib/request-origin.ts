@@ -17,7 +17,9 @@ export async function getRequestOrigin(): Promise<string> {
     let proto = h.get("x-forwarded-proto")?.split(",")[0]?.trim() ?? "";
     if (!proto) {
       proto =
-        host.startsWith("localhost") || host.startsWith("127.") ? "http" : "https";
+        host.startsWith("localhost") || host.startsWith("127.")
+          ? "http"
+          : "https";
     }
     return `${proto}://${host}`;
   } catch {

@@ -57,7 +57,9 @@ export default async function SettingsPage() {
             </span>
             <div>
               <p className="text-sm font-semibold text-primary">アカウント</p>
-              <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">設定</h1>
+              <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
+                設定
+              </h1>
             </div>
           </div>
         </div>
@@ -99,8 +101,12 @@ export default async function SettingsPage() {
           </p>
           {plan === "paid" ? (
             <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm leading-relaxed text-amber-950">
-              有料プラン契約中でも、アカウント削除時に Stripe のサブスクリプションは自動解約されます。請求履歴やお支払い方法は{" "}
-              <Link href="/billing" className="font-semibold underline underline-offset-2">
+              有料プラン契約中でも、アカウント削除時に Stripe
+              のサブスクリプションは自動解約されます。請求履歴やお支払い方法は{" "}
+              <Link
+                href="/billing"
+                className="font-semibold underline underline-offset-2"
+              >
                 料金・プラン
               </Link>
               からご確認ください。

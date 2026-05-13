@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Loader2, Plus, Trash2 } from "lucide-react";
 import {
@@ -31,8 +38,12 @@ function normalizeToThirtyMinuteTime(value: string) {
   const [hoursText = "00", minutesText = "00"] = normalized.split(":");
   const hours = Number.parseInt(hoursText, 10);
   const minutes = Number.parseInt(minutesText, 10);
-  const safeHours = Number.isFinite(hours) ? Math.min(23, Math.max(0, hours)) : 0;
-  const safeMinutes = Number.isFinite(minutes) ? Math.min(59, Math.max(0, minutes)) : 0;
+  const safeHours = Number.isFinite(hours)
+    ? Math.min(23, Math.max(0, hours))
+    : 0;
+  const safeMinutes = Number.isFinite(minutes)
+    ? Math.min(59, Math.max(0, minutes))
+    : 0;
   const roundedMinutes = Math.floor(safeMinutes / 30) * 30;
   return `${String(safeHours).padStart(2, "0")}:${String(roundedMinutes).padStart(2, "0")}`;
 }
@@ -58,7 +69,9 @@ function getThirtyMinuteTimeOptions() {
   const options: string[] = [];
   for (let hour = 0; hour < 24; hour += 1) {
     for (let minute = 0; minute < 60; minute += 30) {
-      options.push(`${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`);
+      options.push(
+        `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`,
+      );
     }
   }
   return options;
@@ -83,13 +96,19 @@ export function MealReminderSettingsForm({
   initialSettings: ExistingSetting[];
 }) {
   const router = useRouter();
-  const [settings, setSettings] = useState(() => createInitialSettings(initialSettings));
+  const deleteTitleId = useId();
+  const deleteDescriptionId = useId();
+  const [settings, setSettings] = useState(() =>
+    createInitialSettings(initialSettings),
+  );
   const [savedSettings, setSavedSettings] = useState(() => toPayload(settings));
   const [isSaving, setIsSaving] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showHowTo, setShowHowTo] = useState(false);
-  const [pendingDelete, setPendingDelete] = useState<EditableSetting | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<EditableSetting | null>(
+    null,
+  );
   const [isDeleting, setIsDeleting] = useState(false);
   const deleteDialogPanelRef = useRef<HTMLDivElement>(null);
   const deleteAbortRef = useRef<AbortController | null>(null);
@@ -183,7 +202,9 @@ export function MealReminderSettingsForm({
 
   function addSetting() {
     if (!canAdd) {
-      setError(`食事時間は最大${MAX_MEAL_REMINDER_SETTINGS}件まで登録できます。`);
+      setError(
+        `食事時間は最大${MAX_MEAL_REMINDER_SETTINGS}件まで登録できます。`,
+      );
       return;
     }
 
@@ -211,7 +232,9 @@ export function MealReminderSettingsForm({
   }
 
   function removeSetting(clientId: string) {
-    setSettings((current) => current.filter((setting) => setting.clientId !== clientId));
+    setSettings((current) =>
+      current.filter((setting) => setting.clientId !== clientId),
+    );
     setPendingDelete(null);
   }
 
@@ -261,14 +284,19 @@ export function MealReminderSettingsForm({
       }
 
       setSettings((current) =>
-        current.filter((setting) => setting.clientId !== settingToRemove.clientId),
+        current.filter(
+          (setting) => setting.clientId !== settingToRemove.clientId,
+        ),
       );
-      setSavedSettings((current) => current.filter((setting) => setting.id !== settingToRemove.id));
+      setSavedSettings((current) =>
+        current.filter((setting) => setting.id !== settingToRemove.id),
+      );
       setPendingDelete(null);
       setNotice("食事時間を削除しました。");
       router.refresh();
     } catch (caught) {
-      const isAbort = caught instanceof DOMException && caught.name === "AbortError";
+      const isAbort =
+        caught instanceof DOMException && caught.name === "AbortError";
       if (isAbort) {
         if (deleteAbortReasonRef.current === "timeout") {
           setError(
@@ -278,7 +306,9 @@ export function MealReminderSettingsForm({
         deleteAbortReasonRef.current = null;
         return;
       }
-      setError(caught instanceof Error ? caught.message : "削除に失敗しました。");
+      setError(
+        caught instanceof Error ? caught.message : "削除に失敗しました。",
+      );
     } finally {
       window.clearTimeout(timeoutId);
       deleteAbortRef.current = null;
@@ -291,7 +321,9 @@ export function MealReminderSettingsForm({
 
     const duplicatedTime = payload.find(
       (setting, index) =>
-        payload.findIndex((item) => item.notify_time === setting.notify_time) !== index,
+        payload.findIndex(
+          (item) => item.notify_time === setting.notify_time,
+        ) !== index,
     );
     if (duplicatedTime) {
       setError("同じ時刻は複数登録できません。");
@@ -324,14 +356,19 @@ export function MealReminderSettingsForm({
       setSavedSettings(payload);
       setSettings((current) =>
         current
-          .map((setting) => ({ ...setting, notify_time: normalizeNotifyTime(setting.notify_time) }))
+          .map((setting) => ({
+            ...setting,
+            notify_time: normalizeNotifyTime(setting.notify_time),
+          }))
           .sort((a, b) => a.notify_time.localeCompare(b.notify_time)),
       );
       setNotice("食事時間を保存しました。");
       setShowHowTo(true);
       router.refresh();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "保存に失敗しました。");
+      setError(
+        caught instanceof Error ? caught.message : "保存に失敗しました。",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -342,7 +379,9 @@ export function MealReminderSettingsForm({
       <div className="rounded-md border border-border bg-muted/25 p-3">
         <p className="text-sm font-semibold">
           登録済み: {settings.length} / {MAX_MEAL_REMINDER_SETTINGS}
-          <span className="ml-3 text-muted-foreground">有効: {enabledCount}</span>
+          <span className="ml-3 text-muted-foreground">
+            有効: {enabledCount}
+          </span>
         </p>
         <p className="mt-1 text-xs leading-5 text-muted-foreground">
           必要な時刻だけ追加して保存してください。時刻は30分刻みで登録できます。
@@ -366,12 +405,16 @@ export function MealReminderSettingsForm({
                   type="checkbox"
                   checked={setting.enabled}
                   onChange={(event) =>
-                    updateSetting(setting.clientId, { enabled: event.target.checked })
+                    updateSetting(setting.clientId, {
+                      enabled: event.target.checked,
+                    })
                   }
                   className="mt-1 size-4 rounded border-input accent-primary"
                 />
                 <span>
-                  <span className="block text-sm font-semibold">食事時間 {index + 1}</span>
+                  <span className="block text-sm font-semibold">
+                    食事時間 {index + 1}
+                  </span>
                   <span className="mt-0.5 block text-xs text-muted-foreground">
                     {setting.enabled ? "通知対象です。" : "通知しません。"}
                   </span>
@@ -380,7 +423,9 @@ export function MealReminderSettingsForm({
               <select
                 value={setting.notify_time}
                 onChange={(event) =>
-                  updateSetting(setting.clientId, { notify_time: event.target.value })
+                  updateSetting(setting.clientId, {
+                    notify_time: event.target.value,
+                  })
                 }
                 className="h-10 rounded-md border border-input bg-background px-3 text-sm"
               >
@@ -453,8 +498,8 @@ export function MealReminderSettingsForm({
             ref={deleteDialogPanelRef}
             role="dialog"
             aria-modal="true"
-            aria-labelledby="delete-reminder-title"
-            aria-describedby="delete-reminder-description"
+            aria-labelledby={deleteTitleId}
+            aria-describedby={deleteDescriptionId}
             tabIndex={-1}
             className="w-full max-w-sm rounded-lg border border-border bg-background p-5 shadow-xl outline-none"
           >
@@ -463,14 +508,15 @@ export function MealReminderSettingsForm({
                 <AlertTriangle className="size-5" />
               </div>
               <div>
-                <h3 id="delete-reminder-title" className="text-base font-semibold">
+                <h3 id={deleteTitleId} className="text-base font-semibold">
                   食事時間を削除しますか？
                 </h3>
                 <p
-                  id="delete-reminder-description"
+                  id={deleteDescriptionId}
                   className="mt-2 text-sm leading-6 text-muted-foreground"
                 >
-                  {pendingDelete.notify_time} の食事時間を、通知対象から取り消します。
+                  {pendingDelete.notify_time}{" "}
+                  の食事時間を、通知対象から取り消します。
                 </p>
               </div>
             </div>
@@ -489,7 +535,9 @@ export function MealReminderSettingsForm({
                 aria-busy={isDeleting}
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-destructive px-4 text-sm font-semibold text-destructive-foreground transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
               >
-                {isDeleting ? <Loader2 className="size-4 animate-spin" /> : null}
+                {isDeleting ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : null}
                 {isDeleting ? "削除中..." : "削除する"}
               </button>
             </div>

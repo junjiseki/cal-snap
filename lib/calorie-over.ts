@@ -6,7 +6,10 @@ export const CALORIE_OVER_WARN_THRESHOLD_KCAL = 300;
 
 export type CalorieOverLevel = "none" | "warn" | "severe";
 
-export function getCalorieOverLevel(totalCalories: number, goalCalories: number): CalorieOverLevel {
+export function getCalorieOverLevel(
+  totalCalories: number,
+  goalCalories: number,
+): CalorieOverLevel {
   const over = totalCalories - goalCalories;
   if (over <= 0) return "none";
   if (over <= CALORIE_OVER_WARN_THRESHOLD_KCAL) return "warn";

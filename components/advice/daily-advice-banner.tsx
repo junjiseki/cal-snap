@@ -36,7 +36,10 @@ function storageKey(userId: string, date: string) {
   return `daily_advice:${userId}:${date}`;
 }
 
-function readCachedAdvice(userId: string, date: string): CachedAdviceState | null {
+function readCachedAdvice(
+  userId: string,
+  date: string,
+): CachedAdviceState | null {
   try {
     const raw = window.localStorage.getItem(storageKey(userId, date));
     return raw ? (JSON.parse(raw) as CachedAdviceState) : null;
@@ -45,9 +48,16 @@ function readCachedAdvice(userId: string, date: string): CachedAdviceState | nul
   }
 }
 
-function writeCachedAdvice(userId: string, date: string, value: CachedAdviceState) {
+function writeCachedAdvice(
+  userId: string,
+  date: string,
+  value: CachedAdviceState,
+) {
   try {
-    window.localStorage.setItem(storageKey(userId, date), JSON.stringify(value));
+    window.localStorage.setItem(
+      storageKey(userId, date),
+      JSON.stringify(value),
+    );
   } catch {
     /* ignore */
   }
@@ -88,7 +98,9 @@ export function DailyAdviceBanner({
         cache: "no-store",
       });
       if (!response.ok) {
-        setErrorMessage("いまはアドバイスを表示できません。少し時間をおいて試してください。");
+        setErrorMessage(
+          "いまはアドバイスを表示できません。少し時間をおいて試してください。",
+        );
         return;
       }
       const body = (await response.json()) as AdviceResponse;
@@ -96,7 +108,9 @@ export function DailyAdviceBanner({
       writeCachedAdvice(userId, date, { ...prev, response: body });
       setAdvice(body);
     } catch {
-      setErrorMessage("通信に失敗しました。接続を確認してもう一度お試しください。");
+      setErrorMessage(
+        "通信に失敗しました。接続を確認してもう一度お試しください。",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -153,24 +167,36 @@ export function DailyAdviceBanner({
                   sizes="64px"
                 />
               </div>
-              <p className="mt-1 text-center text-[10px] font-bold text-primary">カロちゃん</p>
+              <p className="mt-1 text-center text-[10px] font-bold text-primary">
+                カロちゃん
+              </p>
             </div>
 
             <div className="relative flex-1 rounded-md border border-emerald-100 bg-white p-3 shadow-sm before:absolute before:left-[-7px] before:top-5 before:size-3 before:rotate-45 before:border-b before:border-l before:border-emerald-100 before:bg-white">
               <p className="text-xs font-bold text-primary">コンシェルジュ</p>
-              <p className="mt-0.5 text-sm font-semibold text-foreground">今日のアドバイス</p>
+              <p className="mt-0.5 text-sm font-semibold text-foreground">
+                今日のアドバイス
+              </p>
               {isLoading ? (
                 <p className="mt-2 text-sm leading-7 text-muted-foreground">
                   今日の食事データを見ています...
                 </p>
               ) : errorMessage ? (
-                <p className="mt-2 text-sm leading-7 text-destructive">{errorMessage}</p>
+                <p className="mt-2 text-sm leading-7 text-destructive">
+                  {errorMessage}
+                </p>
               ) : isInsufficient ? (
-                <p className="mt-2 text-sm leading-7 text-muted-foreground">{advice.message}</p>
+                <p className="mt-2 text-sm leading-7 text-muted-foreground">
+                  {advice.message}
+                </p>
               ) : advice ? (
                 <div className="mt-2 space-y-2 text-sm leading-7">
-                  <p className="font-semibold text-foreground">{advice.advice.advice_text}</p>
-                  <p className="text-muted-foreground">{advice.advice.reason_text}</p>
+                  <p className="font-semibold text-foreground">
+                    {advice.advice.advice_text}
+                  </p>
+                  <p className="text-muted-foreground">
+                    {advice.advice.reason_text}
+                  </p>
                   <p className="rounded-md bg-emerald-50 p-2 font-medium text-primary">
                     {advice.advice.action_text}
                   </p>
@@ -191,14 +217,14 @@ export function DailyAdviceBanner({
         aria-label="今日のアドバイスを開く"
         className="ml-auto flex items-center gap-2 rounded-full border border-emerald-200 bg-[#fffdf4] py-2 pl-2 pr-4 text-sm font-bold text-primary shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0 active:scale-95"
       >
-          <Image
-            src="/advice-mascot.webp"
-            alt="カロちゃん"
-            width={120}
-            height={120}
-            className="h-full w-full object-cover object-top"
-            sizes="48px"
-          />
+        <Image
+          src="/advice-mascot.webp"
+          alt="カロちゃん"
+          width={120}
+          height={120}
+          className="h-full w-full object-cover object-top"
+          sizes="48px"
+        />
       </button>
     </div>
   );

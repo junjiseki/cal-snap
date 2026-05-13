@@ -62,7 +62,11 @@ export function AccountDangerActions({ plan = "free" }: { plan?: Plan }) {
         aria-busy={signingOut}
         className="h-11 gap-2 border-border"
       >
-        {signingOut ? <Loader2 className="size-4 animate-spin" /> : <LogOut className="size-4" />}
+        {signingOut ? (
+          <Loader2 className="size-4 animate-spin" />
+        ) : (
+          <LogOut className="size-4" />
+        )}
         {signingOut ? "ログアウト中..." : "ログアウト"}
       </Button>
       <Button

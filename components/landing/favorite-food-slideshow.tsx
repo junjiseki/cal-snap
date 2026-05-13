@@ -24,7 +24,9 @@ export function FavoriteFoodSlideshow() {
         />
       ))}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent p-5 text-white">
-        <p className="text-sm font-semibold">好きな物も、記録すれば調整できる</p>
+        <p className="text-sm font-semibold">
+          好きな物も、記録すれば調整できる
+        </p>
       </div>
     </div>
   );

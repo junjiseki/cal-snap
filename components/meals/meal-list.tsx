@@ -182,7 +182,9 @@ export function MealList({
       setForm(null);
       router.refresh();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "更新に失敗しました。");
+      setError(
+        caught instanceof Error ? caught.message : "更新に失敗しました。",
+      );
     } finally {
       setBusyMealId(null);
     }
@@ -206,7 +208,9 @@ export function MealList({
       }
       router.refresh();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "削除に失敗しました。");
+      setError(
+        caught instanceof Error ? caught.message : "削除に失敗しました。",
+      );
     } finally {
       setBusyMealId(null);
     }
@@ -253,7 +257,9 @@ export function MealList({
       }
       router.refresh();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "登録に失敗しました。");
+      setError(
+        caught instanceof Error ? caught.message : "登録に失敗しました。",
+      );
     } finally {
       setBaselineSaving(false);
     }
@@ -286,7 +292,9 @@ export function MealList({
                 }
                 className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-center text-sm font-semibold hover:bg-muted disabled:pointer-events-none disabled:opacity-50 sm:h-10 sm:w-auto"
               >
-                {baselineSaving ? <Loader2 className="size-4 animate-spin" /> : null}
+                {baselineSaving ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : null}
                 {baselineSaving
                   ? "登録中…"
                   : `基準（${goalCalories} kcal）と同じ摂取で記録`}
@@ -310,8 +318,12 @@ export function MealList({
           </div>
           {goalCalories <= 0 ? (
             <p className="text-pretty text-xs leading-relaxed text-muted-foreground">
-              1日の目安カロリーが 0 のため、基準にそったショートカットは使えません。{" "}
-              <Link href="/profile#calorie-goal" className="font-medium text-foreground underline">
+              1日の目安カロリーが 0
+              のため、基準にそったショートカットは使えません。{" "}
+              <Link
+                href="/profile#calorie-goal"
+                className="font-medium text-foreground underline"
+              >
                 プロフィールで目安を設定
               </Link>
               してください。
@@ -343,12 +355,19 @@ export function MealList({
                     minute: "2-digit",
                   }).format(new Date(meal.eaten_at))}
                 </p>
-                <h3 className="mt-1 text-xl font-semibold">{meal.total_calories} kcal</h3>
-                {meal.memo ? <p className="mt-1 text-sm text-muted-foreground">{meal.memo}</p> : null}
+                <h3 className="mt-1 text-xl font-semibold">
+                  {meal.total_calories} kcal
+                </h3>
+                {meal.memo ? (
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {meal.memo}
+                  </p>
+                ) : null}
               </div>
               <div className="flex flex-col items-start gap-2 sm:items-end">
                 <p className="text-sm text-muted-foreground">
-                  P {Math.round(Number(meal.protein))}g / F {Math.round(Number(meal.fat))}g / C{" "}
+                  P {Math.round(Number(meal.protein))}g / F{" "}
+                  {Math.round(Number(meal.fat))}g / C{" "}
                   {Math.round(Number(meal.carbs))}g
                 </p>
                 <div className="flex w-full gap-2 sm:w-auto">
@@ -367,7 +386,9 @@ export function MealList({
                     aria-busy={isBusy}
                     className="inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-md border border-destructive/40 px-3 text-sm font-semibold text-destructive disabled:opacity-50 sm:h-8 sm:min-h-0 sm:flex-none sm:text-xs"
                   >
-                    {isBusy ? <Loader2 className="size-4 animate-spin sm:size-3" /> : null}
+                    {isBusy ? (
+                      <Loader2 className="size-4 animate-spin sm:size-3" />
+                    ) : null}
                     {isBusy ? "削除中..." : "削除"}
                   </button>
                 </div>
@@ -381,18 +402,24 @@ export function MealList({
                   <input
                     type="date"
                     value={form.eatenDate}
-                    onChange={(e) => setForm({ ...form, eatenDate: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, eatenDate: e.target.value })
+                    }
                     className="mt-1 h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
                   />
                 </label>
                 <label className="text-sm">
                   食べた時間（日本時間）
-                  <span className="mt-0.5 block text-xs font-normal text-muted-foreground">30分刻み</span>
+                  <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
+                    30分刻み
+                  </span>
                   <input
                     type="time"
                     step={MEAL_EATEN_TIME_STEP_SECONDS}
                     value={form.eatenTime}
-                    onChange={(e) => setForm({ ...form, eatenTime: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, eatenTime: e.target.value })
+                    }
                     className="mt-1 h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
                   />
                 </label>
@@ -402,7 +429,9 @@ export function MealList({
                     type="number"
                     min={0}
                     value={form.totalCalories}
-                    onChange={(e) => setForm({ ...form, totalCalories: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, totalCalories: e.target.value })
+                    }
                     className="mt-1 h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
                   />
                 </label>
@@ -413,7 +442,9 @@ export function MealList({
                     min={0}
                     step={1}
                     value={form.protein}
-                    onChange={(e) => setForm({ ...form, protein: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, protein: e.target.value })
+                    }
                     className="mt-1 h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
                   />
                 </label>
@@ -435,7 +466,9 @@ export function MealList({
                     min={0}
                     step={1}
                     value={form.carbs}
-                    onChange={(e) => setForm({ ...form, carbs: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, carbs: e.target.value })
+                    }
                     className="mt-1 h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
                   />
                 </label>
@@ -456,7 +489,9 @@ export function MealList({
                     aria-busy={isBusy}
                     className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50 sm:h-9"
                   >
-                    {isBusy ? <Loader2 className="size-4 animate-spin" /> : null}
+                    {isBusy ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : null}
                     {isBusy ? "保存中..." : "保存"}
                   </button>
                   <button
@@ -480,7 +515,9 @@ export function MealList({
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="font-medium">{item.name}</p>
-                      <p className="mt-1 text-muted-foreground">{item.estimated_amount}</p>
+                      <p className="mt-1 text-muted-foreground">
+                        {item.estimated_amount}
+                      </p>
                     </div>
                     <p className="font-semibold">{item.calories} kcal</p>
                   </div>

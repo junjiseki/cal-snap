@@ -16,7 +16,9 @@ describe("isAllowedOrigin", () => {
 
   it("allows non-mutating methods without origin checks", () => {
     expect(isAllowedOrigin(req("GET", {}))).toBe(true);
-    expect(isAllowedOrigin(req("HEAD", { Origin: "https://evil.test" }))).toBe(true);
+    expect(isAllowedOrigin(req("HEAD", { Origin: "https://evil.test" }))).toBe(
+      true,
+    );
     expect(isAllowedOrigin(req("OPTIONS", {}))).toBe(true);
   });
 
@@ -31,9 +33,15 @@ describe("isAllowedOrigin", () => {
   });
 
   it("allows PATCH and DELETE when Origin matches", () => {
-    expect(isAllowedOrigin(req("PATCH", { Origin: "https://app.test" }))).toBe(true);
-    expect(isAllowedOrigin(req("DELETE", { Origin: "https://app.test" }))).toBe(true);
-    expect(isAllowedOrigin(req("PUT", { Origin: "https://app.test" }))).toBe(true);
+    expect(isAllowedOrigin(req("PATCH", { Origin: "https://app.test" }))).toBe(
+      true,
+    );
+    expect(isAllowedOrigin(req("DELETE", { Origin: "https://app.test" }))).toBe(
+      true,
+    );
+    expect(isAllowedOrigin(req("PUT", { Origin: "https://app.test" }))).toBe(
+      true,
+    );
   });
 
   it("rejects POST when Origin differs from expected", () => {

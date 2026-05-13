@@ -57,7 +57,10 @@ describe("validateTurnstileToken", () => {
       json: async () => ({ success: true }),
     });
 
-    await validateTurnstileToken("tok", makeRequest({ "cf-connecting-ip": "203.0.113.5" }));
+    await validateTurnstileToken(
+      "tok",
+      makeRequest({ "cf-connecting-ip": "203.0.113.5" }),
+    );
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(init.method).toBe("POST");
@@ -79,7 +82,9 @@ describe("validateTurnstileToken", () => {
       ok: false,
       code: "invalid",
     });
-    expect(await validateTurnstileToken("x".repeat(2049), makeRequest())).toEqual({
+    expect(
+      await validateTurnstileToken("x".repeat(2049), makeRequest()),
+    ).toEqual({
       ok: false,
       code: "invalid",
     });

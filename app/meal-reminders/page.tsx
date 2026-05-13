@@ -57,7 +57,9 @@ export default async function MealRemindersPage() {
               <BellRing className="size-5" />
             </span>
             <div>
-              <p className="text-sm font-semibold text-primary">食事リマインド</p>
+              <p className="text-sm font-semibold text-primary">
+                食事リマインド
+              </p>
               <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
                 食事時間の登録
               </h1>

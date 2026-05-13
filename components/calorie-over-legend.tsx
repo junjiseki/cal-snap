@@ -12,7 +12,10 @@ export function CalorieOverLegend({ className }: { className?: string }) {
         .join(" ")}
     >
       <span className="inline-flex items-center gap-1.5">
-        <span className="size-2.5 shrink-0 rounded-full bg-emerald-500" aria-hidden />
+        <span
+          className="size-2.5 shrink-0 rounded-full bg-emerald-500"
+          aria-hidden
+        />
         目標内
       </span>
       <span className="inline-flex items-center gap-1.5">
@@ -23,7 +26,10 @@ export function CalorieOverLegend({ className }: { className?: string }) {
         超過〜{t}kcal
       </span>
       <span className="inline-flex items-center gap-1.5">
-        <span className="size-2.5 shrink-0 rounded-full bg-red-500" aria-hidden />
+        <span
+          className="size-2.5 shrink-0 rounded-full bg-red-500"
+          aria-hidden
+        />
         {t}kcal超の超過
       </span>
     </div>

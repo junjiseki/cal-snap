@@ -13,7 +13,10 @@ type MealRow = {
 };
 
 const CalorieChart = dynamic(
-  () => import("@/components/meals/calorie-chart").then((module) => module.CalorieChart),
+  () =>
+    import("@/components/meals/calorie-chart").then(
+      (module) => module.CalorieChart,
+    ),
   {
     ssr: false,
     loading: () => (
@@ -68,7 +71,11 @@ export function LazyCalorieChart({
   return (
     <div ref={wrapRef}>
       {shouldMountChart ? (
-        <CalorieChart meals={meals} goalCalories={goalCalories} chartEndDate={chartEndDate} />
+        <CalorieChart
+          meals={meals}
+          goalCalories={goalCalories}
+          chartEndDate={chartEndDate}
+        />
       ) : (
         <ChartPlaceholder />
       )}

@@ -20,11 +20,17 @@ function createSupabaseMock({
 }: {
   authUserId?: string | null;
   authError?: { message: string; code?: string; status?: number } | null;
-  profileData?: { deleted_at?: string | null; plan?: "free" | "paid"; daily_calorie_goal?: number } | null;
+  profileData?: {
+    deleted_at?: string | null;
+    plan?: "free" | "paid";
+    daily_calorie_goal?: number;
+  } | null;
   profileError?: { message: string } | null;
 }) {
   const signOut = vi.fn().mockResolvedValue({});
-  const maybeSingle = vi.fn().mockResolvedValue({ data: profileData, error: profileError });
+  const maybeSingle = vi
+    .fn()
+    .mockResolvedValue({ data: profileData, error: profileError });
   const eq = vi.fn().mockReturnValue({ maybeSingle });
   const select = vi.fn().mockReturnValue({ eq });
   const from = vi.fn().mockReturnValue({ select });
@@ -33,7 +39,9 @@ function createSupabaseMock({
     client: {
       auth: {
         getUser: vi.fn().mockResolvedValue({
-          data: { user: authUserId ? { id: authUserId, user_metadata: {} } : null },
+          data: {
+            user: authUserId ? { id: authUserId, user_metadata: {} } : null,
+          },
           error: authError,
         }),
         signOut,
@@ -118,10 +126,11 @@ describe("supabase server auth guards", () => {
       authUserId: "user-with-profile-error",
       profileError: { message: "read timeout" },
     });
-    const { getAuthenticatedUserWithProfile } = await importServerModuleWithMocks({
-      cookieStore,
-      supabaseClient: supabase.client,
-    });
+    const { getAuthenticatedUserWithProfile } =
+      await importServerModuleWithMocks({
+        cookieStore,
+        supabaseClient: supabase.client,
+      });
 
     const result = await getAuthenticatedUserWithProfile();
 
@@ -135,7 +144,11 @@ describe("supabase server auth guards", () => {
     const cookieStore = createCookieStore();
     const supabase = createSupabaseMock({
       authUserId: null,
-      authError: { message: "temporary auth failure", code: "unexpected_failure", status: 500 },
+      authError: {
+        message: "temporary auth failure",
+        code: "unexpected_failure",
+        status: 500,
+      },
     });
     const { getAuthSessionUser } = await importServerModuleWithMocks({
       cookieStore,

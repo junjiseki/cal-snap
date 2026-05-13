@@ -32,6 +32,10 @@ describe("isStaleRefreshTokenError", () => {
 
   it("returns false for unrelated errors", () => {
     expect(isStaleRefreshTokenError(null)).toBe(false);
-    expect(isStaleRefreshTokenError({ message: "Invalid login credentials" } as never)).toBe(false);
+    expect(
+      isStaleRefreshTokenError({
+        message: "Invalid login credentials",
+      } as never),
+    ).toBe(false);
   });
 });

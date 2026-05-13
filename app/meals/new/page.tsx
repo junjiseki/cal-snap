@@ -2,7 +2,10 @@ import Link from "next/link";
 import { BarChart3 } from "lucide-react";
 import { safeInternalPath } from "@/lib/auth/safe-redirect";
 import { LazyMealPhotoAnalyzer } from "@/components/meals/lazy-meal-photo-analyzer";
-import { MAX_MEAL_ITEMS_PER_MEAL, MAX_MEALS_PER_DAY } from "@/lib/meal-analysis";
+import {
+  MAX_MEAL_ITEMS_PER_MEAL,
+  MAX_MEALS_PER_DAY,
+} from "@/lib/meal-analysis";
 import { getAuthenticatedUserWithProfileCached } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +17,9 @@ export default async function NewMealPage({
 }) {
   const params = await searchParams;
   const openManual =
-    params.manual === "1" || params.manual === "true" || params.manual === "yes";
+    params.manual === "1" ||
+    params.manual === "true" ||
+    params.manual === "yes";
   const dateParam = params.date;
   const initialEatenAtLocal =
     typeof dateParam === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)
@@ -60,7 +65,9 @@ export default async function NewMealPage({
           <div>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-sm font-semibold text-primary">写真で3秒記録</p>
+                <p className="text-sm font-semibold text-primary">
+                  写真で3秒記録
+                </p>
                 <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-4xl">
                   食事写真を解析して記録
                 </h1>
@@ -74,8 +81,9 @@ export default async function NewMealPage({
               </Link>
             </div>
             <p className="mt-2 text-xs text-muted-foreground/75">
-              有料プランは食事時間を指定して1日最大{MAX_MEALS_PER_DAY}回まで記録できます。
-              1食あたり料理{MAX_MEAL_ITEMS_PER_MEAL}件まで登録できます。
+              有料プランは食事時間を指定して1日最大{MAX_MEALS_PER_DAY}
+              回まで記録できます。 1食あたり料理{MAX_MEAL_ITEMS_PER_MEAL}
+              件まで登録できます。
             </p>
           </div>
         </div>

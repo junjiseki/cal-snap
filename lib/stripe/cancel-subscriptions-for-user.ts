@@ -1,7 +1,10 @@
 import type Stripe from "stripe";
 import { getStripeServer } from "@/lib/stripe/server";
 
-const TERMINAL_STATUSES = new Set<Stripe.Subscription.Status>(["canceled", "incomplete_expired"]);
+const TERMINAL_STATUSES = new Set<Stripe.Subscription.Status>([
+  "canceled",
+  "incomplete_expired",
+]);
 
 /** Supabase Auth の user.id 想定。Stripe Search クエリへ埋め込む前に検証し、' 等でクエリが壊れるのを防ぐ。 */
 const AUTH_USER_UUID_RE =
@@ -22,16 +25,23 @@ function subscriptionSearchQuery(userId: string) {
  */
 export async function cancelStripeSubscriptionsForUser(userId: string): Promise<
   | { ok: true }
-  | { ok: false; message: string; code: "STRIPE_SEARCH_FAILED" | "STRIPE_CANCEL_FAILED" }
+  | {
+      ok: false;
+      message: string;
+      code: "STRIPE_SEARCH_FAILED" | "STRIPE_CANCEL_FAILED";
+    }
 > {
   if (!process.env.STRIPE_SECRET_KEY?.trim()) {
     return { ok: true };
   }
 
   if (!isAuthUserUuid(userId)) {
-    console.warn("[stripe-cancel-for-user] skip search: user id is not a UUID", {
-      prefix: userId.slice(0, 12),
-    });
+    console.warn(
+      "[stripe-cancel-for-user] skip search: user id is not a UUID",
+      {
+        prefix: userId.slice(0, 12),
+      },
+    );
     return { ok: true };
   }
 
@@ -61,7 +71,8 @@ export async function cancelStripeSubscriptionsForUser(userId: string): Promise<
     return {
       ok: false,
       code: "STRIPE_SEARCH_FAILED",
-      message: "サブスクリプションの確認に失敗したため、アカウントを削除できませんでした。しばらくしてから再度お試しください。",
+      message:
+        "サブスクリプションの確認に失敗したため、アカウントを削除できませんでした。しばらくしてから再度お試しください。",
     };
   }
 
@@ -72,11 +83,15 @@ export async function cancelStripeSubscriptionsForUser(userId: string): Promise<
     try {
       await stripe.subscriptions.cancel(sub.id);
     } catch (error) {
-      console.error("[stripe-cancel-for-user] subscription cancel failed", { subscriptionId: sub.id, error });
+      console.error("[stripe-cancel-for-user] subscription cancel failed", {
+        subscriptionId: sub.id,
+        error,
+      });
       return {
         ok: false,
         code: "STRIPE_CANCEL_FAILED",
-        message: "Stripe のサブスクリプション解約に失敗したため、アカウントを削除できませんでした。料金・プランから解約を試すか、しばらくしてから再度お試しください。",
+        message:
+          "Stripe のサブスクリプション解約に失敗したため、アカウントを削除できませんでした。料金・プランから解約を試すか、しばらくしてから再度お試しください。",
       };
     }
   }

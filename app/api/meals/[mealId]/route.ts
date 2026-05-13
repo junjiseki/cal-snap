@@ -1,4 +1,7 @@
-import { forbiddenOriginResponse, isAllowedOrigin } from "@/lib/security/request";
+import {
+  forbiddenOriginResponse,
+  isAllowedOrigin,
+} from "@/lib/security/request";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -16,7 +19,8 @@ type MealUpdateBody = {
   memo?: string | null;
 };
 
-const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const uuidPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_NUTRITION_VALUE = 100_000;
 const MAX_MEMO_LENGTH = 1000;
 
@@ -68,18 +72,31 @@ export async function PATCH(
     );
   }
   if (toSafeNumber(body.protein) !== null) {
-    payload.protein = Math.min(MAX_NUTRITION_VALUE, Math.max(0, Math.round(body.protein as number)));
+    payload.protein = Math.min(
+      MAX_NUTRITION_VALUE,
+      Math.max(0, Math.round(body.protein as number)),
+    );
   }
   if (toSafeNumber(body.fat) !== null) {
-    payload.fat = Math.min(MAX_NUTRITION_VALUE, Math.max(0, Math.round(body.fat as number)));
+    payload.fat = Math.min(
+      MAX_NUTRITION_VALUE,
+      Math.max(0, Math.round(body.fat as number)),
+    );
   }
   if (toSafeNumber(body.carbs) !== null) {
-    payload.carbs = Math.min(MAX_NUTRITION_VALUE, Math.max(0, Math.round(body.carbs as number)));
+    payload.carbs = Math.min(
+      MAX_NUTRITION_VALUE,
+      Math.max(0, Math.round(body.carbs as number)),
+    );
   }
   if (body.memo !== undefined) {
     const memo = body.memo?.trim() ? body.memo.trim() : null;
     if (memo && memo.length > MAX_MEMO_LENGTH) {
-      return errorResponse("メモは1000文字以内で入力してください。", 400, "MEMO_TOO_LONG");
+      return errorResponse(
+        "メモは1000文字以内で入力してください。",
+        400,
+        "MEMO_TOO_LONG",
+      );
     }
     payload.memo = memo;
   }

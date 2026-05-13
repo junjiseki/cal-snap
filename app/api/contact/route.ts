@@ -1,5 +1,8 @@
 import { z } from "zod";
-import { forbiddenOriginResponse, isAllowedOrigin } from "@/lib/security/request";
+import {
+  forbiddenOriginResponse,
+  isAllowedOrigin,
+} from "@/lib/security/request";
 import { validateTurnstileToken } from "@/lib/security/turnstile";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
@@ -38,7 +41,10 @@ function errorResponse(message: string, status: number, code: string) {
 }
 
 function getClientKey(request: Request, email?: string) {
-  const forwardedFor = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  const forwardedFor = request.headers
+    .get("x-forwarded-for")
+    ?.split(",")[0]
+    ?.trim();
   const realIp = request.headers.get("x-real-ip")?.trim();
   const ip = forwardedFor || realIp || "unknown";
   return `${ip}:${email?.toLowerCase() ?? "anonymous"}`;
@@ -94,7 +100,11 @@ export async function POST(request: Request) {
 
   const parsed = ContactSchema.safeParse(body);
   if (!parsed.success) {
-    return errorResponse("入力内容を確認してください。", 400, "VALIDATION_FAILED");
+    return errorResponse(
+      "入力内容を確認してください。",
+      400,
+      "VALIDATION_FAILED",
+    );
   }
 
   if (parsed.data.website) {
@@ -103,14 +113,25 @@ export async function POST(request: Request) {
 
   const elapsed = Date.now() - parsed.data.submittedAt;
   if (elapsed < MIN_SUBMIT_ELAPSED_MS || elapsed > MAX_SUBMIT_ELAPSED_MS) {
-    return errorResponse("時間をおいてから再度送信してください。", 429, "SPAM_DETECTED");
+    return errorResponse(
+      "時間をおいてから再度送信してください。",
+      429,
+      "SPAM_DETECTED",
+    );
   }
 
   if (countUrls(parsed.data.message) > 2) {
-    return errorResponse("URLが多すぎます。内容を確認してください。", 400, "TOO_MANY_LINKS");
+    return errorResponse(
+      "URLが多すぎます。内容を確認してください。",
+      400,
+      "TOO_MANY_LINKS",
+    );
   }
 
-  const turnstile = await validateTurnstileToken(parsed.data.turnstileToken, request);
+  const turnstile = await validateTurnstileToken(
+    parsed.data.turnstileToken,
+    request,
+  );
   if (!turnstile.ok) {
     const message =
       turnstile.code === "not_configured"
@@ -149,7 +170,11 @@ export async function POST(request: Request) {
   });
 
   if (error) {
-    return errorResponse("お問い合わせを送信できません。", 500, "CONTACT_CREATE_FAILED");
+    return errorResponse(
+      "お問い合わせを送信できません。",
+      500,
+      "CONTACT_CREATE_FAILED",
+    );
   }
 
   return Response.json({ ok: true });

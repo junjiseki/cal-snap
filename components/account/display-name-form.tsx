@@ -43,7 +43,11 @@ export function DisplayNameForm({ initialName }: { initialName: string }) {
       setName(trimmedName);
       router.refresh();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "表示名を保存できませんでした。");
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "表示名を保存できませんでした。",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -74,8 +78,14 @@ export function DisplayNameForm({ initialName }: { initialName: string }) {
           {isSaving ? "保存中..." : "表示名を保存"}
         </button>
       </div>
-      <p className="text-xs text-muted-foreground">40文字以内。空欄にすると未設定になります。</p>
-      {!isValid ? <p className="text-sm text-destructive">40文字以内で入力してください。</p> : null}
+      <p className="text-xs text-muted-foreground">
+        40文字以内。空欄にすると未設定になります。
+      </p>
+      {!isValid ? (
+        <p className="text-sm text-destructive">
+          40文字以内で入力してください。
+        </p>
+      ) : null}
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
     </div>
   );

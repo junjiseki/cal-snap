@@ -16,7 +16,10 @@ import {
   pad2,
   toJapanYmd,
 } from "@/lib/japan-calendar";
-import { DASHBOARD_DAY_MEALS_PAGE_SIZE, parseDashboardMealsPage } from "@/lib/dashboard-meals";
+import {
+  DASHBOARD_DAY_MEALS_PAGE_SIZE,
+  parseDashboardMealsPage,
+} from "@/lib/dashboard-meals";
 import { getStripeServer } from "@/lib/stripe/server";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -92,7 +95,8 @@ export default async function DashboardPage({
     meals_page?: string;
   }>;
 }) {
-  const { supabase, user, profile } = await getAuthenticatedUserWithProfileCached();
+  const { supabase, user, profile } =
+    await getAuthenticatedUserWithProfileCached();
 
   if (!user) {
     return (
@@ -142,7 +146,10 @@ export default async function DashboardPage({
   const { data: summary, error: summaryError } = await summaryQuery;
 
   const mealCount = Number(summary?.meal_count ?? 0);
-  const totalMealsPages = Math.max(1, Math.ceil(mealCount / DASHBOARD_DAY_MEALS_PAGE_SIZE));
+  const totalMealsPages = Math.max(
+    1,
+    Math.ceil(mealCount / DASHBOARD_DAY_MEALS_PAGE_SIZE),
+  );
   const mealsPage = Math.min(requestedMealsPage, totalMealsPages);
   if (requestedMealsPage !== mealsPage) {
     redirect(dashboardMealsListHref(date, mealsPage));
@@ -163,9 +170,13 @@ export default async function DashboardPage({
     calorieDelta >= 0
       ? `あと ${calorieDelta} kcal`
       : `1日の摂取カロリー（目安）を ${Math.abs(calorieDelta)} kcal 超過`;
-  const calorieProgress = Math.min(100, Math.round((total.calories / safeGoalCalories) * 100));
+  const calorieProgress = Math.min(
+    100,
+    Math.round((total.calories / safeGoalCalories) * 100),
+  );
   const overLevel = getCalorieOverLevel(total.calories, goalCalories);
-  const shouldShowGoalPrompt = user.user_metadata?.calorie_goal_prompt_dismissed !== true;
+  const shouldShowGoalPrompt =
+    user.user_metadata?.calorie_goal_prompt_dismissed !== true;
 
   return (
     <main className="min-h-0 flex-1 bg-background">
@@ -180,7 +191,9 @@ export default async function DashboardPage({
           <div>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-sm font-semibold text-primary">{dateLabelJa}</p>
+                <p className="text-sm font-semibold text-primary">
+                  {dateLabelJa}
+                </p>
                 <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-4xl">
                   カロリーとPFC
                 </h1>
@@ -199,15 +212,20 @@ export default async function DashboardPage({
                   <p className="text-sm text-muted-foreground">摂取カロリー</p>
                   <p className="mt-1 text-4xl font-semibold tracking-tight">
                     {total.calories}
-                    <span className="ml-1 text-base text-muted-foreground">kcal</span>
+                    <span className="ml-1 text-base text-muted-foreground">
+                      kcal
+                    </span>
                   </p>
                 </div>
                 <div
                   className={[
                     "inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-semibold",
-                    overLevel === "none" && "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/35 dark:text-emerald-300",
-                    overLevel === "warn" && "bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200",
-                    overLevel === "severe" && "bg-red-50 text-red-700 dark:bg-red-950/35 dark:text-red-300",
+                    overLevel === "none" &&
+                      "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/35 dark:text-emerald-300",
+                    overLevel === "warn" &&
+                      "bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200",
+                    overLevel === "severe" &&
+                      "bg-red-50 text-red-700 dark:bg-red-950/35 dark:text-red-300",
                   ]
                     .filter(Boolean)
                     .join(" ")}
@@ -300,7 +318,9 @@ export default async function DashboardPage({
 
         <section className="border border-border bg-card">
           <div className="border-b border-border p-4 sm:p-5">
-            <h2 className="text-lg font-semibold sm:text-xl">摂取カロリー・PFC推移</h2>
+            <h2 className="text-lg font-semibold sm:text-xl">
+              摂取カロリー・PFC推移
+            </h2>
             <p className="mt-1 text-sm text-muted-foreground">
               {isPaid
                 ? "直近14日の日ごとの合計カロリーとPFCです。"
@@ -325,8 +345,7 @@ export default async function DashboardPage({
             <div>
               <h2 className="text-lg font-semibold sm:text-xl">食事一覧</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                {mealCount}件
-                {!isPaid ? " · 無料プランは本日のみ" : null}
+                {mealCount}件{!isPaid ? " · 無料プランは本日のみ" : null}
               </p>
             </div>
             {isPaid && date !== todayDate ? (
@@ -393,7 +412,9 @@ async function DashboardChartPanel({
   }
 
   const chart14Days = lastNJstDaysAsc(14, todayDate);
-  const last14DaysStart = new Date(`${chart14Days[0]}T00:00:00.000+09:00`).toISOString();
+  const last14DaysStart = new Date(
+    `${chart14Days[0]}T00:00:00.000+09:00`,
+  ).toISOString();
   const { data: chartMeals, error } = await supabase
     .from("meals")
     .select("id,eaten_at,total_calories,protein,fat,carbs")
@@ -421,7 +442,9 @@ async function DashboardChartPanel({
 function DashboardMealHistorySkeleton({ isPaid }: { isPaid: boolean }) {
   return (
     <div className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,17.5rem)_1fr] lg:items-start">
-      {isPaid ? <div className="hidden h-80 animate-pulse bg-muted/20 lg:block" /> : null}
+      {isPaid ? (
+        <div className="hidden h-80 animate-pulse bg-muted/20 lg:block" />
+      ) : null}
       <div className="space-y-3">
         <div className="h-24 animate-pulse rounded-md bg-muted/20" />
         <div className="h-24 animate-pulse rounded-md bg-muted/20" />
@@ -456,9 +479,13 @@ async function DashboardMealHistorySection({
   const mealsRangeFrom = (mealsPage - 1) * DASHBOARD_DAY_MEALS_PAGE_SIZE;
   const mealsRangeTo = mealsRangeFrom + DASHBOARD_DAY_MEALS_PAGE_SIZE - 1;
   const [cy, cm] = date.split("-").map(Number);
-  const monthStartIso = new Date(`${cy}-${pad2(cm)}-01T00:00:00.000+09:00`).toISOString();
+  const monthStartIso = new Date(
+    `${cy}-${pad2(cm)}-01T00:00:00.000+09:00`,
+  ).toISOString();
   const dimMonth = daysInJapanMonth(cy, cm);
-  const monthEndIso = new Date(`${cy}-${pad2(cm)}-${pad2(dimMonth)}T23:59:59.999+09:00`).toISOString();
+  const monthEndIso = new Date(
+    `${cy}-${pad2(cm)}-${pad2(dimMonth)}T23:59:59.999+09:00`,
+  ).toISOString();
 
   const mealsQuery = supabase
     .from("meals")
@@ -477,14 +504,19 @@ async function DashboardMealHistorySection({
         .eq("user_id", userId)
         .gte("eaten_at", monthStartIso)
         .lte("eaten_at", monthEndIso)
-    : Promise.resolve({ data: [] as { eaten_at: string }[] | null, error: null });
+    : Promise.resolve({
+        data: [] as { eaten_at: string }[] | null,
+        error: null,
+      });
 
   const [{ data, error }, { data: monthMealRows }] = await Promise.all([
     mealsQuery,
     monthMealsQuery,
   ]);
   const meals = (data ?? []) as unknown as MealRow[];
-  const datesWithMeals = [...new Set((monthMealRows ?? []).map((row) => toJapanYmd(row.eaten_at)))];
+  const datesWithMeals = [
+    ...new Set((monthMealRows ?? []).map((row) => toJapanYmd(row.eaten_at))),
+  ];
 
   if (error) {
     return (
@@ -514,7 +546,9 @@ async function DashboardMealHistorySection({
             ? dashboardMealsListHref(date, mealsPage + 1)
             : null
         }
-        prevPageHref={mealsPage > 1 ? dashboardMealsListHref(date, mealsPage - 1) : null}
+        prevPageHref={
+          mealsPage > 1 ? dashboardMealsListHref(date, mealsPage - 1) : null
+        }
         selectedDateYmd={date}
         todayDateYmd={todayDate}
         goalCalories={goalCalories}

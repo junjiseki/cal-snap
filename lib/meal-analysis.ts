@@ -57,7 +57,9 @@ export const PAID_DAILY_ANALYSIS_LIMIT = readPositiveIntEnv(
 );
 
 export function getDailyAnalysisLimit(plan: "free" | "paid") {
-  return plan === "paid" ? PAID_DAILY_ANALYSIS_LIMIT : FREE_DAILY_ANALYSIS_LIMIT;
+  return plan === "paid"
+    ? PAID_DAILY_ANALYSIS_LIMIT
+    : FREE_DAILY_ANALYSIS_LIMIT;
 }
 
 export function getTodayRangeInJapan() {
@@ -83,7 +85,9 @@ export function getTodayRangeInJapan() {
 
 export function getDayRangeInJapan(inputDate?: string) {
   const today = getTodayRangeInJapan();
-  const date = /^\d{4}-\d{2}-\d{2}$/.test(inputDate ?? "") ? (inputDate as string) : today.date;
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(inputDate ?? "")
+    ? (inputDate as string)
+    : today.date;
   const startMs = new Date(`${date}T00:00:00.000+09:00`).getTime();
 
   return {

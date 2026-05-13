@@ -8,7 +8,11 @@ function err(partial: { message: string; code?: string; status?: number }) {
 describe("mapSupabaseSignInError", () => {
   it("maps invalid credentials to a Japanese validation message", () => {
     const text = mapSupabaseSignInError(
-      err({ message: "Invalid login credentials", code: "invalid_credentials", status: 400 }),
+      err({
+        message: "Invalid login credentials",
+        code: "invalid_credentials",
+        status: 400,
+      }),
     );
     expect(text).toContain("メールアドレスまたはパスワード");
     expect(text).toContain("未登録");
@@ -16,7 +20,11 @@ describe("mapSupabaseSignInError", () => {
 
   it("maps email not confirmed", () => {
     const text = mapSupabaseSignInError(
-      err({ message: "Email not confirmed", code: "email_not_confirmed", status: 400 }),
+      err({
+        message: "Email not confirmed",
+        code: "email_not_confirmed",
+        status: 400,
+      }),
     );
     expect(text).toContain("確認が完了していません");
   });
@@ -29,7 +37,9 @@ describe("mapSupabaseSignInError", () => {
   });
 
   it("falls back to generic message for unknown errors", () => {
-    const text = mapSupabaseSignInError(err({ message: "Something weird", status: 500 }));
+    const text = mapSupabaseSignInError(
+      err({ message: "Something weird", status: 500 }),
+    );
     expect(text).toContain("ログインに失敗しました");
   });
 });

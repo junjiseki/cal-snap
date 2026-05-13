@@ -27,7 +27,9 @@ export const MealReminderSettingsPayloadSchema = z.object({
   settings: z.array(MealReminderSettingSchema).max(MAX_MEAL_REMINDER_SETTINGS),
 });
 
-export type MealReminderSettingInput = z.infer<typeof MealReminderSettingSchema>;
+export type MealReminderSettingInput = z.infer<
+  typeof MealReminderSettingSchema
+>;
 
 export function normalizeNotifyTime(value: string) {
   return value.slice(0, 5);

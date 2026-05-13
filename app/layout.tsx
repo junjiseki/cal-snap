@@ -28,16 +28,16 @@ const SITE_TITLE = `${APP_NAME} - 3秒で終わる食事管理`;
 const SITE_DESCRIPTION =
   "食事写真をAIで解析し、1日の摂取カロリーとPFCバランスを記録・可視化できる食事管理アプリです。";
 const KEYWORDS = [
-    "カロリー管理",
-    "食事管理",
-    "PFC",
-    "栄養管理",
-    "ダイエット",
-    "食事写真",
-    "AI解析",
-    "筋トレ",
-    "ジム",
-  ];
+  "カロリー管理",
+  "食事管理",
+  "PFC",
+  "栄養管理",
+  "ダイエット",
+  "食事写真",
+  "AI解析",
+  "筋トレ",
+  "ジム",
+];
 const FOOTER_LINKS = [
   { href: "/contact", label: "お問い合わせ" },
   { href: "/terms", label: "利用規約" },
@@ -158,10 +158,16 @@ export default function RootLayout({
           <PwaInstallPrompt />
           <footer className="border-t border-border bg-card pb-20 md:pb-0">
             <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 px-4 py-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8">
-              <p>© {new Date().getFullYear()} {APP_NAME}</p>
+              <p>
+                © {new Date().getFullYear()} {APP_NAME}
+              </p>
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-left sm:flex sm:items-center sm:gap-4">
                 {FOOTER_LINKS.map(({ href, label }) => (
-                  <Link key={href} href={href} className="hover:text-foreground sm:whitespace-nowrap">
+                  <Link
+                    key={href}
+                    href={href}
+                    className="hover:text-foreground sm:whitespace-nowrap"
+                  >
                     {label}
                   </Link>
                 ))}

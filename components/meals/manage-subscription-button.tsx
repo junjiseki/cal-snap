@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { CreditCard, Loader2 } from "lucide-react";
 
-export function ManageSubscriptionButton({ className }: { className?: string }) {
+export function ManageSubscriptionButton({
+  className,
+}: {
+  className?: string;
+}) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -12,13 +16,18 @@ export function ManageSubscriptionButton({ className }: { className?: string }) 
     setIsLoading(true);
     try {
       const response = await fetch("/api/stripe/portal", { method: "POST" });
-      const body = (await response.json()) as { url?: string; error?: { message?: string } };
+      const body = (await response.json()) as {
+        url?: string;
+        error?: { message?: string };
+      };
       if (!response.ok || !body.url) {
         throw new Error(body.error?.message || "ページを開けませんでした。");
       }
       window.location.href = body.url;
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "処理に失敗しました。");
+      setError(
+        caught instanceof Error ? caught.message : "処理に失敗しました。",
+      );
       setIsLoading(false);
     }
   }

@@ -91,7 +91,9 @@ export default async function SuggestionsPage() {
               <span className="inline-flex size-10 items-center justify-center rounded-md bg-primary/10 text-primary">
                 <LockKeyhole className="size-5" />
               </span>
-              <h2 className="mt-4 text-2xl font-semibold">有料プラン限定機能です</h2>
+              <h2 className="mt-4 text-2xl font-semibold">
+                有料プラン限定機能です
+              </h2>
               <p className="mt-3 text-sm leading-7 text-muted-foreground">
                 食事メニュー提案は有料プランで1日{MEAL_SUGGESTION_DAILY_LIMIT}
                 回まで利用できます。写真解析で登録した過去の食事をもとに、次の食事候補を作ります。

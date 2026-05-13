@@ -5,7 +5,10 @@ import {
   FREE_DAILY_ANALYSIS_LIMIT,
   PAID_DAILY_ANALYSIS_LIMIT,
 } from "@/lib/meal-analysis";
-import { AppHeaderClient, type AppHeaderAccount } from "@/components/layout/app-header-client";
+import {
+  AppHeaderClient,
+  type AppHeaderAccount,
+} from "@/components/layout/app-header-client";
 import { PublicAppHeaderClient } from "@/components/layout/public-app-header-client";
 import { createClient } from "@/lib/supabase/client";
 

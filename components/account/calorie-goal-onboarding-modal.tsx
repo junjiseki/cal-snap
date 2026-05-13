@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Target, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -13,6 +13,7 @@ export function CalorieGoalOnboardingModal({
   shouldShow: boolean;
 }) {
   const router = useRouter();
+  const titleId = useId();
   const [open, setOpen] = useState(false);
   const [goal, setGoal] = useState(String(initialGoal));
   const [isSaving, setIsSaving] = useState(false);
@@ -68,7 +69,9 @@ export function CalorieGoalOnboardingModal({
       setOpen(false);
       router.refresh();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "保存に失敗しました。");
+      setError(
+        caught instanceof Error ? caught.message : "保存に失敗しました。",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -81,7 +84,7 @@ export function CalorieGoalOnboardingModal({
       <div
         role="dialog"
         aria-modal="true"
-        aria-labelledby="calorie-goal-onboarding-title"
+        aria-labelledby={titleId}
         className="w-full max-w-md border border-border bg-card p-5 shadow-xl sm:p-6"
       >
         <div className="flex items-start justify-between gap-4">
@@ -99,7 +102,7 @@ export function CalorieGoalOnboardingModal({
           </button>
         </div>
 
-        <h2 id="calorie-goal-onboarding-title" className="mt-4 text-xl font-semibold">
+        <h2 id={titleId} className="mt-4 text-xl font-semibold">
           まず1日の摂取カロリーを設定
         </h2>
         <p className="mt-2 text-sm leading-7 text-muted-foreground">
@@ -122,9 +125,13 @@ export function CalorieGoalOnboardingModal({
           />
         </label>
         {!isValid ? (
-          <p className="mt-2 text-xs text-muted-foreground">1以上の整数で入力してください。</p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            1以上の整数で入力してください。
+          </p>
         ) : null}
-        {error ? <p className="mt-3 text-sm text-destructive">{error}</p> : null}
+        {error ? (
+          <p className="mt-3 text-sm text-destructive">{error}</p>
+        ) : null}
 
         <div className="mt-5 grid gap-2 sm:grid-cols-[1fr_auto]">
           <button

@@ -41,7 +41,9 @@ export function ChangePasswordForm({ userEmail }: { userEmail: string }) {
 
     const trimmedCaptcha = captchaToken.trim();
     if (!trimmedCaptcha) {
-      setError("下の「人間による操作の確認」を完了してから、もう一度お試しください。");
+      setError(
+        "下の「人間による操作の確認」を完了してから、もう一度お試しください。",
+      );
       return;
     }
 
@@ -82,7 +84,11 @@ export function ChangePasswordForm({ userEmail }: { userEmail: string }) {
       setCaptchaResetSignal((n) => n + 1);
     } catch (caught) {
       setCaptchaResetSignal((n) => n + 1);
-      setError(caught instanceof Error ? caught.message : "パスワードを変更できませんでした。");
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "パスワードを変更できませんでした。",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -137,13 +143,23 @@ export function ChangePasswordForm({ userEmail }: { userEmail: string }) {
           minLength={8}
         />
       </label>
-      <TurnstileWidget onTokenChange={handleCaptchaTokenChange} resetSignal={captchaResetSignal} />
-      <Button type="submit" disabled={isSaving} aria-busy={isSaving} className="h-10 gap-2">
+      <TurnstileWidget
+        onTokenChange={handleCaptchaTokenChange}
+        resetSignal={captchaResetSignal}
+      />
+      <Button
+        type="submit"
+        disabled={isSaving}
+        aria-busy={isSaving}
+        className="h-10 gap-2"
+      >
         {isSaving ? <Loader2 className="size-4 animate-spin" /> : null}
         {isSaving ? "変更中..." : "パスワードを変更"}
       </Button>
       {notice ? (
-        <p className="text-sm text-emerald-700 dark:text-emerald-400">{notice}</p>
+        <p className="text-sm text-emerald-700 dark:text-emerald-400">
+          {notice}
+        </p>
       ) : null}
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
     </form>

@@ -71,8 +71,19 @@ export function shiftMonthJapan(ymd: string, delta: number): string {
 /** 日曜 = 0 … 土曜 = 6（その日の JST 暦に対応） */
 export function jstWeekdaySun0(ymd: string): number {
   const d = new Date(`${ymd}T12:00:00+09:00`);
-  const w = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Tokyo", weekday: "short" }).format(d);
-  const map: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+  const w = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Tokyo",
+    weekday: "short",
+  }).format(d);
+  const map: Record<string, number> = {
+    Sun: 0,
+    Mon: 1,
+    Tue: 2,
+    Wed: 3,
+    Thu: 4,
+    Fri: 5,
+    Sat: 6,
+  };
   return map[w] ?? 0;
 }
 

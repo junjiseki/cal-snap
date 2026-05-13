@@ -24,7 +24,9 @@ describe("cancelStripeSubscriptionsForUser", () => {
     const { cancelStripeSubscriptionsForUser } = await import(
       "@/lib/stripe/cancel-subscriptions-for-user"
     );
-    const result = await cancelStripeSubscriptionsForUser("00000000-0000-4000-8000-000000000001");
+    const result = await cancelStripeSubscriptionsForUser(
+      "00000000-0000-4000-8000-000000000001",
+    );
     expect(result).toEqual({ ok: true });
     expect(searchMock).not.toHaveBeenCalled();
   });
@@ -34,7 +36,9 @@ describe("cancelStripeSubscriptionsForUser", () => {
     const { cancelStripeSubscriptionsForUser } = await import(
       "@/lib/stripe/cancel-subscriptions-for-user"
     );
-    const result = await cancelStripeSubscriptionsForUser("x'; metadata['userId']:'victim");
+    const result = await cancelStripeSubscriptionsForUser(
+      "x'; metadata['userId']:'victim",
+    );
 
     expect(result).toEqual({ ok: true });
     expect(searchMock).not.toHaveBeenCalled();
@@ -60,7 +64,9 @@ describe("cancelStripeSubscriptionsForUser", () => {
     const { cancelStripeSubscriptionsForUser } = await import(
       "@/lib/stripe/cancel-subscriptions-for-user"
     );
-    const result = await cancelStripeSubscriptionsForUser("00000000-0000-4000-8000-000000000002");
+    const result = await cancelStripeSubscriptionsForUser(
+      "00000000-0000-4000-8000-000000000002",
+    );
 
     expect(result).toEqual({ ok: true });
     expect(searchMock).toHaveBeenCalledTimes(2);

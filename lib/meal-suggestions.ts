@@ -3,8 +3,16 @@ import { getTodayRangeInJapan } from "@/lib/meal-analysis";
 
 export const MEAL_SUGGESTION_DAILY_LIMIT = 3;
 
-export const MealSuggestionContextSchema = z.enum(["eat_out", "cook", "convenience"]);
-export const MealSuggestionSlotSchema = z.enum(["breakfast", "lunch", "dinner"]);
+export const MealSuggestionContextSchema = z.enum([
+  "eat_out",
+  "cook",
+  "convenience",
+]);
+export const MealSuggestionSlotSchema = z.enum([
+  "breakfast",
+  "lunch",
+  "dinner",
+]);
 
 export const MealSuggestionRequestSchema = z.object({
   context: MealSuggestionContextSchema,
@@ -29,9 +37,14 @@ export const MealSuggestionResponseSchema = z.object({
 
 export type MealSuggestionContext = z.infer<typeof MealSuggestionContextSchema>;
 export type MealSuggestionSlot = z.infer<typeof MealSuggestionSlotSchema>;
-export type MealSuggestionResponse = z.infer<typeof MealSuggestionResponseSchema>;
+export type MealSuggestionResponse = z.infer<
+  typeof MealSuggestionResponseSchema
+>;
 
-export const mealSuggestionContextLabels: Record<MealSuggestionContext, string> = {
+export const mealSuggestionContextLabels: Record<
+  MealSuggestionContext,
+  string
+> = {
   eat_out: "外食",
   cook: "自炊",
   convenience: "コンビニ",

@@ -10,12 +10,17 @@ type ResponseRef = { current: NextResponse };
  * 最終的に return する `NextResponse` に載せつつ、同一ハンドラ内の後続 `getUser()` が
  * リクエスト由来の Cookie ではなく更新後の値を `getAll()` で読めるようにする。
  */
-export function createSupabaseRouteHandlerClient(request: NextRequest, responseRef: ResponseRef) {
+export function createSupabaseRouteHandlerClient(
+  request: NextRequest,
+  responseRef: ResponseRef,
+) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!url || !anonKey) {
-    throw new Error("Supabase public environment variables are not configured.");
+    throw new Error(
+      "Supabase public environment variables are not configured.",
+    );
   }
 
   const jar = new Map<string, { name: string; value: string }>();

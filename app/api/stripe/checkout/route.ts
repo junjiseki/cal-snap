@@ -1,4 +1,7 @@
-import { forbiddenOriginResponse, isAllowedOrigin } from "@/lib/security/request";
+import {
+  forbiddenOriginResponse,
+  isAllowedOrigin,
+} from "@/lib/security/request";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 import { getStripeServer } from "@/lib/stripe/server";
 import type Stripe from "stripe";
@@ -28,17 +31,30 @@ export async function POST(request: Request) {
 
   const priceId = process.env.STRIPE_PRICE_ID;
   if (!priceId) {
-    return errorResponse("STRIPE_PRICE_ID が設定されていません。", 500, "STRIPE_NOT_CONFIGURED");
+    return errorResponse(
+      "STRIPE_PRICE_ID が設定されていません。",
+      500,
+      "STRIPE_NOT_CONFIGURED",
+    );
   }
 
   const stripe = getStripeServer();
-  const origin = request.headers.get("origin") ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const origin =
+    request.headers.get("origin") ??
+    process.env.NEXT_PUBLIC_APP_URL ??
+    "http://localhost:3000";
 
   if (!AUTH_USER_UUID_RE.test(user.id)) {
-    return errorResponse("ユーザー情報を確認できません。", 400, "INVALID_USER_ID");
+    return errorResponse(
+      "ユーザー情報を確認できません。",
+      400,
+      "INVALID_USER_ID",
+    );
   }
 
-  let existingSubscriptions: Awaited<ReturnType<typeof stripe.subscriptions.search>>;
+  let existingSubscriptions: Awaited<
+    ReturnType<typeof stripe.subscriptions.search>
+  >;
   try {
     existingSubscriptions = await stripe.subscriptions.search({
       query: `metadata['userId']:'${user.id}'`,

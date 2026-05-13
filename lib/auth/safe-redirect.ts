@@ -1,7 +1,10 @@
 /**
  * オープンリダイレクト防止: 同一オリジン内の相対パスのみ許可する。
  */
-export function safeInternalPath(next: string | null, fallback: string): string {
+export function safeInternalPath(
+  next: string | null,
+  fallback: string,
+): string {
   if (!next) {
     return fallback;
   }

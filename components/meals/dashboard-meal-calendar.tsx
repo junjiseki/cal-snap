@@ -32,9 +32,12 @@ export function DashboardMealCalendar({
   const firstOfMonth = `${y}-${pad2(m)}-01`;
   const lead = jstWeekdaySun0(firstOfMonth);
 
-  const cells: ({ kind: "blank" } | { kind: "day"; ymd: string })[] = [];
+  const cells: (
+    | { kind: "blank"; leadIndex: number }
+    | { kind: "day"; ymd: string }
+  )[] = [];
   for (let i = 0; i < lead; i++) {
-    cells.push({ kind: "blank" });
+    cells.push({ kind: "blank", leadIndex: i });
   }
   for (let d = 1; d <= dim; d++) {
     cells.push({ kind: "day", ymd: `${y}-${pad2(m)}-${pad2(d)}` });
@@ -70,7 +73,9 @@ export function DashboardMealCalendar({
         >
           <ChevronLeft className="size-4" />
         </button>
-        <p className="min-w-0 flex-1 text-center text-sm font-semibold">{monthTitle}</p>
+        <p className="min-w-0 flex-1 text-center text-sm font-semibold">
+          {monthTitle}
+        </p>
         <button
           type="button"
           onClick={() => goMonth(1)}
@@ -90,9 +95,14 @@ export function DashboardMealCalendar({
             {label}
           </div>
         ))}
-        {cells.map((cell, index) => {
+        {cells.map((cell) => {
           if (cell.kind === "blank") {
-            return <div key={`b-${index}`} className="aspect-square min-h-8 sm:min-h-9" />;
+            return (
+              <div
+                key={`blank-${y}-${pad2(m)}-${cell.leadIndex}`}
+                className="aspect-square min-h-8 sm:min-h-9"
+              />
+            );
           }
           const { ymd } = cell;
           const isToday = ymd === todayDate;
@@ -112,7 +122,9 @@ export function DashboardMealCalendar({
                 !allowed && "cursor-not-allowed opacity-35",
                 allowed && !isSelected && "hover:bg-muted",
                 isSelected && "bg-primary text-primary-foreground",
-                isToday && !isSelected && "ring-2 ring-primary ring-offset-2 ring-offset-background",
+                isToday &&
+                  !isSelected &&
+                  "ring-2 ring-primary ring-offset-2 ring-offset-background",
               )}
             >
               {Number(ymd.slice(8, 10))}

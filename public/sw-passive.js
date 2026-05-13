@@ -2,8 +2,9 @@
  * iPhone のホーム画面起動を速くするため、
  * 静的アセットのみ最小限キャッシュする。
  * API・認証系レスポンスはキャッシュしない。
+ * ヒット時はキャッシュを即返しつつバックグラウンドで再取得（stale-while-revalidate）。
  */
-const STATIC_CACHE = "cal-snap-static-v10";
+const STATIC_CACHE = "cal-snap-static-v11";
 /**
  * iOS「ホーム画面に追加」は apple-touch-icon を取る際、SW が fetch を横取りすると
  * キャッシュの空応答・古い失敗レスポンスで画像が取れず、サイト名の頭文字（例: カ）だけのアイコンになることがある。
@@ -30,19 +31,21 @@ function isCacheableStaticRequest(request) {
   }
   return (
     url.pathname.startsWith("/_next/static/") ||
-    /\.(?:js|css|png|jpg|jpeg|webp|svg|ico|woff2)$/i.test(url.pathname)
+    /\.(?:js|css|png|jpg|jpeg|webp|avif|svg|ico|woff2)$/i.test(url.pathname)
   );
 }
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches
-      .open(STATIC_CACHE)
-      .then((cache) => cache.addAll(APP_SHELL))
-      .catch(() => {
-        // ネットワーク不安定時はプリキャッシュ失敗を許容する
-      }),
-  );
+  if (APP_SHELL.length > 0) {
+    event.waitUntil(
+      caches
+        .open(STATIC_CACHE)
+        .then((cache) => cache.addAll(APP_SHELL))
+        .catch(() => {
+          // ネットワーク不安定時はプリキャッシュ失敗を許容する
+        }),
+    );
+  }
   self.skipWaiting();
 });
 
@@ -66,15 +69,26 @@ self.addEventListener("fetch", (event) => {
     (async () => {
       const cache = await caches.open(STATIC_CACHE);
       const cached = await cache.match(request);
-      const fetchPromise = fetch(request)
+      const updateCache = (response) => {
+        if (response.ok) {
+          void cache.put(request, response.clone());
+        }
+      };
+
+      // キャッシュがあれば即返しつつ、バックグラウンドで更新（stale-while-revalidate）
+      if (cached) {
+        void fetch(request)
+          .then(updateCache)
+          .catch(() => {});
+        return cached;
+      }
+
+      return fetch(request)
         .then((response) => {
-          if (response.ok) {
-            void cache.put(request, response.clone());
-          }
+          updateCache(response);
           return response;
         })
         .catch(() => cached);
-      return cached ?? fetchPromise;
     })(),
   );
 });

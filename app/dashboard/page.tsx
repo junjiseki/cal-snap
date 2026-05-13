@@ -125,7 +125,7 @@ export default async function DashboardPage({
   }
 
   const { date: todayDate } = getDayRangeInJapan();
-  const { date, start, endExclusive, isToday } = getDayRangeInJapan(params.date);
+  const { date, start, endExclusive } = getDayRangeInJapan(params.date);
   const requestedMealsPage = parseDashboardMealsPage(params.meals_page);
 
   const isPaid = profile?.plan === "paid";

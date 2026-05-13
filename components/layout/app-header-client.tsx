@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { DashboardAccountMenu } from "@/components/meals/dashboard-account-menu";
+import { APP_HEADER_MOBILE_MENU_CLOSE_DELAY_MS } from "@/lib/ui-timing";
 import { cn } from "@/lib/utils";
 
 export type AppHeaderAccount = {
@@ -38,7 +39,10 @@ export function AppHeaderClient({
   const isMealAnalyzerPage = pathname === "/meals/new";
   const isSuggestionsPage = pathname === "/suggestions";
   const closeMobileMenuSoon = () => {
-    window.setTimeout(() => setOpen(false), 120);
+    window.setTimeout(
+      () => setOpen(false),
+      APP_HEADER_MOBILE_MENU_CLOSE_DELAY_MS,
+    );
   };
 
   useEffect(() => {

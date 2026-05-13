@@ -4,6 +4,7 @@ import { useEffect, useId, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Target, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { CALORIE_GOAL_ONBOARDING_OPEN_DELAY_MS } from "@/lib/ui-timing";
 
 export function CalorieGoalOnboardingModal({
   initialGoal,
@@ -21,7 +22,10 @@ export function CalorieGoalOnboardingModal({
 
   useEffect(() => {
     if (shouldShow) {
-      const timer = window.setTimeout(() => setOpen(true), 500);
+      const timer = window.setTimeout(
+        () => setOpen(true),
+        CALORIE_GOAL_ONBOARDING_OPEN_DELAY_MS,
+      );
       return () => window.clearTimeout(timer);
     }
   }, [shouldShow]);

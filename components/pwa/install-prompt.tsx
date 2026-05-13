@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  DEFER_AFTER_LOAD_IDLE_TIMEOUT_MS,
+  DEFER_AFTER_LOAD_SETTIMEOUT_FALLBACK_MS,
+} from "@/lib/ui-timing";
 
 const DISMISSED_KEY = "cal-snap-pwa-install-dismissed";
 
@@ -48,10 +52,12 @@ function dismissForever() {
 function afterInitialRender(callback: () => void) {
   const run = () => {
     if ("requestIdleCallback" in window) {
-      window.requestIdleCallback(callback, { timeout: 2500 });
+      window.requestIdleCallback(callback, {
+        timeout: DEFER_AFTER_LOAD_IDLE_TIMEOUT_MS,
+      });
       return;
     }
-    globalThis.setTimeout(callback, 1200);
+    globalThis.setTimeout(callback, DEFER_AFTER_LOAD_SETTIMEOUT_FALLBACK_MS);
   };
 
   if (document.readyState === "complete") {

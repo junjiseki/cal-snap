@@ -7,6 +7,7 @@ import {
   getTurnstileSiteKeyForBrowser,
   isTurnstileProductionWidgetMode,
 } from "@/lib/security/turnstile-config";
+import { TURNSTILE_SCRIPT_LOAD_TIMEOUT_MS } from "@/lib/ui-timing";
 
 const TURNSTILE_SITE_KEY = getTurnstileSiteKeyForBrowser();
 
@@ -69,7 +70,7 @@ export function TurnstileWidget({
       setWidgetError(
         "Turnstileの読み込みに時間がかかっています。通信環境、広告ブロッカー、セキュリティ設定を確認して再読み込みしてください。",
       );
-    }, 12_000);
+    }, TURNSTILE_SCRIPT_LOAD_TIMEOUT_MS);
 
     return () => window.clearTimeout(timeoutId);
   }, [scriptStatus, onTokenChange]);

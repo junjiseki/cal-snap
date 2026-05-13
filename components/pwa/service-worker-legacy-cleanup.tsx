@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
+import {
+  SW_LEGACY_CLEANUP_IDLE_TIMEOUT_MS,
+  SW_LEGACY_CLEANUP_SETTIMEOUT_FALLBACK_MS,
+} from "@/lib/ui-timing";
 
 /** 無効化後はコンポーネントごと削除してよい */
 const LEGACY_CLEANUP_KEY = "cal-snap:sw-legacy-cleanup-v2";
@@ -26,10 +30,12 @@ function isLegacyCalSnapCacheName(name: string): boolean {
 function afterInitialRender(callback: () => void) {
   const run = () => {
     if ("requestIdleCallback" in window) {
-      window.requestIdleCallback(callback, { timeout: 3000 });
+      window.requestIdleCallback(callback, {
+        timeout: SW_LEGACY_CLEANUP_IDLE_TIMEOUT_MS,
+      });
       return;
     }
-    globalThis.setTimeout(callback, 1500);
+    globalThis.setTimeout(callback, SW_LEGACY_CLEANUP_SETTIMEOUT_FALLBACK_MS);
   };
 
   if (document.readyState === "complete") {

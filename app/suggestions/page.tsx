@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, LockKeyhole, Sparkles } from "lucide-react";
+import { ArrowLeft, CheckCircle2, LockKeyhole, Sparkles, Utensils } from "lucide-react";
 import { UpgradePlanButton } from "@/components/meals/upgrade-plan-button";
 import { MealSuggestionPlanner } from "@/components/meals/meal-suggestion-planner";
 import {
@@ -51,7 +51,7 @@ export default async function SuggestionsPage() {
 
   return (
     <main className="min-h-0 flex-1 bg-background">
-      <section className="border-b border-border bg-card">
+      <section className="border-b border-border bg-gradient-to-br from-primary/5 via-card to-background">
         <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-8 sm:py-6">
           <Link
             href="/dashboard"
@@ -71,6 +71,35 @@ export default async function SuggestionsPage() {
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
                 外食・自炊・コンビニと、朝ご飯・昼食・夜ご飯を選ぶと、AIが過去の食事傾向から候補を提案します。
+              </p>
+            </div>
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+              <p className="flex items-center gap-2 text-sm font-semibold">
+                <Utensils className="size-4 text-primary" />
+                シーンを選ぶ
+              </p>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                外食・自炊・コンビニから選択。
+              </p>
+            </div>
+            <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+              <p className="flex items-center gap-2 text-sm font-semibold">
+                <Sparkles className="size-4 text-primary" />
+                高精度AIで提案
+              </p>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                有料プラン向けのモデルで候補を作成。
+              </p>
+            </div>
+            <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+              <p className="flex items-center gap-2 text-sm font-semibold">
+                <CheckCircle2 className="size-4 text-primary" />
+                1日{MEAL_SUGGESTION_DAILY_LIMIT}回
+              </p>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                朝・昼・夜の食事選びに使えます。
               </p>
             </div>
           </div>

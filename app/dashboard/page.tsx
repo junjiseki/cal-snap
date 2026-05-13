@@ -1,7 +1,14 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { Camera, Sparkles, TrendingDown, TrendingUp } from "lucide-react";
+import {
+  BellRing,
+  Camera,
+  CalendarDays,
+  Sparkles,
+  TrendingDown,
+  TrendingUp,
+} from "lucide-react";
 import { getCalorieOverLevel, getDayRangeInJapan } from "@/lib/meal-analysis";
 import { getAuthenticatedUserWithProfileCached } from "@/lib/supabase/server";
 import { CalorieGoalOnboardingModal } from "@/components/account/calorie-goal-onboarding-modal";
@@ -186,16 +193,16 @@ export default async function DashboardPage({
           shouldShow={shouldShowGoalPrompt}
         />
       ) : null}
-      <section className="border-b border-border bg-card">
+      <section className="border-b border-border bg-gradient-to-br from-primary/5 via-card to-background">
         <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-8 sm:py-6">
           <div>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-sm font-semibold text-primary">
+                <p className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
                   {dateLabelJa}
                 </p>
-                <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-4xl">
-                  カロリーとPFC
+                <h1 className="mt-3 text-2xl font-semibold tracking-tight sm:text-4xl">
+                  今日の食事バランス
                 </h1>
               </div>
               <Link
@@ -206,7 +213,7 @@ export default async function DashboardPage({
                 食事を登録
               </Link>
             </div>
-            <div className="mt-5 max-w-3xl">
+            <div className="mt-5 rounded-xl border border-border bg-card/90 p-4 shadow-sm backdrop-blur sm:max-w-3xl sm:p-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">摂取カロリー</p>
@@ -255,6 +262,44 @@ export default async function DashboardPage({
                 目安 {goalCalories} kcal / {calorieProgress}%
               </p>
             </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <Link
+                href="/meals/new"
+                className="group rounded-xl border border-border bg-card p-4 shadow-sm transition hover:border-primary/40 hover:bg-primary/5"
+              >
+                <span className="inline-flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Camera className="size-4" />
+                </span>
+                <p className="mt-3 text-sm font-semibold">食事を記録</p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  写真解析または手入力で追加
+                </p>
+              </Link>
+              <Link
+                href="/suggestions"
+                className="group rounded-xl border border-border bg-card p-4 shadow-sm transition hover:border-primary/40 hover:bg-primary/5"
+              >
+                <span className="inline-flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Sparkles className="size-4" />
+                </span>
+                <p className="mt-3 text-sm font-semibold">次の食事を相談</p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  過去の傾向から候補を作成
+                </p>
+              </Link>
+              <Link
+                href="/meal-reminders"
+                className="group rounded-xl border border-border bg-card p-4 shadow-sm transition hover:border-primary/40 hover:bg-primary/5"
+              >
+                <span className="inline-flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <BellRing className="size-4" />
+                </span>
+                <p className="mt-3 text-sm font-semibold">通知時間を設定</p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  記録忘れを防ぐリマインド
+                </p>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -290,29 +335,45 @@ export default async function DashboardPage({
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-foreground">PFC 合計</h2>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold text-foreground">PFC 合計</h2>
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
+              <CalendarDays className="size-3.5" />
+              {date === todayDate ? "今日" : date}
+            </span>
+          </div>
           <div className="grid grid-cols-3 gap-2 sm:gap-3" aria-label="PFC合計">
-            <div className="border border-border bg-card p-3 sm:p-5">
-              <p className="text-sm text-muted-foreground">たんぱく質</p>
-              <p className="mt-2 text-xl font-semibold sm:text-3xl">
-                {Math.round(total.protein)}
-                <span className="ml-0.5 text-sm text-muted-foreground">g</span>
-              </p>
-            </div>
-            <div className="border border-border bg-card p-3 sm:p-5">
-              <p className="text-sm text-muted-foreground">脂質</p>
-              <p className="mt-2 text-xl font-semibold sm:text-3xl">
-                {Math.round(total.fat)}
-                <span className="ml-0.5 text-sm text-muted-foreground">g</span>
-              </p>
-            </div>
-            <div className="border border-border bg-card p-3 sm:p-5">
-              <p className="text-sm text-muted-foreground">炭水化物</p>
-              <p className="mt-2 text-xl font-semibold sm:text-3xl">
-                {Math.round(total.carbs)}
-                <span className="ml-0.5 text-sm text-muted-foreground">g</span>
-              </p>
-            </div>
+            {[
+              {
+                label: "たんぱく質",
+                value: Math.round(total.protein),
+                tone: "border-l-sky-500 bg-sky-50/60 dark:bg-sky-950/20",
+              },
+              {
+                label: "脂質",
+                value: Math.round(total.fat),
+                tone: "border-l-amber-500 bg-amber-50/60 dark:bg-amber-950/20",
+              },
+              {
+                label: "炭水化物",
+                value: Math.round(total.carbs),
+                tone: "border-l-emerald-500 bg-emerald-50/60 dark:bg-emerald-950/20",
+              },
+            ].map(({ label, value, tone }) => (
+              <div
+                key={label}
+                className={[
+                  "rounded-xl border border-l-4 border-border p-3 shadow-sm sm:p-5",
+                  tone,
+                ].join(" ")}
+              >
+                <p className="text-xs text-muted-foreground sm:text-sm">{label}</p>
+                <p className="mt-2 text-xl font-semibold sm:text-3xl">
+                  {value}
+                  <span className="ml-0.5 text-sm text-muted-foreground">g</span>
+                </p>
+              </div>
+            ))}
           </div>
         </section>
 

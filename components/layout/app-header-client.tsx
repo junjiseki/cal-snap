@@ -61,7 +61,7 @@ export function AppHeaderClient({
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-8">
           <div className="flex items-center justify-between gap-3 py-3 sm:py-4">
             <Link
-              href={account ? "/meals/new" : "/"}
+              href={account ? "/dashboard" : "/"}
               className="flex min-w-0 items-center gap-2 sm:gap-3"
             >
               <Image
@@ -184,17 +184,17 @@ export function AppHeaderClient({
       </header>
       {account ? (
         <nav
-          className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 px-4 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur md:hidden"
+          className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 px-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur md:hidden"
           aria-label="ボトムナビゲーション"
         >
-          <div className="mx-auto grid max-w-md grid-cols-3 gap-2">
+          <div className="mx-auto grid max-w-md grid-cols-3 gap-1.5 rounded-2xl bg-muted/45 p-1">
             <Link
               href="/dashboard"
               aria-current={isDashboardPage ? "page" : undefined}
               className={cn(
-                "flex min-h-12 flex-col items-center justify-center gap-1 rounded-md text-xs font-semibold",
+                "flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-xs font-semibold transition active:scale-[0.98]",
                 isDashboardPage
-                  ? "bg-primary/10 text-primary"
+                  ? "bg-card text-primary shadow-sm ring-1 ring-border"
                   : "text-muted-foreground active:bg-muted",
               )}
             >
@@ -205,27 +205,27 @@ export function AppHeaderClient({
               href="/meals/new"
               aria-current={isMealAnalyzerPage ? "page" : undefined}
               className={cn(
-                "flex min-h-12 flex-col items-center justify-center gap-1 rounded-md text-xs font-semibold",
+                "flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-xs font-semibold transition active:scale-[0.98]",
                 isMealAnalyzerPage
-                  ? "bg-primary/10 text-primary"
+                  ? "bg-card text-primary shadow-sm ring-1 ring-border"
                   : "text-muted-foreground active:bg-muted",
               )}
             >
               <Camera className="size-5" />
-              食事解析
+              記録
             </Link>
             <Link
               href="/suggestions"
               aria-current={isSuggestionsPage ? "page" : undefined}
               className={cn(
-                "flex min-h-12 flex-col items-center justify-center gap-1 rounded-md text-xs font-semibold",
+                "flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-xs font-semibold transition active:scale-[0.98]",
                 isSuggestionsPage
-                  ? "bg-primary/10 text-primary"
+                  ? "bg-card text-primary shadow-sm ring-1 ring-border"
                   : "text-muted-foreground active:bg-muted",
               )}
             >
               <Sparkles className="size-5" />
-              食事提案
+              提案
             </Link>
           </div>
         </nav>

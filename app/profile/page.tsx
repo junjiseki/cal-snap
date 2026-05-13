@@ -36,7 +36,9 @@ export default async function ProfilePage() {
 
   const goalCalories = profile?.daily_calorie_goal ?? 2000;
   const displayName =
-    typeof user.user_metadata?.display_name === "string" ? user.user_metadata.display_name : "";
+    typeof user.user_metadata?.display_name === "string"
+      ? user.user_metadata.display_name
+      : "";
   const avatarLabel = displayName.trim().slice(0, 1);
 
   return (
@@ -65,6 +67,7 @@ export default async function ProfilePage() {
       </section>
 
       <div className="mx-auto grid w-full max-w-4xl gap-5 px-4 py-5 sm:px-8 sm:py-6">
+        {/* biome-ignore lint/correctness/useUniqueElementIds: 食事一覧からの /profile#calorie-goal 用の固定アンカー */}
         <section id="calorie-goal" className="border border-border bg-card p-5">
           <h2 className="text-lg font-semibold">1日の摂取カロリー</h2>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -87,11 +90,15 @@ export default async function ProfilePage() {
           <dl className="mt-4 grid gap-3 text-sm">
             <div>
               <dt className="text-muted-foreground">メールアドレス</dt>
-              <dd className="mt-1 font-medium">{user.email ?? "（メール未設定）"}</dd>
+              <dd className="mt-1 font-medium">
+                {user.email ?? "（メール未設定）"}
+              </dd>
             </div>
             <div>
               <dt className="text-muted-foreground">プラン</dt>
-              <dd className="mt-1 font-medium">{profile?.plan === "paid" ? "有料" : "無料"}</dd>
+              <dd className="mt-1 font-medium">
+                {profile?.plan === "paid" ? "有料" : "無料"}
+              </dd>
             </div>
           </dl>
         </section>

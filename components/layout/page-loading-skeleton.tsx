@@ -15,7 +15,9 @@ export type PageLoadingSkeletonProps = {
  * ルート遷移時（app/loading.tsx）用。
  * OS スプラッシュの次に表示する、アプリ側の短いローディング（白背景・ロゴ・軽いスピナー）。
  */
-export function PageLoadingSkeleton({ message = DEFAULT_MESSAGE }: PageLoadingSkeletonProps) {
+export function PageLoadingSkeleton({
+  message = DEFAULT_MESSAGE,
+}: PageLoadingSkeletonProps) {
   return (
     <main
       className="flex min-h-[50vh] flex-1 flex-col items-center justify-center gap-6 bg-white px-6 py-12 dark:bg-background"
@@ -35,7 +37,10 @@ export function PageLoadingSkeleton({ message = DEFAULT_MESSAGE }: PageLoadingSk
           className="size-6 animate-spin text-muted-foreground"
           aria-hidden
         />
-        <p role="status" className="text-center text-sm font-medium text-muted-foreground">
+        <p
+          role="status"
+          className="text-center text-sm font-medium text-muted-foreground"
+        >
           {message}
         </p>
       </div>

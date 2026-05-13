@@ -16,7 +16,8 @@ export async function GET(request: NextRequest) {
   const supabase = createSupabaseRouteHandlerClient(request, responseRef);
 
   if (code) {
-    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+    const { error: exchangeError } =
+      await supabase.auth.exchangeCodeForSession(code);
     if (exchangeError) {
       return authRouteRedirect(
         new URL(`/login?next=${encodeURIComponent(nextPath)}`, url.origin),
@@ -25,7 +26,9 @@ export async function GET(request: NextRequest) {
 
     const fin = await finalizeAuthSession(supabase, nextPath);
     if (!fin.ok) {
-      responseRef.current = authRouteRedirect(new URL(fin.redirectPath, url.origin));
+      responseRef.current = authRouteRedirect(
+        new URL(fin.redirectPath, url.origin),
+      );
       await supabase.auth.signOut();
     }
     return responseRef.current;

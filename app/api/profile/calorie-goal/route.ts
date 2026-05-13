@@ -1,4 +1,7 @@
-import { forbiddenOriginResponse, isAllowedOrigin } from "@/lib/security/request";
+import {
+  forbiddenOriginResponse,
+  isAllowedOrigin,
+} from "@/lib/security/request";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -44,7 +47,11 @@ export async function PATCH(request: Request) {
     .eq("id", user.id);
 
   if (error) {
-    return errorResponse("摂取カロリーを更新できません。", 500, "PROFILE_UPDATE_FAILED");
+    return errorResponse(
+      "摂取カロリーを更新できません。",
+      500,
+      "PROFILE_UPDATE_FAILED",
+    );
   }
 
   const { error: authMetaError } = await supabase.auth.updateUser({

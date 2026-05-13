@@ -18,7 +18,11 @@ type Usage = {
 const contexts: MealSuggestionContext[] = ["eat_out", "cook", "convenience"];
 const slots: MealSuggestionSlot[] = ["breakfast", "lunch", "dinner"];
 
-export function MealSuggestionPlanner({ initialUsage }: { initialUsage: Usage }) {
+export function MealSuggestionPlanner({
+  initialUsage,
+}: {
+  initialUsage: Usage;
+}) {
   const [context, setContext] = useState<MealSuggestionContext>("eat_out");
   const [slot, setSlot] = useState<MealSuggestionSlot>("lunch");
   const [usage, setUsage] = useState(initialUsage);
@@ -28,6 +32,8 @@ export function MealSuggestionPlanner({ initialUsage }: { initialUsage: Usage })
   const remaining = Math.max(0, usage.limit - usage.used);
 
   useEffect(() => {
+    void context;
+    void slot;
     setResult(null);
     setError(null);
   }, [context, slot]);
@@ -65,7 +71,9 @@ export function MealSuggestionPlanner({ initialUsage }: { initialUsage: Usage })
       if (requestContext !== context || requestSlot !== slot) {
         return;
       }
-      setError(caught instanceof Error ? caught.message : "食事提案に失敗しました。");
+      setError(
+        caught instanceof Error ? caught.message : "食事提案に失敗しました。",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -184,7 +192,9 @@ export function MealSuggestionPlanner({ initialUsage }: { initialUsage: Usage })
                   >
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                       <div>
-                        <h3 className="text-lg font-semibold">{suggestion.title}</h3>
+                        <h3 className="text-lg font-semibold">
+                          {suggestion.title}
+                        </h3>
                         <p className="mt-1 text-sm leading-6 text-muted-foreground">
                           {suggestion.reason}
                         </p>
@@ -195,15 +205,24 @@ export function MealSuggestionPlanner({ initialUsage }: { initialUsage: Usage })
                     </div>
                     <ul className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
                       {suggestion.items.map((item) => (
-                        <li key={item} className="rounded-md border border-border px-3 py-2">
+                        <li
+                          key={item}
+                          className="rounded-md border border-border px-3 py-2"
+                        >
                           {item}
                         </li>
                       ))}
                     </ul>
                     <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
-                      <p className="rounded-md bg-card p-2">P {Math.round(suggestion.protein)}g</p>
-                      <p className="rounded-md bg-card p-2">F {Math.round(suggestion.fat)}g</p>
-                      <p className="rounded-md bg-card p-2">C {Math.round(suggestion.carbs)}g</p>
+                      <p className="rounded-md bg-card p-2">
+                        P {Math.round(suggestion.protein)}g
+                      </p>
+                      <p className="rounded-md bg-card p-2">
+                        F {Math.round(suggestion.fat)}g
+                      </p>
+                      <p className="rounded-md bg-card p-2">
+                        C {Math.round(suggestion.carbs)}g
+                      </p>
                     </div>
                     <p className="mt-3 text-sm leading-6 text-muted-foreground">
                       {suggestion.adjustment_tip}

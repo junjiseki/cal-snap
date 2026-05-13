@@ -9,7 +9,10 @@ export function mapSupabaseSignInError(error: AuthError): string {
     return "メールアドレスの確認が完了していません。登録時に届いたメールのリンクから確認してから、再度ログインしてください。";
   }
 
-  if (msg.includes("email not confirmed") || (msg.includes("confirm") && msg.includes("email"))) {
+  if (
+    msg.includes("email not confirmed") ||
+    (msg.includes("confirm") && msg.includes("email"))
+  ) {
     return "メールアドレスの確認が完了していません。登録時に届いたメールのリンクから確認してから、再度ログインしてください。";
   }
 

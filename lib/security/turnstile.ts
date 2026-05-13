@@ -35,7 +35,9 @@ function getTurnstileSecretKey() {
   if (configured) {
     return configured;
   }
-  return process.env.NODE_ENV === "production" ? null : TURNSTILE_TEST_SECRET_KEY;
+  return process.env.NODE_ENV === "production"
+    ? null
+    : TURNSTILE_TEST_SECRET_KEY;
 }
 
 export async function validateTurnstileToken(
@@ -66,15 +68,20 @@ export async function validateTurnstileToken(
   }
 
   try {
-    const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+    const response = await fetch(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: body.toString(),
       },
-      body: body.toString(),
-    });
+    );
 
-    const parsed = TurnstileVerifyResponseSchema.safeParse(await response.json());
+    const parsed = TurnstileVerifyResponseSchema.safeParse(
+      await response.json(),
+    );
     if (!response.ok || !parsed.success) {
       return { ok: false, code: "request_failed" };
     }

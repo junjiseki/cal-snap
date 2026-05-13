@@ -57,7 +57,11 @@ export function LoginForm({
         throw oauthError;
       }
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Googleログインを開始できません。");
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Googleログインを開始できません。",
+      );
       setIsGoogleLoading(false);
     }
   }
@@ -68,7 +72,9 @@ export function LoginForm({
     setNotice(null);
     const trimmedCaptcha = captchaToken.trim();
     if (!trimmedCaptcha) {
-      setError("下の「人間による操作の確認」を完了してから、もう一度お試しください。");
+      setError(
+        "下の「人間による操作の確認」を完了してから、もう一度お試しください。",
+      );
       return;
     }
 
@@ -111,10 +117,15 @@ export function LoginForm({
         .maybeSingle();
 
       if (profileError) {
-        console.error("[login-form] profile deleted_at fetch failed", profileError);
+        console.error(
+          "[login-form] profile deleted_at fetch failed",
+          profileError,
+        );
         await supabase.auth.signOut();
         setCaptchaResetSignal((n) => n + 1);
-        setError("アカウント状態の確認に失敗しました。時間をおいて再度お試しください。");
+        setError(
+          "アカウント状態の確認に失敗しました。時間をおいて再度お試しください。",
+        );
         return;
       }
 
@@ -127,7 +138,8 @@ export function LoginForm({
           );
           return;
         }
-        let detail = "アカウントの整理に失敗しました。時間をおいて再度お試しください。";
+        let detail =
+          "アカウントの整理に失敗しました。時間をおいて再度お試しください。";
         try {
           const body = (await res.json()) as { error?: { message?: string } };
           if (body.error?.message) detail = body.error.message;
@@ -141,7 +153,9 @@ export function LoginForm({
       window.location.href = safeInternalPath(next, "/meals/new");
     } catch (caught) {
       setCaptchaResetSignal((n) => n + 1);
-      setError(caught instanceof Error ? caught.message : "ログインに失敗しました。");
+      setError(
+        caught instanceof Error ? caught.message : "ログインに失敗しました。",
+      );
     } finally {
       setIsLoggingIn(false);
     }
@@ -171,7 +185,8 @@ export function LoginForm({
         </p>
       ) : accountInactive ? (
         <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-          このアカウントは利用停止のためログインできません。以前メールとパスワードで登録している場合は、下のフォームでログインすると利用停止の整理が行われ、その後同じメールで新規登録できます。Google のみの場合はお問い合わせください。
+          このアカウントは利用停止のためログインできません。以前メールとパスワードで登録している場合は、下のフォームでログインすると利用停止の整理が行われ、その後同じメールで新規登録できます。Google
+          のみの場合はお問い合わせください。
         </p>
       ) : authConfirmFailed ? (
         <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
@@ -210,18 +225,29 @@ export function LoginForm({
             aria-label={showPassword ? "パスワードを隠す" : "パスワードを表示"}
             className="absolute right-2 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-[#42504b] transition active:scale-95 active:bg-[#ffe66d]/60"
           >
-            {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            {showPassword ? (
+              <EyeOff className="size-4" />
+            ) : (
+              <Eye className="size-4" />
+            )}
           </button>
         </span>
       </label>
-      <TurnstileWidget onTokenChange={handleCaptchaTokenChange} resetSignal={captchaResetSignal} />
+      <TurnstileWidget
+        onTokenChange={handleCaptchaTokenChange}
+        resetSignal={captchaResetSignal}
+      />
       <button
         type="submit"
         disabled={isLoggingIn || isGoogleLoading}
         aria-busy={isLoggingIn}
         className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md border-2 border-[#17231f] bg-[#00a878] px-4 text-sm font-bold text-white shadow-[3px_3px_0_#17231f] disabled:opacity-50"
       >
-        {isLoggingIn ? <Loader2 className="size-4 animate-spin" /> : <LogIn className="size-4" />}
+        {isLoggingIn ? (
+          <Loader2 className="size-4 animate-spin" />
+        ) : (
+          <LogIn className="size-4" />
+        )}
         {isLoggingIn ? "ログイン中..." : "ログイン"}
       </button>
       <button
@@ -240,7 +266,10 @@ export function LoginForm({
       </button>
       <p className="text-center text-sm font-medium text-[#42504b]">
         アカウントがない場合は{" "}
-        <Link href={`/signup?next=${encodeURIComponent(next)}`} className="font-bold text-[#036854] underline-offset-4 hover:underline">
+        <Link
+          href={`/signup?next=${encodeURIComponent(next)}`}
+          className="font-bold text-[#036854] underline-offset-4 hover:underline"
+        >
           新規登録
         </Link>
       </p>

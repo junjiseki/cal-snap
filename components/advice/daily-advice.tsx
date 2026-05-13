@@ -51,5 +51,10 @@ export function DailyAdvice() {
     };
   }, []);
 
-  return <DailyAdviceBanner userId={account?.userId ?? null} plan={account?.plan ?? null} />;
+  return (
+    <DailyAdviceBanner
+      userId={account?.userId ?? null}
+      plan={account?.plan ?? null}
+    />
+  );
 }

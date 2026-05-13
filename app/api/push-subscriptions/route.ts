@@ -1,5 +1,8 @@
 import { PushSubscriptionPayloadSchema } from "@/lib/push-subscriptions";
-import { forbiddenOriginResponse, isAllowedOrigin } from "@/lib/security/request";
+import {
+  forbiddenOriginResponse,
+  isAllowedOrigin,
+} from "@/lib/security/request";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 
@@ -28,7 +31,11 @@ export async function POST(request: Request) {
 
   const parsed = PushSubscriptionPayloadSchema.safeParse(body);
   if (!parsed.success) {
-    return errorResponse("通知設定を確認してください。", 400, "VALIDATION_FAILED");
+    return errorResponse(
+      "通知設定を確認してください。",
+      400,
+      "VALIDATION_FAILED",
+    );
   }
 
   const subscription = parsed.data;
@@ -47,7 +54,11 @@ export async function POST(request: Request) {
 
   if (error) {
     console.error("[push-subscriptions] save failed", error);
-    return errorResponse("通知設定を保存できません。", 500, "PUSH_SUBSCRIPTION_SAVE_FAILED");
+    return errorResponse(
+      "通知設定を保存できません。",
+      500,
+      "PUSH_SUBSCRIPTION_SAVE_FAILED",
+    );
   }
 
   return Response.json({ ok: true });
@@ -83,7 +94,11 @@ export async function DELETE(request: Request) {
 
   if (error) {
     console.error("[push-subscriptions] delete failed", error);
-    return errorResponse("通知設定を解除できません。", 500, "PUSH_SUBSCRIPTION_DELETE_FAILED");
+    return errorResponse(
+      "通知設定を解除できません。",
+      500,
+      "PUSH_SUBSCRIPTION_DELETE_FAILED",
+    );
   }
 
   return Response.json({ ok: true });

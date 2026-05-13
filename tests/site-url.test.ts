@@ -62,9 +62,7 @@ describe("absoluteSiteUrl", () => {
   });
 
   it("resolves against localhost when no env set", () => {
-    expect(absoluteSiteUrl("/logo.png")).toBe(
-      "http://localhost:3000/logo.png",
-    );
+    expect(absoluteSiteUrl("/logo.png")).toBe("http://localhost:3000/logo.png");
   });
 });
 

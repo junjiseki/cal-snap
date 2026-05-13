@@ -18,10 +18,15 @@ async function resolveUserIdFromCheckoutSession(
 
   if (session.subscription && typeof session.subscription === "string") {
     try {
-      const subscription = await stripe.subscriptions.retrieve(session.subscription);
+      const subscription = await stripe.subscriptions.retrieve(
+        session.subscription,
+      );
       userId = subscription.metadata?.userId;
     } catch (error) {
-      console.error("[stripe-webhook] failed to resolve user from subscription", error);
+      console.error(
+        "[stripe-webhook] failed to resolve user from subscription",
+        error,
+      );
     }
   }
 
@@ -58,13 +63,20 @@ export async function POST(request: Request) {
 
   const supabase = getSupabaseAdminClient();
 
-  async function updateProfilePlanIfActive(userId: string, plan: "free" | "paid") {
-    const { data: authUser, error: authLookupError } = await supabase.auth.admin.getUserById(userId);
+  async function updateProfilePlanIfActive(
+    userId: string,
+    plan: "free" | "paid",
+  ) {
+    const { data: authUser, error: authLookupError } =
+      await supabase.auth.admin.getUserById(userId);
     if (authLookupError || !authUser?.user) {
-      console.log("[stripe-webhook] skip plan update: auth user not found (deleted?)", {
-        userId,
-        plan,
-      });
+      console.log(
+        "[stripe-webhook] skip plan update: auth user not found (deleted?)",
+        {
+          userId,
+          plan,
+        },
+      );
       return;
     }
 
@@ -79,14 +91,16 @@ export async function POST(request: Request) {
     }
 
     if (profile?.deleted_at) {
-      console.log("[stripe-webhook] skip plan update for soft-deleted user", { userId, plan });
+      console.log("[stripe-webhook] skip plan update for soft-deleted user", {
+        userId,
+        plan,
+      });
       return;
     }
 
-    const { error } = await supabase.from("profiles").upsert(
-      { id: userId, plan },
-      { onConflict: "id" },
-    );
+    const { error } = await supabase
+      .from("profiles")
+      .upsert({ id: userId, plan }, { onConflict: "id" });
     if (error) throw error;
   }
 
@@ -94,7 +108,9 @@ export async function POST(request: Request) {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
       const userId = await resolveUserIdFromCheckoutSession(stripe, session);
-      console.log("[stripe-webhook] checkout.session.completed userId", { userId });
+      console.log("[stripe-webhook] checkout.session.completed userId", {
+        userId,
+      });
       if (userId) {
         await updateProfilePlanIfActive(userId, "paid");
       }
@@ -109,7 +125,9 @@ export async function POST(request: Request) {
       const userId = subscription.metadata?.userId;
       if (userId) {
         const activeStatuses = new Set(["active", "trialing", "past_due"]);
-        const nextPlan = activeStatuses.has(subscription.status) ? "paid" : "free";
+        const nextPlan = activeStatuses.has(subscription.status)
+          ? "paid"
+          : "free";
         await updateProfilePlanIfActive(userId, nextPlan);
       }
     }

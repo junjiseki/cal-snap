@@ -9,7 +9,9 @@ const PUSH_SW_PATH = "/sw-passive.js";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = `${base64String}${padding}`.replace(/-/g, "+").replace(/_/g, "/");
+  const base64 = `${base64String}${padding}`
+    .replace(/-/g, "+")
+    .replace(/_/g, "/");
   const rawData = window.atob(base64);
   return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
 }
@@ -20,13 +22,22 @@ function rejectAfter(ms: number, message: string): Promise<never> {
   });
 }
 
-function withTimeLimit<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+function withTimeLimit<T>(
+  promise: Promise<T>,
+  ms: number,
+  message: string,
+): Promise<T> {
   return Promise.race([promise, rejectAfter(ms, message)]);
 }
 
-function fetchWithTimeout(init: RequestInit & { timeoutMs?: number }): RequestInit {
+function fetchWithTimeout(
+  init: RequestInit & { timeoutMs?: number },
+): RequestInit {
   const { timeoutMs = PUSH_STEP_TIMEOUT_MS, ...rest } = init;
-  if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
+  if (
+    typeof AbortSignal !== "undefined" &&
+    typeof AbortSignal.timeout === "function"
+  ) {
     return { ...rest, signal: AbortSignal.timeout(timeoutMs) };
   }
   return rest;
@@ -55,8 +66,12 @@ async function ensureServiceWorkerRegistration() {
 
   let existing = await navigator.serviceWorker.getRegistration("/");
   const scriptUrl =
-    existing?.active?.scriptURL ?? existing?.waiting?.scriptURL ?? existing?.installing?.scriptURL;
-  const isExpectedWorker = scriptUrl ? new URL(scriptUrl).pathname === PUSH_SW_PATH : false;
+    existing?.active?.scriptURL ??
+    existing?.waiting?.scriptURL ??
+    existing?.installing?.scriptURL;
+  const isExpectedWorker = scriptUrl
+    ? new URL(scriptUrl).pathname === PUSH_SW_PATH
+    : false;
 
   if (existing && !isExpectedWorker) {
     await withTimeLimit(
@@ -82,7 +97,9 @@ async function ensureServiceWorkerRegistration() {
   );
 
   if (!readyRegistration.active) {
-    throw new Error("通知の準備がまだ完了していません。少し待ってから再度お試しください。");
+    throw new Error(
+      "通知の準備がまだ完了していません。少し待ってから再度お試しください。",
+    );
   }
 
   return readyRegistration;
@@ -100,9 +117,14 @@ async function requestNotificationPermission() {
   );
 }
 
-export function PushNotificationSettings({ vapidPublicKey }: { vapidPublicKey: string }) {
+export function PushNotificationSettings({
+  vapidPublicKey,
+}: {
+  vapidPublicKey: string;
+}) {
   const [isSupported, setIsSupported] = useState(false);
-  const [permission, setPermission] = useState<NotificationPermission>("default");
+  const [permission, setPermission] =
+    useState<NotificationPermission>("default");
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -125,7 +147,9 @@ export function PushNotificationSettings({ vapidPublicKey }: { vapidPublicKey: s
     busyTimerRef.current = setTimeout(() => {
       if (!isCurrentAction(actionId)) return;
       setIsBusy(false);
-      setError("通知設定の処理がタイムアウトしました。ページを再読み込みしてから再度お試しください。");
+      setError(
+        "通知設定の処理がタイムアウトしました。ページを再読み込みしてから再度お試しください。",
+      );
     }, PUSH_ACTION_TIMEOUT_MS);
     return actionId;
   }
@@ -209,7 +233,9 @@ export function PushNotificationSettings({ vapidPublicKey }: { vapidPublicKey: s
         const body = (await response.json().catch(() => null)) as {
           error?: { message?: string };
         } | null;
-        throw new Error(body?.error?.message ?? "通知設定を保存できませんでした。");
+        throw new Error(
+          body?.error?.message ?? "通知設定を保存できませんでした。",
+        );
       }
 
       setIsSubscribed(true);
@@ -217,9 +243,15 @@ export function PushNotificationSettings({ vapidPublicKey }: { vapidPublicKey: s
     } catch (caught) {
       if (!isCurrentAction(actionId)) return;
       if (isAbortError(caught)) {
-        setError("サーバーへの接続がタイムアウトしました。通信状況を確認してから再度お試しください。");
+        setError(
+          "サーバーへの接続がタイムアウトしました。通信状況を確認してから再度お試しください。",
+        );
       } else {
-        setError(caught instanceof Error ? caught.message : "通知を有効にできませんでした。");
+        setError(
+          caught instanceof Error
+            ? caught.message
+            : "通知を有効にできませんでした。",
+        );
       }
     } finally {
       stopBusy(actionId);
@@ -251,12 +283,16 @@ export function PushNotificationSettings({ vapidPublicKey }: { vapidPublicKey: s
           const body = (await response.json().catch(() => null)) as {
             error?: { message?: string };
           } | null;
-          throw new Error(body?.error?.message ?? "通知設定を解除できませんでした。");
+          throw new Error(
+            body?.error?.message ?? "通知設定を解除できませんでした。",
+          );
         }
 
         const unsubscribed = await subscription.unsubscribe();
         if (!unsubscribed) {
-          throw new Error("ブラウザ側の通知解除に失敗しました。ページを再読み込みしてから再度お試しください。");
+          throw new Error(
+            "ブラウザ側の通知解除に失敗しました。ページを再読み込みしてから再度お試しください。",
+          );
         }
       }
       if (!isCurrentAction(actionId)) return;
@@ -265,9 +301,15 @@ export function PushNotificationSettings({ vapidPublicKey }: { vapidPublicKey: s
     } catch (caught) {
       if (!isCurrentAction(actionId)) return;
       if (isAbortError(caught)) {
-        setError("サーバーへの接続がタイムアウトしました。通信状況を確認してから再度お試しください。");
+        setError(
+          "サーバーへの接続がタイムアウトしました。通信状況を確認してから再度お試しください。",
+        );
       } else {
-        setError(caught instanceof Error ? caught.message : "通知を解除できませんでした。");
+        setError(
+          caught instanceof Error
+            ? caught.message
+            : "通知を解除できませんでした。",
+        );
       }
     } finally {
       stopBusy(actionId);
@@ -302,18 +344,29 @@ export function PushNotificationSettings({ vapidPublicKey }: { vapidPublicKey: s
             登録した食事時間に、スマホやPCへお知らせします。
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            現在の許可状態: {permission === "granted" ? "許可済み" : permission === "denied" ? "拒否" : "未設定"}
+            現在の許可状態:{" "}
+            {permission === "granted"
+              ? "許可済み"
+              : permission === "denied"
+                ? "拒否"
+                : "未設定"}
           </p>
         </div>
         <button
           type="button"
-          onClick={() => void (isSubscribed ? disableNotification() : enableNotification())}
+          onClick={() =>
+            void (isSubscribed ? disableNotification() : enableNotification())
+          }
           disabled={isBusy || permission === "denied"}
           aria-busy={isBusy}
           className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:pointer-events-none disabled:opacity-50"
         >
           {isBusy ? <Loader2 className="size-4 animate-spin" /> : null}
-          {isBusy ? "処理中..." : isSubscribed ? "通知を解除" : "通知を有効にする"}
+          {isBusy
+            ? "処理中..."
+            : isSubscribed
+              ? "通知を解除"
+              : "通知を有効にする"}
         </button>
       </div>
       {message ? <p className="mt-3 text-sm text-primary">{message}</p> : null}

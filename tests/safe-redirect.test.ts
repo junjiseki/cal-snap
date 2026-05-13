@@ -12,13 +12,19 @@ describe("safeInternalPath", () => {
   });
 
   it("rejects external URLs and protocol-relative paths", () => {
-    expect(safeInternalPath("https://evil.test/phish", "/fallback")).toBe("/fallback");
-    expect(safeInternalPath("//evil.test/phish", "/fallback")).toBe("/fallback");
+    expect(safeInternalPath("https://evil.test/phish", "/fallback")).toBe(
+      "/fallback",
+    );
+    expect(safeInternalPath("//evil.test/phish", "/fallback")).toBe(
+      "/fallback",
+    );
     expect(safeInternalPath("/\\evil.test", "/fallback")).toBe("/fallback");
   });
 
   it("rejects paths that smuggle schemes", () => {
-    expect(safeInternalPath("/https://evil.test", "/fallback")).toBe("/fallback");
+    expect(safeInternalPath("/https://evil.test", "/fallback")).toBe(
+      "/fallback",
+    );
   });
 
   it("uses fallback for empty or invalid", () => {

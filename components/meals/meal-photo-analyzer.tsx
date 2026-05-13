@@ -8,6 +8,7 @@ import {
   type ChangeEvent,
   type ReactNode,
 } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   Camera,
@@ -39,14 +40,20 @@ import {
 
 type MacroInput = number | "";
 
-type MealItemForm = Omit<MealAnalysis["items"][number], "calories" | "protein" | "fat" | "carbs"> & {
+type MealItemForm = Omit<
+  MealAnalysis["items"][number],
+  "calories" | "protein" | "fat" | "carbs"
+> & {
   calories: MacroInput;
   protein: MacroInput;
   fat: MacroInput;
   carbs: MacroInput;
 };
 
-type MealAnalysisForm = Omit<MealAnalysis, "total_calories" | "protein" | "fat" | "carbs" | "items"> & {
+type MealAnalysisForm = Omit<
+  MealAnalysis,
+  "total_calories" | "protein" | "fat" | "carbs" | "items"
+> & {
   total_calories: MacroInput;
   protein: MacroInput;
   fat: MacroInput;
@@ -124,7 +131,9 @@ function mealAnalysisToForm(analysis: MealAnalysis): MealAnalysisForm {
 
 function sumItemsMacros(items: MealItemForm[]) {
   return {
-    total_calories: toInteger(items.reduce((s, i) => s + macroNum(i.calories), 0)),
+    total_calories: toInteger(
+      items.reduce((s, i) => s + macroNum(i.calories), 0),
+    ),
     protein: toInteger(items.reduce((s, i) => s + macroNum(i.protein), 0)),
     fat: toInteger(items.reduce((s, i) => s + macroNum(i.fat), 0)),
     carbs: toInteger(items.reduce((s, i) => s + macroNum(i.carbs), 0)),
@@ -133,25 +142,41 @@ function sumItemsMacros(items: MealItemForm[]) {
 
 type EntryMode = "photo" | "manual";
 
-function isMealFormMacroComplete(form: MealAnalysisForm, entryMode: EntryMode): boolean {
+function isMealFormMacroComplete(
+  form: MealAnalysisForm,
+  entryMode: EntryMode,
+): boolean {
   if (entryMode === "manual" && form.items.length === 0) {
     return false;
   }
   for (const item of form.items) {
-    if (item.calories === "" || item.protein === "" || item.fat === "" || item.carbs === "") {
+    if (
+      item.calories === "" ||
+      item.protein === "" ||
+      item.fat === "" ||
+      item.carbs === ""
+    ) {
       return false;
     }
   }
   if (entryMode === "manual") {
     return true;
   }
-  if (form.total_calories === "" || form.protein === "" || form.fat === "" || form.carbs === "") {
+  if (
+    form.total_calories === "" ||
+    form.protein === "" ||
+    form.fat === "" ||
+    form.carbs === ""
+  ) {
     return false;
   }
   return true;
 }
 
-function mealFormToMealAnalysis(form: MealAnalysisForm, entryMode: EntryMode): MealAnalysis {
+function mealFormToMealAnalysis(
+  form: MealAnalysisForm,
+  entryMode: EntryMode,
+): MealAnalysis {
   const num = (m: MacroInput): number => toInteger(Number(m));
   const totals =
     entryMode === "manual"
@@ -241,7 +266,8 @@ const macroFieldStyle = {
 } as const;
 
 /** 料理行・合計行で同じボックス高さに揃える（ラベル帯 + h-10 入力） */
-const METRIC_BOX = "flex min-h-24 h-full flex-col rounded-md border border-input p-2.5";
+const METRIC_BOX =
+  "flex min-h-24 h-full flex-col rounded-md border border-input p-2.5";
 
 function TextMetricField({
   label,
@@ -255,7 +281,9 @@ function TextMetricField({
       <span className="flex min-h-8 shrink-0 items-center text-xs font-semibold text-muted-foreground">
         {label}
       </span>
-      <div className="mt-2 flex min-h-10 flex-1 flex-col justify-end">{children}</div>
+      <div className="mt-2 flex min-h-10 flex-1 flex-col justify-end">
+        {children}
+      </div>
     </div>
   );
 }
@@ -280,7 +308,9 @@ function MacroNumberField({
       ].join(" ")}
     >
       <span className="flex min-h-8 shrink-0 items-center justify-between gap-1 text-xs leading-tight">
-        <span className={["font-semibold", meta.labelClass].join(" ")}>{meta.label}</span>
+        <span className={["font-semibold", meta.labelClass].join(" ")}>
+          {meta.label}
+        </span>
         <span className="shrink-0 text-muted-foreground">({meta.unit})</span>
       </span>
       <input
@@ -322,7 +352,9 @@ function MacroReadOnlyField({
       ].join(" ")}
     >
       <span className="flex min-h-8 shrink-0 items-center justify-between gap-1 text-xs leading-tight">
-        <span className={["font-semibold", meta.labelClass].join(" ")}>{meta.label}</span>
+        <span className={["font-semibold", meta.labelClass].join(" ")}>
+          {meta.label}
+        </span>
         <span className="shrink-0 text-muted-foreground">({meta.unit})</span>
       </span>
       <output
@@ -338,9 +370,12 @@ function MacroReadOnlyField({
 function calorieOverBadgeClass(level: ReturnType<typeof getCalorieOverLevel>) {
   return [
     "inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold",
-    level === "none" && "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/35 dark:text-emerald-300",
-    level === "warn" && "bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200",
-    level === "severe" && "bg-red-50 text-red-700 dark:bg-red-950/35 dark:text-red-300",
+    level === "none" &&
+      "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/35 dark:text-emerald-300",
+    level === "warn" &&
+      "bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200",
+    level === "severe" &&
+      "bg-red-50 text-red-700 dark:bg-red-950/35 dark:text-red-300",
   ]
     .filter(Boolean)
     .join(" ");
@@ -376,7 +411,9 @@ function MealDayCalorieSnapshot({
   const progress = Math.min(100, Math.round((consumed / safeGoal) * 100));
 
   const projected =
-    draftMealKcal != null && draftMealKcal > 0 ? consumed + draftMealKcal : null;
+    draftMealKcal != null && draftMealKcal > 0
+      ? consumed + draftMealKcal
+      : null;
   const projectedLevel =
     projected !== null ? getCalorieOverLevel(projected, goal) : null;
   const projectedDeltaLabel =
@@ -390,10 +427,14 @@ function MealDayCalorieSnapshot({
     <div className="rounded-md border border-border bg-muted/20 p-3">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-xs font-medium text-muted-foreground">今日の摂取（登録済み）</p>
+          <p className="text-xs font-medium text-muted-foreground">
+            今日の摂取（登録済み）
+          </p>
           <p className="mt-0.5 text-lg font-semibold tabular-nums tracking-tight">
             {consumed}
-            <span className="ml-1 text-xs font-normal text-muted-foreground">kcal</span>
+            <span className="ml-1 text-xs font-normal text-muted-foreground">
+              kcal
+            </span>
           </p>
         </div>
         <div className={calorieOverBadgeClass(overLevel)}>
@@ -406,16 +447,25 @@ function MealDayCalorieSnapshot({
         </div>
       </div>
       <div className="mt-2 h-1.5 rounded-full bg-muted">
-        <div className={calorieOverBarClass(overLevel)} style={{ width: `${progress}%` }} />
+        <div
+          className={calorieOverBarClass(overLevel)}
+          style={{ width: `${progress}%` }}
+        />
       </div>
       <p className="mt-1 text-[11px] text-muted-foreground">
         目安 {goal} kcal / {progress}%
       </p>
-      {projected !== null && projectedLevel !== null && projectedDeltaLabel !== null ? (
+      {projected !== null &&
+      projectedLevel !== null &&
+      projectedDeltaLabel !== null ? (
         <div className="mt-2 border-t border-border pt-2">
-          <p className="text-[11px] text-muted-foreground">この内容で保存すると</p>
+          <p className="text-[11px] text-muted-foreground">
+            この内容で保存すると
+          </p>
           <div className="mt-1 flex flex-wrap items-center gap-2">
-            <span className="text-sm font-semibold tabular-nums">{projected} kcal</span>
+            <span className="text-sm font-semibold tabular-nums">
+              {projected} kcal
+            </span>
             <div className={calorieOverBadgeClass(projectedLevel)}>
               {projectedLevel !== "none" ? (
                 <TrendingUp className="size-3.5 shrink-0" />
@@ -487,7 +537,9 @@ export function MealPhotoAnalyzer({
   );
   const [file, setFile] = useState<File | null>(null);
   const [analysis, setAnalysis] = useState<MealAnalysisForm | null>(() =>
-    initialEntryMode === "manual" && plan === "paid" ? createManualMealDraft() : null,
+    initialEntryMode === "manual" && plan === "paid"
+      ? createManualMealDraft()
+      : null,
   );
   const [eatenAt, setEatenAt] = useState(() =>
     snapDatetimeLocalToThirtyMinutes(initialEatenAtLocal ?? todayInputValue()),
@@ -496,10 +548,15 @@ export function MealPhotoAnalyzer({
   const [notice, setNotice] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [usage, setUsage] = useState<{ used: number; limit: number; remaining: number } | null>(
-    null,
-  );
-  const [daySnapshot, setDaySnapshot] = useState<{ consumed: number; goal: number } | null>(null);
+  const [usage, setUsage] = useState<{
+    used: number;
+    limit: number;
+    remaining: number;
+  } | null>(null);
+  const [daySnapshot, setDaySnapshot] = useState<{
+    consumed: number;
+    goal: number;
+  } | null>(null);
 
   const previewUrl = useMemo(() => {
     if (!file) return null;
@@ -517,7 +574,9 @@ export function MealPhotoAnalyzer({
     if (mode === "manual" && !canUseManualEntry) {
       setEntryMode("photo");
       setAnalysis(null);
-      setError("手入力での記録は有料プランで利用できます。無料プランでは写真解析をご利用ください。");
+      setError(
+        "手入力での記録は有料プランで利用できます。無料プランでは写真解析をご利用ください。",
+      );
       setNotice(null);
       return;
     }
@@ -562,7 +621,10 @@ export function MealPhotoAnalyzer({
           typeof data.todayCalories === "number" &&
           typeof data.goalCalories === "number"
         ) {
-          setDaySnapshot({ consumed: data.todayCalories, goal: data.goalCalories });
+          setDaySnapshot({
+            consumed: data.todayCalories,
+            goal: data.goalCalories,
+          });
         }
       } catch {
         // 初期表示では解析回数が取れなくても操作を妨げない。
@@ -647,9 +709,13 @@ export function MealPhotoAnalyzer({
         limit: data.usage.limit,
         remaining: Math.max(0, data.usage.limit - data.usage.used),
       });
-      setNotice(`解析完了。残り ${Math.max(0, data.usage.limit - data.usage.used)} 回`);
+      setNotice(
+        `解析完了。残り ${Math.max(0, data.usage.limit - data.usage.used)} 回`,
+      );
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "AI解析に失敗しました。");
+      setError(
+        caught instanceof Error ? caught.message : "AI解析に失敗しました。",
+      );
     } finally {
       setIsAnalyzing(false);
     }
@@ -666,7 +732,9 @@ export function MealPhotoAnalyzer({
     }
 
     if (!isMealFormMacroComplete(analysis, entryMode)) {
-      setError("数値が未入力の項目があります。すべて埋めてから登録してください。");
+      setError(
+        "数値が未入力の項目があります。すべて埋めてから登録してください。",
+      );
       return;
     }
 
@@ -685,7 +753,9 @@ export function MealPhotoAnalyzer({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...normalizeMealAnalysis(payload),
-          eaten_at: new Date(snapDatetimeLocalToThirtyMinutes(eatenAt)).toISOString(),
+          eaten_at: new Date(
+            snapDatetimeLocalToThirtyMinutes(eatenAt),
+          ).toISOString(),
         }),
       });
 
@@ -699,17 +769,27 @@ export function MealPhotoAnalyzer({
       router.push(dashboardDateHref(dateYmd));
       router.refresh();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "食事を登録できません。");
+      setError(
+        caught instanceof Error ? caught.message : "食事を登録できません。",
+      );
     } finally {
       saveInFlightRef.current = false;
       setIsSaving(false);
     }
   }
 
-  function updateMeal<K extends keyof MealAnalysisForm>(key: K, value: MealAnalysisForm[K]) {
+  function updateMeal<K extends keyof MealAnalysisForm>(
+    key: K,
+    value: MealAnalysisForm[K],
+  ) {
     setAnalysis((current) => {
       if (!current) return current;
-      if (key === "total_calories" || key === "protein" || key === "fat" || key === "carbs") {
+      if (
+        key === "total_calories" ||
+        key === "protein" ||
+        key === "fat" ||
+        key === "carbs"
+      ) {
         const v = value as MacroInput;
         return { ...current, [key]: v === "" ? "" : toInteger(Number(v)) };
       }
@@ -721,7 +801,8 @@ export function MealPhotoAnalyzer({
           ...current,
           items: (value as MealItemForm[]).map((item) => ({
             ...item,
-            calories: item.calories === "" ? "" : toInteger(Number(item.calories)),
+            calories:
+              item.calories === "" ? "" : toInteger(Number(item.calories)),
             protein: item.protein === "" ? "" : toInteger(Number(item.protein)),
             fat: item.fat === "" ? "" : toInteger(Number(item.fat)),
             carbs: item.carbs === "" ? "" : toInteger(Number(item.carbs)),
@@ -748,19 +829,33 @@ export function MealPhotoAnalyzer({
         total_calories:
           current.total_calories === ""
             ? ""
-            : toInteger(Math.max(0, macroNum(current.total_calories) - macroNum(removed.calories))),
+            : toInteger(
+                Math.max(
+                  0,
+                  macroNum(current.total_calories) - macroNum(removed.calories),
+                ),
+              ),
         protein:
           current.protein === ""
             ? ""
-            : toInteger(Math.max(0, macroNum(current.protein) - macroNum(removed.protein))),
+            : toInteger(
+                Math.max(
+                  0,
+                  macroNum(current.protein) - macroNum(removed.protein),
+                ),
+              ),
         fat:
           current.fat === ""
             ? ""
-            : toInteger(Math.max(0, macroNum(current.fat) - macroNum(removed.fat))),
+            : toInteger(
+                Math.max(0, macroNum(current.fat) - macroNum(removed.fat)),
+              ),
         carbs:
           current.carbs === ""
             ? ""
-            : toInteger(Math.max(0, macroNum(current.carbs) - macroNum(removed.carbs))),
+            : toInteger(
+                Math.max(0, macroNum(current.carbs) - macroNum(removed.carbs)),
+              ),
       };
     });
   }
@@ -777,11 +872,14 @@ export function MealPhotoAnalyzer({
       return toInteger(Number(analysis.total_calories));
     }
     if (!isMealFormMacroComplete(analysis, entryMode)) return null;
-    return manualTotals!.total_calories;
+    if (!manualTotals) return null;
+    return manualTotals.total_calories;
   }, [analysis, entryMode, manualTotals]);
 
-  const canSaveMeal = analysis !== null && isMealFormMacroComplete(analysis, entryMode);
-  const mealItemLimitReached = (analysis?.items.length ?? 0) >= MAX_MEAL_ITEMS_PER_MEAL;
+  const canSaveMeal =
+    analysis !== null && isMealFormMacroComplete(analysis, entryMode);
+  const mealItemLimitReached =
+    (analysis?.items.length ?? 0) >= MAX_MEAL_ITEMS_PER_MEAL;
 
   return (
     <div className="grid gap-4 sm:gap-6 lg:grid-cols-[minmax(0,360px)_1fr] lg:items-start">
@@ -837,15 +935,27 @@ export function MealPhotoAnalyzer({
         {entryMode === "photo" ? (
           <div className="flex flex-col gap-3 rounded-md border border-border bg-background p-3">
             <div className="grid grid-cols-3 gap-2">
-              <StepDot done={Boolean(file)} active={activeStep === 1} label="写真" />
-              <StepDot done={Boolean(analysis)} active={activeStep === 2} label="解析" />
+              <StepDot
+                done={Boolean(file)}
+                active={activeStep === 1}
+                label="写真"
+              />
+              <StepDot
+                done={Boolean(analysis)}
+                active={activeStep === 2}
+                label="解析"
+              />
               <StepDot done={false} active={activeStep === 3} label="確認" />
             </div>
             <div>
               <div className="flex items-center justify-between gap-3">
-                <p className="text-xs font-medium text-muted-foreground">今日の解析枠</p>
+                <p className="text-xs font-medium text-muted-foreground">
+                  今日の解析枠
+                </p>
                 <p className="text-xs font-semibold text-primary">
-                  {usage ? `残り ${usage.remaining} / ${usage.limit}` : "確認中"}
+                  {usage
+                    ? `残り ${usage.remaining} / ${usage.limit}`
+                    : "確認中"}
                 </p>
               </div>
               <div className="mt-2 h-1.5 rounded-full bg-muted">
@@ -864,7 +974,8 @@ export function MealPhotoAnalyzer({
           <div className="rounded-md border border-border bg-muted/20 p-4">
             <p className="text-sm font-semibold">手入力モード</p>
             <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-              AI解析は使いません（本日の解析回数は減りません）。右のフォームに栄養値を入力して保存してください。1食あたり料理{MAX_MEAL_ITEMS_PER_MEAL}件まで登録できます。
+              AI解析は使いません（本日の解析回数は減りません）。右のフォームに栄養値を入力して保存してください。1食あたり料理
+              {MAX_MEAL_ITEMS_PER_MEAL}件まで登録できます。
             </p>
           </div>
         )}
@@ -881,10 +992,12 @@ export function MealPhotoAnalyzer({
           <div className="flex min-h-64 flex-col items-center justify-center gap-3 rounded-md border border-dashed border-primary/30 bg-primary/5 p-4 text-center">
             {previewUrl ? (
               <div className="relative inline-block max-h-64 max-w-full">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={previewUrl}
                   alt="選択した食事写真"
+                  width={800}
+                  height={800}
+                  unoptimized
                   className="max-h-64 max-w-full rounded-md object-contain"
                 />
                 <button
@@ -904,7 +1017,8 @@ export function MealPhotoAnalyzer({
                 <div>
                   <p className="text-base font-semibold">写真を追加して解析</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    カメラ撮影か写真選択を選べます。5MB以下の JPEG / PNG / WebP に対応しています。
+                    カメラ撮影か写真選択を選べます。5MB以下の JPEG / PNG / WebP
+                    に対応しています。
                   </p>
                 </div>
                 <div className="flex w-full max-w-md gap-2 flex-row justify-center">
@@ -961,7 +1075,11 @@ export function MealPhotoAnalyzer({
             ) : (
               <Sparkles className="size-4" />
             )}
-            {limitBlocked ? "本日の上限に達しました" : file ? "この写真を解析" : "食事写真を解析"}
+            {limitBlocked
+              ? "本日の上限に達しました"
+              : file
+                ? "この写真を解析"
+                : "食事写真を解析"}
           </button>
         ) : null}
 
@@ -994,7 +1112,11 @@ export function MealPhotoAnalyzer({
             disabled={!canSaveMeal || isSaving}
             className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-foreground px-4 text-sm font-semibold text-background shadow-sm disabled:opacity-50 sm:w-auto"
           >
-            {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+            {isSaving ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Save className="size-4" />
+            )}
             食事を記録
           </button>
         </div>
@@ -1003,11 +1125,17 @@ export function MealPhotoAnalyzer({
           <div className="rounded-md border border-dashed border-border bg-muted/20 p-5">
             <div className="flex gap-3">
               <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-                {entryMode === "manual" ? <Keyboard className="size-5" /> : <Sparkles className="size-5" />}
+                {entryMode === "manual" ? (
+                  <Keyboard className="size-5" />
+                ) : (
+                  <Sparkles className="size-5" />
+                )}
               </span>
               <div>
                 <h3 className="font-semibold">
-                  {entryMode === "manual" ? "内訳を入力して保存できます" : "解析結果がここに表示されます"}
+                  {entryMode === "manual"
+                    ? "内訳を入力して保存できます"
+                    : "解析結果がここに表示されます"}
                 </h3>
                 <p className="mt-2 text-sm leading-7 text-muted-foreground">
                   {entryMode === "manual"
@@ -1030,7 +1158,9 @@ export function MealPhotoAnalyzer({
                   className="mt-2 h-11 w-full max-w-md rounded-md border border-input bg-background px-3 text-sm"
                 />
               </label>
-              <p className="mt-1.5 text-xs text-muted-foreground">時刻は30分刻みで選べます。</p>
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                時刻は30分刻みで選べます。
+              </p>
               {canUseManualEntry ? (
                 <p className="text-xs leading-5 text-muted-foreground">
                   食事時間は左側の「食事時間」からも変更できます。
@@ -1046,10 +1176,22 @@ export function MealPhotoAnalyzer({
                 <div className="mt-3 grid grid-cols-2 items-stretch gap-3 lg:grid-cols-4">
                   {entryMode === "manual" && manualTotals ? (
                     <>
-                      <MacroReadOnlyField fieldKey="calories" value={manualTotals.total_calories} />
-                      <MacroReadOnlyField fieldKey="protein" value={manualTotals.protein} />
-                      <MacroReadOnlyField fieldKey="fat" value={manualTotals.fat} />
-                      <MacroReadOnlyField fieldKey="carbs" value={manualTotals.carbs} />
+                      <MacroReadOnlyField
+                        fieldKey="calories"
+                        value={manualTotals.total_calories}
+                      />
+                      <MacroReadOnlyField
+                        fieldKey="protein"
+                        value={manualTotals.protein}
+                      />
+                      <MacroReadOnlyField
+                        fieldKey="fat"
+                        value={manualTotals.fat}
+                      />
+                      <MacroReadOnlyField
+                        fieldKey="carbs"
+                        value={manualTotals.carbs}
+                      />
                     </>
                   ) : (
                     <>
@@ -1126,7 +1268,8 @@ export function MealPhotoAnalyzer({
               </div>
               {mealItemLimitReached ? (
                 <p className="text-sm text-muted-foreground">
-                  1つの食事に登録できる料理は{MAX_MEAL_ITEMS_PER_MEAL}件までです。
+                  1つの食事に登録できる料理は{MAX_MEAL_ITEMS_PER_MEAL}
+                  件までです。
                 </p>
               ) : null}
 
@@ -1158,25 +1301,30 @@ export function MealPhotoAnalyzer({
                         aria-label="推定量"
                         onChange={(event) => {
                           const items = [...analysis.items];
-                          items[index] = { ...item, estimated_amount: event.target.value };
+                          items[index] = {
+                            ...item,
+                            estimated_amount: event.target.value,
+                          };
                           updateMeal("items", items);
                         }}
                         className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                         placeholder="例: 1皿"
                       />
                     </TextMetricField>
-                    {(["calories", "protein", "fat", "carbs"] as const).map((key) => (
-                      <MacroNumberField
-                        key={key}
-                        fieldKey={key}
-                        value={item[key]}
-                        onChange={(v) => {
-                          const items = [...analysis.items];
-                          items[index] = { ...item, [key]: v };
-                          updateMeal("items", items);
-                        }}
-                      />
-                    ))}
+                    {(["calories", "protein", "fat", "carbs"] as const).map(
+                      (key) => (
+                        <MacroNumberField
+                          key={key}
+                          fieldKey={key}
+                          value={item[key]}
+                          onChange={(v) => {
+                            const items = [...analysis.items];
+                            items[index] = { ...item, [key]: v };
+                            updateMeal("items", items);
+                          }}
+                        />
+                      ),
+                    )}
                     <div className="flex min-h-24 items-stretch sm:col-span-2 lg:col-span-1">
                       <button
                         type="button"

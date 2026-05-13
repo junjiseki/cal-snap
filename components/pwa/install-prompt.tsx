@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  DEFER_AFTER_LOAD_IDLE_TIMEOUT_MS,
+  DEFER_AFTER_LOAD_SETTIMEOUT_FALLBACK_MS,
+} from "@/lib/ui-timing";
 
 const DISMISSED_KEY = "cal-snap-pwa-install-dismissed";
 
@@ -48,10 +52,12 @@ function dismissForever() {
 function afterInitialRender(callback: () => void) {
   const run = () => {
     if ("requestIdleCallback" in window) {
-      window.requestIdleCallback(callback, { timeout: 2500 });
+      window.requestIdleCallback(callback, {
+        timeout: DEFER_AFTER_LOAD_IDLE_TIMEOUT_MS,
+      });
       return;
     }
-    globalThis.setTimeout(callback, 1200);
+    globalThis.setTimeout(callback, DEFER_AFTER_LOAD_SETTIMEOUT_FALLBACK_MS);
   };
 
   if (document.readyState === "complete") {
@@ -62,7 +68,8 @@ function afterInitialRender(callback: () => void) {
 }
 
 export function PwaInstallPrompt() {
-  const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
+  const [installEvent, setInstallEvent] =
+    useState<BeforeInstallPromptEvent | null>(null);
   const [showIosGuide, setShowIosGuide] = useState(false);
   const [visible, setVisible] = useState(false);
 
@@ -99,7 +106,10 @@ export function PwaInstallPrompt() {
       window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
       window.addEventListener("appinstalled", handleAppInstalled);
       removeListeners = () => {
-        window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+        window.removeEventListener(
+          "beforeinstallprompt",
+          handleBeforeInstallPrompt,
+        );
         window.removeEventListener("appinstalled", handleAppInstalled);
       };
 
@@ -146,7 +156,9 @@ export function PwaInstallPrompt() {
       </button>
 
       <div className="pr-8">
-        <p className="text-sm font-semibold text-foreground">カロスナをホーム画面に追加</p>
+        <p className="text-sm font-semibold text-foreground">
+          カロスナをホーム画面に追加
+        </p>
         <p className="mt-1 text-sm leading-6 text-muted-foreground">
           アプリのようにすぐ開けます。プッシュ通知はお知らせ設定でオンにしたときだけ使い、常時バックグラウンドで動き続けることはありません。
         </p>
@@ -162,7 +174,9 @@ export function PwaInstallPrompt() {
         </button>
       ) : (
         <div className="mt-3 rounded-md bg-muted/50 p-3 text-sm leading-7">
-          <p className="font-semibold text-foreground">iPhone Safari の追加手順</p>
+          <p className="font-semibold text-foreground">
+            iPhone Safari の追加手順
+          </p>
           <ol className="mt-2 list-decimal space-y-1 pl-5 text-muted-foreground">
             <li>画面下の共有ボタンを押す</li>
             <li>「ホーム画面に追加」を選ぶ</li>

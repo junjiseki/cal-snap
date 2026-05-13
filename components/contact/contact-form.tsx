@@ -63,7 +63,9 @@ export function ContactForm() {
     }
 
     if (!form.turnstileToken) {
-      setError("スパム対策の確認が完了していません。少し待ってから再度お試しください。");
+      setError(
+        "スパム対策の確認が完了していません。少し待ってから再度お試しください。",
+      );
       return;
     }
 
@@ -76,20 +78,29 @@ export function ContactForm() {
       });
       if (!response.ok) {
         const data = await response.json().catch(() => null);
-        throw new Error(data?.error?.message ?? "お問い合わせを送信できませんでした。");
+        throw new Error(
+          data?.error?.message ?? "お問い合わせを送信できませんでした。",
+        );
       }
       setForm(createInitialForm());
       setTurnstileResetSignal((n) => n + 1);
       setSent(true);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "お問い合わせを送信できませんでした。");
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "お問い合わせを送信できませんでした。",
+      );
     } finally {
       setIsSubmitting(false);
     }
   }
 
   return (
-    <form onSubmit={submit} className="space-y-4 border border-border bg-card p-5 sm:p-6">
+    <form
+      onSubmit={submit}
+      className="space-y-4 border border-border bg-card p-5 sm:p-6"
+    >
       {sent ? (
         <div className="flex items-start gap-3 border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
           <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
@@ -113,7 +124,9 @@ export function ContactForm() {
             <input
               type="text"
               value={form.website}
-              onChange={(event) => setForm({ ...form, website: event.target.value })}
+              onChange={(event) =>
+                setForm({ ...form, website: event.target.value })
+              }
               tabIndex={-1}
               autoComplete="off"
             />
@@ -144,7 +157,9 @@ export function ContactForm() {
           <input
             type="email"
             value={form.email}
-            onChange={(event) => setForm({ ...form, email: event.target.value })}
+            onChange={(event) =>
+              setForm({ ...form, email: event.target.value })
+            }
             required
             maxLength={160}
             autoComplete="email"
@@ -177,7 +192,9 @@ export function ContactForm() {
         お問い合わせ内容
         <textarea
           value={form.message}
-          onChange={(event) => setForm({ ...form, message: event.target.value })}
+          onChange={(event) =>
+            setForm({ ...form, message: event.target.value })
+          }
           required
           minLength={10}
           maxLength={2000}
@@ -201,7 +218,11 @@ export function ContactForm() {
           aria-busy={isSubmitting}
           className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm disabled:opacity-50"
         >
-          {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+          {isSubmitting ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Send className="size-4" />
+          )}
           {isSubmitting ? "送信中..." : "送信する"}
         </button>
       </div>

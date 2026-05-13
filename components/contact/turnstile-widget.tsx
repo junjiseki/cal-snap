@@ -7,6 +7,7 @@ import {
   getTurnstileSiteKeyForBrowser,
   isTurnstileProductionWidgetMode,
 } from "@/lib/security/turnstile-config";
+import { TURNSTILE_SCRIPT_LOAD_TIMEOUT_MS } from "@/lib/ui-timing";
 
 const TURNSTILE_SITE_KEY = getTurnstileSiteKeyForBrowser();
 
@@ -41,13 +42,15 @@ export function TurnstileWidget({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const widgetIdRef = useRef<string | null>(null);
   const [widgetError, setWidgetError] = useState<string | null>(null);
-  const [scriptStatus, setScriptStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [scriptStatus, setScriptStatus] = useState<
+    "loading" | "ready" | "error"
+  >("loading");
   const [scriptRetryKey, setScriptRetryKey] = useState(0);
   const { resolvedTheme } = useTheme();
-  const theme: "light" | "dark" =
-    resolvedTheme === "dark" ? "dark" : "light";
+  const theme: "light" | "dark" = resolvedTheme === "dark" ? "dark" : "light";
 
   useEffect(() => {
+    void theme;
     setWidgetError(null);
   }, [theme]);
 
@@ -67,7 +70,7 @@ export function TurnstileWidget({
       setWidgetError(
         "Turnstileの読み込みに時間がかかっています。通信環境、広告ブロッカー、セキュリティ設定を確認して再読み込みしてください。",
       );
-    }, 12_000);
+    }, TURNSTILE_SCRIPT_LOAD_TIMEOUT_MS);
 
     return () => window.clearTimeout(timeoutId);
   }, [scriptStatus, onTokenChange]);
@@ -190,13 +193,20 @@ export function TurnstileWidget({
           <code className="rounded bg-muted px-1 font-mono text-[10px]">
             NEXT_PUBLIC_TURNSTILE_USE_PRODUCTION_WIDGET=true
           </code>{" "}
-          を設定し、Cloudflare のホスト名に <code className="rounded bg-muted px-1 font-mono text-[10px]">localhost</code>{" "}
-          を追加してください。Supabase の Bot Protection をオンにしている場合、検証用シークレットは Cloudflare のテスト用シークレットと揃えるか、ローカルではオフにしてください。
+          を設定し、Cloudflare のホスト名に{" "}
+          <code className="rounded bg-muted px-1 font-mono text-[10px]">
+            localhost
+          </code>{" "}
+          を追加してください。Supabase の Bot Protection
+          をオンにしている場合、検証用シークレットは Cloudflare
+          のテスト用シークレットと揃えるか、ローカルではオフにしてください。
         </p>
       ) : null}
       {widgetError ? (
         <div className="mt-2 space-y-2">
-          <p className="text-xs leading-relaxed text-destructive">{widgetError}</p>
+          <p className="text-xs leading-relaxed text-destructive">
+            {widgetError}
+          </p>
           {scriptStatus === "error" ? (
             <button
               type="button"

@@ -3,7 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BellRing, CreditCard, Loader2, LogOut, Settings, User } from "lucide-react";
+import {
+  BellRing,
+  CreditCard,
+  Loader2,
+  LogOut,
+  Settings,
+  User,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 
@@ -131,7 +138,8 @@ export function DashboardAccountMenu({
         </div>
         <div className="rounded-md bg-muted/40 px-3 py-2">
           <p className="text-xs leading-relaxed text-muted-foreground">
-            AI解析枠: 無料 {freeDailyAnalysisLimit}回 / 有料 {paidDailyAnalysisLimit}回
+            AI解析枠: 無料 {freeDailyAnalysisLimit}回 / 有料{" "}
+            {paidDailyAnalysisLimit}回
           </p>
         </div>
         <Button
@@ -145,7 +153,11 @@ export function DashboardAccountMenu({
           aria-busy={signingOut}
           className="h-11 w-full gap-2 border-destructive/40 text-destructive hover:bg-destructive/10"
         >
-          {signingOut ? <Loader2 className="size-4 animate-spin" /> : <LogOut className="size-4" />}
+          {signingOut ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <LogOut className="size-4" />
+          )}
           {signingOut ? "ログアウト中..." : "ログアウト"}
         </Button>
       </div>
@@ -160,7 +172,9 @@ export function DashboardAccountMenu({
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-haspopup="true"
-        aria-label={open ? "アカウントメニューを閉じる" : "アカウントメニューを開く"}
+        aria-label={
+          open ? "アカウントメニューを閉じる" : "アカウントメニューを開く"
+        }
         className="gap-2"
       >
         <span className="text-xs font-semibold" aria-hidden>
@@ -175,7 +189,9 @@ export function DashboardAccountMenu({
           <div className="flex items-center justify-between gap-3 px-1 pb-3">
             <div className="min-w-0">
               <p className="truncate text-xs text-muted-foreground">{email}</p>
-              <p className="mt-1 truncate text-sm font-semibold">{accountName}</p>
+              <p className="mt-1 truncate text-sm font-semibold">
+                {accountName}
+              </p>
             </div>
             <span className="shrink-0 rounded-md bg-muted px-2.5 py-1 text-xs font-semibold text-primary">
               {planLabel}

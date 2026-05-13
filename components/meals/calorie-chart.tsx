@@ -138,7 +138,11 @@ function DailyCaloriesBarChart({
       config={chartConfig}
       className={`${heightClassName} w-full min-w-0 [&_.recharts-responsive-container]:min-h-px`}
     >
-      <BarChart accessibilityLayer data={data} margin={{ bottom: 0, left: 4, right: 4, top: 8 }}>
+      <BarChart
+        accessibilityLayer
+        data={data}
+        margin={{ bottom: 0, left: 4, right: 4, top: 8 }}
+      >
         <CartesianGrid vertical={false} />
         <XAxis
           dataKey="label"
@@ -164,10 +168,15 @@ function DailyCaloriesBarChart({
             <ChartTooltipContent
               formatter={(value, name, item) => {
                 if (name === "calories") {
-                  const payload = item?.payload as { diff?: number } | undefined;
+                  const payload = item?.payload as
+                    | { diff?: number }
+                    | undefined;
                   const diff = payload?.diff ?? 0;
                   const sign = diff > 0 ? "+" : "";
-                  return [`${value} kcal (${sign}${diff} kcal)`, "摂取 / 目安差"];
+                  return [
+                    `${value} kcal (${sign}${diff} kcal)`,
+                    "摂取 / 目安差",
+                  ];
                 }
                 return [`${value}`, String(name)];
               }}
@@ -192,7 +201,10 @@ function DailyCaloriesBarChart({
         />
         <Bar dataKey="calories" radius={[6, 6, 3, 3]} maxBarSize={42}>
           {data.map((entry) => (
-            <Cell key={entry.day} fill={barFillForCalories(entry.calories, goalCalories)} />
+            <Cell
+              key={entry.day}
+              fill={barFillForCalories(entry.calories, goalCalories)}
+            />
           ))}
         </Bar>
       </BarChart>
@@ -214,7 +226,11 @@ function DailyPfcLineChart({
       config={chartConfig}
       className={`${heightClassName} w-full min-w-0 [&_.recharts-responsive-container]:min-h-px`}
     >
-      <LineChart accessibilityLayer data={data} margin={{ bottom: 0, left: 4, right: 8, top: 12 }}>
+      <LineChart
+        accessibilityLayer
+        data={data}
+        margin={{ bottom: 0, left: 4, right: 8, top: 12 }}
+      >
         <CartesianGrid vertical={false} />
         <XAxis
           dataKey="label"
@@ -309,10 +325,18 @@ export function CalorieChart({
     month: "2-digit",
     day: "2-digit",
   });
-  const grouped = new Map<string, { calories: number; protein: number; fat: number; carbs: number }>();
+  const grouped = new Map<
+    string,
+    { calories: number; protein: number; fat: number; carbs: number }
+  >();
   for (const meal of meals) {
     const day = dayFmt.format(new Date(meal.eaten_at));
-    const current = grouped.get(day) ?? { calories: 0, protein: 0, fat: 0, carbs: 0 };
+    const current = grouped.get(day) ?? {
+      calories: 0,
+      protein: 0,
+      fat: 0,
+      carbs: 0,
+    };
     grouped.set(day, {
       calories: current.calories + meal.total_calories,
       protein: current.protein + Number(meal.protein ?? 0),
@@ -322,7 +346,12 @@ export function CalorieChart({
   }
 
   const chartData = lastNJstDaysAsc(14, chartEndDate).map((day) => {
-    const totals = grouped.get(day) ?? { calories: 0, protein: 0, fat: 0, carbs: 0 };
+    const totals = grouped.get(day) ?? {
+      calories: 0,
+      protein: 0,
+      fat: 0,
+      carbs: 0,
+    };
     return {
       day,
       label: day.slice(5),
@@ -337,12 +366,20 @@ export function CalorieChart({
   const activeMobileDays = mobileChartData.filter((day) => day.calories > 0);
   const mobileAverageCalories = activeMobileDays.length
     ? Math.round(
-        activeMobileDays.reduce((sum, day) => sum + day.calories, 0) / activeMobileDays.length,
+        activeMobileDays.reduce((sum, day) => sum + day.calories, 0) /
+          activeMobileDays.length,
       )
     : 0;
-  const mobileMaxCalories = Math.max(...mobileChartData.map((day) => day.calories), 0);
-  const latestRecordedDay = [...mobileChartData].reverse().find((day) => day.calories > 0);
-  const latestDiff = latestRecordedDay ? latestRecordedDay.calories - goalCalories : 0;
+  const mobileMaxCalories = Math.max(
+    ...mobileChartData.map((day) => day.calories),
+    0,
+  );
+  const latestRecordedDay = [...mobileChartData]
+    .reverse()
+    .find((day) => day.calories > 0);
+  const latestDiff = latestRecordedDay
+    ? latestRecordedDay.calories - goalCalories
+    : 0;
   const latestDiffLabel =
     latestDiff > 0
       ? `目安より ${latestDiff} kcal 多め`
@@ -357,18 +394,27 @@ export function CalorieChart({
           <div className="mb-3 grid grid-cols-3 gap-2">
             <div className="rounded-md bg-muted/50 p-2">
               <p className="text-[11px] text-muted-foreground">直近7日の平均</p>
-              <p className="mt-1 text-base font-bold">{mobileAverageCalories} kcal</p>
+              <p className="mt-1 text-base font-bold">
+                {mobileAverageCalories} kcal
+              </p>
             </div>
             <div className="rounded-md bg-muted/50 p-2">
               <p className="text-[11px] text-muted-foreground">最大</p>
-              <p className="mt-1 text-base font-bold">{mobileMaxCalories} kcal</p>
+              <p className="mt-1 text-base font-bold">
+                {mobileMaxCalories} kcal
+              </p>
             </div>
             <div className="rounded-md bg-muted/50 p-2">
               <p className="text-[11px] text-muted-foreground">最新</p>
-              <p className="mt-1 text-xs font-bold leading-5 text-primary">{latestDiffLabel}</p>
+              <p className="mt-1 text-xs font-bold leading-5 text-primary">
+                {latestDiffLabel}
+              </p>
             </div>
           </div>
-          <div className="-mx-2 overflow-x-auto px-2" aria-label="カロリー推移を横にスライドして確認">
+          <div
+            className="-mx-2 overflow-x-auto px-2"
+            aria-label="カロリー推移を横にスライドして確認"
+          >
             <div className="min-w-[430px]">
               <DailyCaloriesBarChart
                 data={mobileChartData}
@@ -383,18 +429,29 @@ export function CalorieChart({
             <span>縦軸: kcal / 破線: 目安 {goalCalories} kcal</span>
             <span>直近7日</span>
           </div>
-          <div className={cn("mt-5 border-t border-border pt-4", pfcLegendScopeClassName)}>
+          <div
+            className={cn(
+              "mt-5 border-t border-border pt-4",
+              pfcLegendScopeClassName,
+            )}
+          >
             <div className="mb-2 flex items-center justify-between">
               <h3 className="text-sm font-semibold">PFC推移</h3>
               <PfcLegend />
             </div>
-            <DailyPfcLineChart data={mobileChartData} heightClassName="h-[190px]" xTickInterval={0} />
+            <DailyPfcLineChart
+              data={mobileChartData}
+              heightClassName="h-[190px]"
+              xTickInterval={0}
+            />
           </div>
         </>
       ) : (
         <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
           <div>
-            <h3 className="mb-2 text-sm font-semibold text-foreground">カロリー</h3>
+            <h3 className="mb-2 text-sm font-semibold text-foreground">
+              カロリー
+            </h3>
             <DailyCaloriesBarChart
               data={chartData}
               goalCalories={goalCalories}

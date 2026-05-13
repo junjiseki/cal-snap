@@ -13,7 +13,9 @@ export default async function SignupPage({
     <main className="flex flex-1 items-center justify-center bg-[#d6fff2] px-4 py-10 sm:px-8">
       <SessionHydrationRefresh />
       <div className="w-full max-w-md">
-        <SignupForm next={safeInternalPath(params.next ?? null, "/meals/new")} />
+        <SignupForm
+          next={safeInternalPath(params.next ?? null, "/meals/new")}
+        />
       </div>
     </main>
   );

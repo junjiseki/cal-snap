@@ -15,7 +15,10 @@ const advice: DailyAdvice = {
   action_text: "次の食事は揚げ物を避けて、焼き魚か鶏むね肉を選んでみましょう。",
 };
 
-function meal(day: string, overrides: Partial<DailyAdviceMeal> = {}): DailyAdviceMeal {
+function meal(
+  day: string,
+  overrides: Partial<DailyAdviceMeal> = {},
+): DailyAdviceMeal {
   return {
     eaten_at: `${day}T12:00:00.000+09:00`,
     total_calories: 650,
@@ -139,8 +142,10 @@ describe("daily advice prompt", () => {
   it("contains concrete output constraints and NG abstract examples", () => {
     const summary = buildDailyAdviceSummary(enoughMeals(), 2000);
     expect(summary).not.toBeNull();
-
-    const prompt = buildDailyAdvicePrompt(summary!);
+    if (summary === null) {
+      throw new Error("expected summary");
+    }
+    const prompt = buildDailyAdvicePrompt(summary);
 
     expect(prompt).toContain("抽象表現は禁止");
     expect(prompt).toContain("次の1食で実行できる内容にする");

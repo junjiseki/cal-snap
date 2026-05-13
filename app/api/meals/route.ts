@@ -7,7 +7,10 @@ import {
   toInteger,
 } from "@/lib/meal-analysis";
 import { pickMealReminderSettingIdForEatenAt } from "@/lib/meal-reminders";
-import { forbiddenOriginResponse, isAllowedOrigin } from "@/lib/security/request";
+import {
+  forbiddenOriginResponse,
+  isAllowedOrigin,
+} from "@/lib/security/request";
 import type { Json } from "@/lib/supabase/database.types";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 
@@ -48,7 +51,11 @@ export async function POST(request: Request) {
   const parsed = MealRegistrationSchema.safeParse(body);
 
   if (!parsed.success) {
-    return errorResponse("登録内容を確認してください。", 400, "VALIDATION_FAILED");
+    return errorResponse(
+      "登録内容を確認してください。",
+      400,
+      "VALIDATION_FAILED",
+    );
   }
 
   const meal = parsed.data;
@@ -78,7 +85,11 @@ export async function POST(request: Request) {
     .lt("eaten_at", mealDay.endExclusive);
 
   if (countError) {
-    return errorResponse("食事登録数を確認できません。", 500, "MEAL_LIMIT_CHECK_FAILED");
+    return errorResponse(
+      "食事登録数を確認できません。",
+      500,
+      "MEAL_LIMIT_CHECK_FAILED",
+    );
   }
 
   if ((todayMealCount ?? 0) >= MAX_MEALS_PER_DAY) {
@@ -128,11 +139,12 @@ export async function POST(request: Request) {
 
   const eatenDate = new Date(meal.eaten_at);
   const targetDate = formatJstYmd(eatenDate);
-  const { data: reminderSettings, error: reminderSettingsError } = await supabase
-    .from("meal_reminder_settings")
-    .select("id, notify_time")
-    .eq("user_id", user.id)
-    .eq("enabled", true);
+  const { data: reminderSettings, error: reminderSettingsError } =
+    await supabase
+      .from("meal_reminder_settings")
+      .select("id, notify_time")
+      .eq("user_id", user.id)
+      .eq("enabled", true);
 
   if (reminderSettingsError) {
     console.warn(
@@ -156,7 +168,10 @@ export async function POST(request: Request) {
       .is("completed_at", null);
 
     if (reminderLogError) {
-      console.warn("[meals] reminder completion update failed", reminderLogError);
+      console.warn(
+        "[meals] reminder completion update failed",
+        reminderLogError,
+      );
     }
   }
 

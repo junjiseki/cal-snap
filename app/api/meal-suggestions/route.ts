@@ -8,7 +8,10 @@ import {
   mealSuggestionContextLabels,
   mealSuggestionSlotLabels,
 } from "@/lib/meal-suggestions";
-import { forbiddenOriginResponse, isAllowedOrigin } from "@/lib/security/request";
+import {
+  forbiddenOriginResponse,
+  isAllowedOrigin,
+} from "@/lib/security/request";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 import type { Plan } from "@/lib/supabase/database.types";
@@ -143,7 +146,10 @@ function formatRecentMeals(meals: RecentMeal[]) {
       const itemText =
         meal.meal_items
           ?.slice(0, 8)
-          .map((item) => `${item.name} ${item.estimated_amount} ${item.calories}kcal`)
+          .map(
+            (item) =>
+              `${item.name} ${item.estimated_amount} ${item.calories}kcal`,
+          )
           .join(" / ") || "明細なし";
       const eatenAt = new Intl.DateTimeFormat("ja-JP", {
         timeZone: "Asia/Tokyo",
@@ -175,7 +181,11 @@ export async function GET() {
     const usage = await getTodayUsage(user.id, profile.plan);
     return Response.json({ plan: profile.plan, usage });
   } catch {
-    return errorResponse("利用状況を取得できません。", 500, "USAGE_FETCH_FAILED");
+    return errorResponse(
+      "利用状況を取得できません。",
+      500,
+      "USAGE_FETCH_FAILED",
+    );
   }
 }
 
@@ -217,25 +227,41 @@ export async function POST(request: Request) {
 
   const parsed = MealSuggestionRequestSchema.safeParse(body);
   if (!parsed.success) {
-    return errorResponse("提案条件を確認してください。", 400, "VALIDATION_FAILED");
+    return errorResponse(
+      "提案条件を確認してください。",
+      400,
+      "VALIDATION_FAILED",
+    );
   }
 
   let profile: { plan: Plan; daily_calorie_goal: number };
   try {
     profile = await getProfile(user.id);
   } catch {
-    return errorResponse("プロフィールを取得できません。", 500, "PROFILE_FETCH_FAILED");
+    return errorResponse(
+      "プロフィールを取得できません。",
+      500,
+      "PROFILE_FETCH_FAILED",
+    );
   }
 
   if (profile.plan !== "paid") {
-    return errorResponse("食事提案は有料プラン限定です。", 403, "PAID_PLAN_REQUIRED");
+    return errorResponse(
+      "食事提案は有料プラン限定です。",
+      403,
+      "PAID_PLAN_REQUIRED",
+    );
   }
 
-  let usage;
+  let usage: Awaited<ReturnType<typeof getTodayUsage>>;
   try {
     usage = await getTodayUsage(user.id, profile.plan);
   } catch {
-    return errorResponse("提案回数を確認できません。", 500, "LIMIT_CHECK_FAILED");
+    return errorResponse(
+      "提案回数を確認できません。",
+      500,
+      "LIMIT_CHECK_FAILED",
+    );
   }
 
   if (usage.used >= usage.limit) {
@@ -264,7 +290,8 @@ export async function POST(request: Request) {
   if (claimError) {
     console.error("[meal-suggestions] slot claim failed", claimError);
     const message =
-      claimError.code === "PGRST202" || claimError.message.includes("schema cache")
+      claimError.code === "PGRST202" ||
+      claimError.message.includes("schema cache")
         ? "食事提案用のDB migrationが未適用です。migrationを適用してから再試行してください。"
         : "提案枠を確保できません。";
     return errorResponse(message, 500, "LOG_CREATE_FAILED");
@@ -294,7 +321,11 @@ export async function POST(request: Request) {
       .delete()
       .eq("id", claimedSlot.log_id)
       .eq("user_id", user.id);
-    return errorResponse("過去の食事データを取得できません。", 500, "MEAL_FETCH_FAILED");
+    return errorResponse(
+      "過去の食事データを取得できません。",
+      500,
+      "MEAL_FETCH_FAILED",
+    );
   }
 
   try {
@@ -304,7 +335,9 @@ export async function POST(request: Request) {
 
     const contextLabel = mealSuggestionContextLabels[parsed.data.context];
     const slotLabel = mealSuggestionSlotLabels[parsed.data.slot];
-    const recentMealText = formatRecentMeals((recentMeals ?? []) as unknown as RecentMeal[]);
+    const recentMealText = formatRecentMeals(
+      (recentMeals ?? []) as unknown as RecentMeal[],
+    );
 
     const response = await ai.models.generateContent({
       model,
@@ -337,7 +370,9 @@ export async function POST(request: Request) {
       throw new Error("Gemini response was empty.");
     }
 
-    const suggestions = MealSuggestionResponseSchema.parse(JSON.parse(response.text));
+    const suggestions = MealSuggestionResponseSchema.parse(
+      JSON.parse(response.text),
+    );
     const { error: markSuccessError } = await supabaseAdmin
       .from("meal_suggestion_logs")
       .update({ success: true })
@@ -345,7 +380,11 @@ export async function POST(request: Request) {
       .eq("user_id", user.id);
 
     if (markSuccessError) {
-      return errorResponse("提案結果の記録に失敗しました。", 500, "LOG_UPDATE_FAILED");
+      return errorResponse(
+        "提案結果の記録に失敗しました。",
+        500,
+        "LOG_UPDATE_FAILED",
+      );
     }
 
     return Response.json({
@@ -363,6 +402,10 @@ export async function POST(request: Request) {
       .eq("user_id", user.id);
 
     console.error("[meal-suggestions]", error);
-    return errorResponse("食事提案に失敗しました。", 502, "AI_SUGGESTION_FAILED");
+    return errorResponse(
+      "食事提案に失敗しました。",
+      502,
+      "AI_SUGGESTION_FAILED",
+    );
   }
 }

@@ -38,7 +38,9 @@ export function CalorieGoalForm({ initialGoal }: { initialGoal: number }) {
       setSavedGoal(parsed);
       router.refresh();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "保存に失敗しました。");
+      setError(
+        caught instanceof Error ? caught.message : "保存に失敗しました。",
+      );
     } finally {
       setIsSaving(false);
     }

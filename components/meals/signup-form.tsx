@@ -47,7 +47,11 @@ export function SignupForm({ next = "/meals/new" }: { next?: string }) {
         throw oauthError;
       }
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Google登録を開始できません。");
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Google登録を開始できません。",
+      );
       setIsGoogleLoading(false);
     }
   }
@@ -69,7 +73,9 @@ export function SignupForm({ next = "/meals/new" }: { next?: string }) {
 
     const trimmedCaptcha = captchaToken.trim();
     if (!trimmedCaptcha) {
-      setError("下の「人間による操作の確認」を完了してから、もう一度お試しください。");
+      setError(
+        "下の「人間による操作の確認」を完了してから、もう一度お試しください。",
+      );
       return;
     }
 
@@ -117,7 +123,10 @@ export function SignupForm({ next = "/meals/new" }: { next?: string }) {
       const message =
         caught instanceof Error ? caught.message.toLowerCase() : "";
 
-      if (message.includes("already registered") || message.includes("already exists")) {
+      if (
+        message.includes("already registered") ||
+        message.includes("already exists")
+      ) {
         setError(
           "このメールアドレスは既に登録済みです。以前アカウントを利用停止にした場合は、一度ログイン画面から同じメールでログインすると整理され、その後に再度新規登録できます。",
         );
@@ -126,7 +135,11 @@ export function SignupForm({ next = "/meals/new" }: { next?: string }) {
           "ボット対策の検証に失敗しました。確認ウィジェットをやり直してから再度お試しください。",
         );
       } else {
-        setError(caught instanceof Error ? caught.message : "ユーザー登録に失敗しました。");
+        setError(
+          caught instanceof Error
+            ? caught.message
+            : "ユーザー登録に失敗しました。",
+        );
       }
     } finally {
       setIsSigningUp(false);
@@ -179,7 +192,11 @@ export function SignupForm({ next = "/meals/new" }: { next?: string }) {
             aria-label={showPassword ? "パスワードを隠す" : "パスワードを表示"}
             className="absolute right-2 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-[#42504b] transition active:scale-95 active:bg-[#ffe66d]/60"
           >
-            {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            {showPassword ? (
+              <EyeOff className="size-4" />
+            ) : (
+              <Eye className="size-4" />
+            )}
           </button>
         </span>
       </label>
@@ -191,7 +208,9 @@ export function SignupForm({ next = "/meals/new" }: { next?: string }) {
         aria-live="polite"
       >
         <CheckCircle2 className="size-4" />
-        {isPasswordLongEnough ? "8文字以上になりました" : "8文字以上で入力してください"}
+        {isPasswordLongEnough
+          ? "8文字以上になりました"
+          : "8文字以上で入力してください"}
       </p>
       <label className="block text-sm font-medium">
         パスワード確認
@@ -209,14 +228,25 @@ export function SignupForm({ next = "/meals/new" }: { next?: string }) {
           <button
             type="button"
             onClick={() => setShowPasswordConfirm((current) => !current)}
-            aria-label={showPasswordConfirm ? "確認用パスワードを隠す" : "確認用パスワードを表示"}
+            aria-label={
+              showPasswordConfirm
+                ? "確認用パスワードを隠す"
+                : "確認用パスワードを表示"
+            }
             className="absolute right-2 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-[#42504b] transition active:scale-95 active:bg-[#ffe66d]/60"
           >
-            {showPasswordConfirm ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            {showPasswordConfirm ? (
+              <EyeOff className="size-4" />
+            ) : (
+              <Eye className="size-4" />
+            )}
           </button>
         </span>
       </label>
-      <TurnstileWidget onTokenChange={handleCaptchaTokenChange} resetSignal={captchaResetSignal} />
+      <TurnstileWidget
+        onTokenChange={handleCaptchaTokenChange}
+        resetSignal={captchaResetSignal}
+      />
       <button
         type="submit"
         disabled={isSigningUp || isGoogleLoading}
@@ -242,7 +272,10 @@ export function SignupForm({ next = "/meals/new" }: { next?: string }) {
       </button>
       <p className="text-center text-sm font-medium text-[#42504b]">
         すでにアカウントがある場合は{" "}
-        <Link href={`/login?next=${encodeURIComponent(next)}`} className="font-bold text-[#036854] underline-offset-4 hover:underline">
+        <Link
+          href={`/login?next=${encodeURIComponent(next)}`}
+          className="font-bold text-[#036854] underline-offset-4 hover:underline"
+        >
           ログイン
         </Link>
       </p>

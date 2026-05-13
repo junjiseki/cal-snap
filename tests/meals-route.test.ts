@@ -12,9 +12,7 @@ vi.mock("@/lib/supabase/server", async (importOriginal) => {
 
 vi.mock("@/lib/security/request", () => ({
   isAllowedOrigin: vi.fn(() => true),
-  forbiddenOriginResponse: vi.fn(
-    () => new Response(null, { status: 403 }),
-  ),
+  forbiddenOriginResponse: vi.fn(() => new Response(null, { status: 403 })),
 }));
 
 const USER_ID = "00000000-0000-4000-8000-000000000001";
@@ -92,7 +90,10 @@ describe("POST /api/meals", () => {
   });
 
   it("warns and still succeeds when meal_reminder_settings fetch fails", async () => {
-    const reminderErr = { message: "reminder settings unavailable", code: "TEST" };
+    const reminderErr = {
+      message: "reminder settings unavailable",
+      code: "TEST",
+    };
     const { from, rpc } = createMockSupabase(reminderErr);
 
     getAuthenticatedUserMock.mockResolvedValue({

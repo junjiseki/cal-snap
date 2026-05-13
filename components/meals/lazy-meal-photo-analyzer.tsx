@@ -4,14 +4,19 @@ import dynamic from "next/dynamic";
 import type { ComponentProps } from "react";
 
 const MealPhotoAnalyzer = dynamic(
-  () => import("@/components/meals/meal-photo-analyzer").then((mod) => mod.MealPhotoAnalyzer),
+  () =>
+    import("@/components/meals/meal-photo-analyzer").then(
+      (mod) => mod.MealPhotoAnalyzer,
+    ),
   {
     ssr: false,
     loading: () => <MealPhotoAnalyzerSkeleton />,
   },
 );
 
-export function LazyMealPhotoAnalyzer(props: ComponentProps<typeof MealPhotoAnalyzer>) {
+export function LazyMealPhotoAnalyzer(
+  props: ComponentProps<typeof MealPhotoAnalyzer>,
+) {
   return <MealPhotoAnalyzer {...props} />;
 }
 

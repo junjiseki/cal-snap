@@ -65,11 +65,19 @@ export async function GET() {
   try {
     profile = await getOrCreateProfile(user.id);
   } catch {
-    return errorResponse("プロフィールを取得できません。", 500, "PROFILE_FETCH_FAILED");
+    return errorResponse(
+      "プロフィールを取得できません。",
+      500,
+      "PROFILE_FETCH_FAILED",
+    );
   }
 
   if (profile.plan !== "paid") {
-    return errorResponse("AIアドバイスは有料プラン限定です。", 403, "PAID_PLAN_REQUIRED");
+    return errorResponse(
+      "AIアドバイスは有料プラン限定です。",
+      403,
+      "PAID_PLAN_REQUIRED",
+    );
   }
 
   const { start, end } = getLast7DaysRangeInJapan();
@@ -82,7 +90,11 @@ export async function GET() {
     .order("eaten_at", { ascending: true });
 
   if (mealsError) {
-    return errorResponse("食事データを取得できません。", 500, "MEAL_FETCH_FAILED");
+    return errorResponse(
+      "食事データを取得できません。",
+      500,
+      "MEAL_FETCH_FAILED",
+    );
   }
 
   try {
@@ -116,7 +128,11 @@ export async function GET() {
     });
 
     if (result.status === "plan_required") {
-      return errorResponse("AIアドバイスは有料プラン限定です。", 403, "PAID_PLAN_REQUIRED");
+      return errorResponse(
+        "AIアドバイスは有料プラン限定です。",
+        403,
+        "PAID_PLAN_REQUIRED",
+      );
     }
 
     if (result.status === "insufficient_data") {
@@ -129,9 +145,17 @@ export async function GET() {
     });
   } catch (error) {
     if (error instanceof Error && error.message === "GEMINI_NOT_CONFIGURED") {
-      return errorResponse("GEMINI_API_KEY が設定されていません。", 500, "GEMINI_NOT_CONFIGURED");
+      return errorResponse(
+        "GEMINI_API_KEY が設定されていません。",
+        500,
+        "GEMINI_NOT_CONFIGURED",
+      );
     }
     console.error("[daily-advice]", error);
-    return errorResponse("AIアドバイスを作成できません。", 502, "AI_ADVICE_FAILED");
+    return errorResponse(
+      "AIアドバイスを作成できません。",
+      502,
+      "AI_ADVICE_FAILED",
+    );
   }
 }

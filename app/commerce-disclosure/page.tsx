@@ -26,7 +26,9 @@ type DisclosureRow =
     };
 
 function envOrSetupMessage(name: string) {
-  return process.env[name]?.trim() || `本番環境変数 ${name} を設定してください。`;
+  return (
+    process.env[name]?.trim() || `本番環境変数 ${name} を設定してください。`
+  );
 }
 
 function createDisclosureRows(): DisclosureRow[] {
@@ -69,7 +71,8 @@ function createDisclosureRows(): DisclosureRow[] {
     },
     {
       label: "商品代金以外の必要料金",
-      value: "インターネット接続料金、通信料金、端末利用料金などはユーザーの負担となります。",
+      value:
+        "インターネット接続料金、通信料金、端末利用料金などはユーザーの負担となります。",
     },
     {
       label: "支払方法",
@@ -82,16 +85,17 @@ function createDisclosureRows(): DisclosureRow[] {
     },
     {
       label: "役務の提供時期",
-      value: "決済完了後、アカウントに有料プランが反映され次第、直ちに利用できます。",
+      value:
+        "決済完了後、アカウントに有料プランが反映され次第、直ちに利用できます。",
     },
     {
       label: "有料プランの内容",
-      value:
-        `食事写真のAI解析を1日${PAID_DAILY_ANALYSIS_LIMIT}回、食事メニュー提案を1日${MEAL_SUGGESTION_DAILY_LIMIT}回まで利用できます。手入力での食事記録、過去日の履歴・カレンダー、直近14日のカロリー・PFCグラフ、今日のアドバイス、目安カロリーにそった1件ショートカット登録を利用できます。`,
+      value: `食事写真のAI解析を1日${PAID_DAILY_ANALYSIS_LIMIT}回、食事メニュー提案を1日${MEAL_SUGGESTION_DAILY_LIMIT}回まで利用できます。手入力での食事記録、過去日の履歴・カレンダー、直近14日のカロリー・PFCグラフ、今日のアドバイス、目安カロリーにそった1件ショートカット登録を利用できます。`,
     },
     {
       label: "申込期間・販売数量",
-      value: "申込期間の定めはありません。デジタルサービスのため販売数量の制限はありません。",
+      value:
+        "申込期間の定めはありません。デジタルサービスのため販売数量の制限はありません。",
     },
     {
       label: "解約方法",
@@ -144,7 +148,9 @@ export default function CommerceDisclosurePage() {
               プライバシーポリシー
             </Link>
           </div>
-          <p className="mt-3 text-sm text-muted-foreground">制定日: 2026年5月3日</p>
+          <p className="mt-3 text-sm text-muted-foreground">
+            制定日: 2026年5月3日
+          </p>
         </div>
       </section>
 
@@ -158,7 +164,10 @@ export default function CommerceDisclosurePage() {
               <dt className="text-sm font-semibold">{row.label}</dt>
               <dd className="text-sm leading-7 text-muted-foreground">
                 {row.href ? (
-                  <Link href={row.href} className="font-semibold text-primary hover:underline">
+                  <Link
+                    href={row.href}
+                    className="font-semibold text-primary hover:underline"
+                  >
                     {row.value}
                   </Link>
                 ) : (

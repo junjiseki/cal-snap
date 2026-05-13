@@ -7,6 +7,7 @@ export function isStaleRefreshTokenError(error: unknown): error is AuthError {
   if (e.code === "refresh_token_not_found") return true;
   const msg = typeof e.message === "string" ? e.message : "";
   return (
-    msg.includes("Invalid Refresh Token") || msg.includes("Refresh Token Not Found")
+    msg.includes("Invalid Refresh Token") ||
+    msg.includes("Refresh Token Not Found")
   );
 }

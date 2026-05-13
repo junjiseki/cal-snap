@@ -100,7 +100,12 @@ export function PublicHome() {
               面倒な入力が続かなかった人でも、写真なら始めやすい。カロスナは食事写真からカロリーとPFCを推定し、今日の摂取量をすぐ見える化します。
             </p>
             <div className="mt-5 grid gap-2 text-sm font-bold text-[#17231f] sm:grid-cols-2">
-              {["3秒で記録完了", "外食でもOK", "PFCも自動で見える", "修正もできるから安心"].map((label) => (
+              {[
+                "3秒で記録完了",
+                "外食でもOK",
+                "PFCも自動で見える",
+                "修正もできるから安心",
+              ].map((label) => (
                 <p key={label} className="flex items-center gap-2">
                   <CheckCircle2 className="size-4 text-[#00a878]" />
                   {label}
@@ -142,7 +147,9 @@ export function PublicHome() {
               </div>
               <div>
                 <p className="text-xs font-black text-[#036854]">カロちゃん</p>
-                <p className="text-[11px] font-bold text-[#6b756f]">カロスナ コンシェルジュ</p>
+                <p className="text-[11px] font-bold text-[#6b756f]">
+                  カロスナ コンシェルジュ
+                </p>
                 <p className="mt-1 text-sm font-bold leading-6 text-[#17231f]">
                   食べたら写真を1枚。今日のカロリーとPFCをすぐ案内します。
                 </p>
@@ -205,7 +212,12 @@ export function PublicHome() {
                 <span
                   className={[
                     "inline-flex size-10 items-center justify-center rounded-md border-2 border-[#17231f] text-[#17231f]",
-                    ["bg-[#ffe66d]", "bg-[#ffb4a2]", "bg-[#a5d8ff]", "bg-[#b8f7d4]"][index],
+                    [
+                      "bg-[#ffe66d]",
+                      "bg-[#ffb4a2]",
+                      "bg-[#a5d8ff]",
+                      "bg-[#b8f7d4]",
+                    ][index],
                   ].join(" ")}
                 >
                   <Icon className="size-4" />
@@ -213,7 +225,9 @@ export function PublicHome() {
               </div>
               <div>
                 <h2 className="font-semibold">{title}</h2>
-                <p className="mt-1 text-sm leading-6 text-muted-foreground">{body}</p>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                  {body}
+                </p>
               </div>
             </article>
           ))}
@@ -234,7 +248,9 @@ export function PublicHome() {
             </p>
           </div>
           <div className="rounded-md border-2 border-[#17231f] bg-[#fff3c7] p-5 shadow-[6px_6px_0_#17231f]">
-            <p className="text-sm font-semibold text-primary">太る理由はシンプル</p>
+            <p className="text-sm font-semibold text-primary">
+              太る理由はシンプル
+            </p>
             <p className="mt-2 text-2xl font-black tracking-tight text-[#17231f] sm:text-3xl">
               摂取カロリー ＞ 消費カロリー
             </p>
@@ -318,7 +334,9 @@ export function PublicHome() {
                   <BellRing className="size-5" />
                 </span>
                 <div>
-                  <p className="text-sm font-black text-[#17231f]">食事時間を通知</p>
+                  <p className="text-sm font-black text-[#17231f]">
+                    食事時間を通知
+                  </p>
                   <p className="mt-1 text-sm font-bold leading-7 text-[#42504b]">
                     登録した時間に記録を促します。iPhoneはホーム画面に追加したアプリ版で利用できます。
                   </p>
@@ -327,14 +345,20 @@ export function PublicHome() {
             </div>
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
               {["外食", "自炊", "コンビニ"].map((label) => (
-                <div key={label} className="rounded-md border-2 border-[#17231f] bg-white p-3 text-center text-sm font-bold shadow-[3px_3px_0_#17231f]">
+                <div
+                  key={label}
+                  className="rounded-md border-2 border-[#17231f] bg-white p-3 text-center text-sm font-bold shadow-[3px_3px_0_#17231f]"
+                >
                   {label}
                 </div>
               ))}
             </div>
             <div className="mt-3 grid gap-3 sm:grid-cols-3">
               {["朝ご飯", "昼食", "夜ご飯"].map((label) => (
-                <div key={label} className="rounded-md border-2 border-[#17231f] bg-[#ffe66d] p-3 text-center text-sm font-bold text-[#17231f] shadow-[3px_3px_0_#17231f]">
+                <div
+                  key={label}
+                  className="rounded-md border-2 border-[#17231f] bg-[#ffe66d] p-3 text-center text-sm font-bold text-[#17231f] shadow-[3px_3px_0_#17231f]"
+                >
                   {label}
                 </div>
               ))}
@@ -349,12 +373,21 @@ export function PublicHome() {
               {[
                 ["外食の候補", "寿司10貫セット + あさり汁", "約720 kcal"],
                 ["自炊の候補", "焼き魚定食 + ご飯普通盛り", "約780 kcal"],
-                ["コンビニの候補", "おにぎり + サラダチキン + 味噌汁", "約520 kcal"],
+                [
+                  "コンビニの候補",
+                  "おにぎり + サラダチキン + 味噌汁",
+                  "約520 kcal",
+                ],
               ].map(([title, menu, calories]) => (
-                <article key={title} className="rounded-md border border-border bg-[#fffaf0] p-4">
+                <article
+                  key={title}
+                  className="rounded-md border border-border bg-[#fffaf0] p-4"
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-primary">{title}</p>
+                      <p className="text-sm font-semibold text-primary">
+                        {title}
+                      </p>
                       <h3 className="mt-1 font-semibold">{menu}</h3>
                     </div>
                     <span className="shrink-0 rounded-md bg-[#ffb4a2] px-2 py-1 text-xs font-bold text-[#17231f]">
@@ -375,7 +408,9 @@ export function PublicHome() {
         <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-8">
           <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
             <div className="max-w-2xl">
-              <p className="inline-flex rounded-md border-2 border-[#17231f] bg-white px-3 py-1.5 text-sm font-bold text-primary shadow-[3px_3px_0_#17231f]">目的から始める</p>
+              <p className="inline-flex rounded-md border-2 border-[#17231f] bg-white px-3 py-1.5 text-sm font-bold text-primary shadow-[3px_3px_0_#17231f]">
+                目的から始める
+              </p>
               <h2 className="mt-4 text-2xl font-black tracking-tight text-[#17231f] sm:text-3xl">
                 続くから、結果につながる。
               </h2>
@@ -385,7 +420,9 @@ export function PublicHome() {
             </div>
 
             <div className="rounded-md border-2 border-[#17231f] bg-white p-5 shadow-[5px_5px_0_#17231f]">
-              <p className="text-sm font-semibold text-primary">続けるための設計</p>
+              <p className="text-sm font-semibold text-primary">
+                続けるための設計
+              </p>
               <p className="mt-2 text-2xl font-black tracking-tight text-[#17231f] sm:text-3xl">
                 完璧より、途切れない記録。
               </p>
@@ -397,7 +434,10 @@ export function PublicHome() {
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             {goalPromotions.map(({ icon: Icon, title, body }, index) => (
-              <article key={title} className="rounded-md border-2 border-[#17231f] bg-white p-5 shadow-[4px_4px_0_#17231f]">
+              <article
+                key={title}
+                className="rounded-md border-2 border-[#17231f] bg-white p-5 shadow-[4px_4px_0_#17231f]"
+              >
                 <span
                   className={[
                     "inline-flex size-10 items-center justify-center rounded-md border-2 border-[#17231f] text-[#17231f]",
@@ -407,7 +447,9 @@ export function PublicHome() {
                   <Icon className="size-5" />
                 </span>
                 <h3 className="mt-4 text-lg font-semibold">{title}</h3>
-                <p className="mt-2 text-sm leading-7 text-muted-foreground">{body}</p>
+                <p className="mt-2 text-sm leading-7 text-muted-foreground">
+                  {body}
+                </p>
               </article>
             ))}
           </div>
@@ -421,7 +463,9 @@ export function PublicHome() {
               <Utensils className="size-4" />
               まずは1食
             </p>
-            <h2 className="mt-3 text-2xl font-black text-[#17231f]">次の食事から、健康的に記録。</h2>
+            <h2 className="mt-3 text-2xl font-black text-[#17231f]">
+              次の食事から、健康的に記録。
+            </h2>
             <p className="mt-2 text-sm font-medium text-[#42504b]">
               カロリー管理が続かなかった人でも、写真1枚なら始められます。
             </p>

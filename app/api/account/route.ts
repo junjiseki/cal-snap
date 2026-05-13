@@ -1,4 +1,7 @@
-import { forbiddenOriginResponse, isAllowedOrigin } from "@/lib/security/request";
+import {
+  forbiddenOriginResponse,
+  isAllowedOrigin,
+} from "@/lib/security/request";
 import { cancelStripeSubscriptionsForUser } from "@/lib/stripe/cancel-subscriptions-for-user";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getAuthSessionUser } from "@/lib/supabase/server";
@@ -38,11 +41,16 @@ export async function DELETE(request: Request) {
     );
   }
 
-  const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+  const { error: deleteError } =
+    await supabaseAdmin.auth.admin.deleteUser(userId);
 
   if (deleteError) {
     console.error("[account-delete]", deleteError);
-    return errorResponse("アカウントを削除できません。", 500, "ACCOUNT_DELETE_FAILED");
+    return errorResponse(
+      "アカウントを削除できません。",
+      500,
+      "ACCOUNT_DELETE_FAILED",
+    );
   }
 
   await supabase.auth.signOut();

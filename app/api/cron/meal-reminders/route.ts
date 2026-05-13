@@ -74,14 +74,20 @@ async function handleMealReminderCron(request: Request) {
 
   const vapid = getVapidServerConfig();
   if (!vapid) {
-    return errorResponse("VAPID keys are not configured.", "VAPID_NOT_CONFIGURED");
+    return errorResponse(
+      "VAPID keys are not configured.",
+      "VAPID_NOT_CONFIGURED",
+    );
   }
 
   try {
     webpush.setVapidDetails(vapid.subject, vapid.publicKey, vapid.privateKey);
   } catch (caught) {
     console.error("[meal-reminder-cron] invalid VAPID config", caught);
-    return errorResponse("VAPID configuration is invalid.", "INVALID_VAPID_CONFIG");
+    return errorResponse(
+      "VAPID configuration is invalid.",
+      "INVALID_VAPID_CONFIG",
+    );
   }
 
   let supabase: ReturnType<typeof getSupabaseAdminClient>;
@@ -108,14 +114,26 @@ async function handleMealReminderCron(request: Request) {
   if (settingsError) {
     console.error("[meal-reminder-cron] settings fetch failed", settingsError);
     return Response.json(
-      { error: { message: "Failed to fetch reminder settings.", code: "SETTINGS_FETCH_FAILED" } },
+      {
+        error: {
+          message: "Failed to fetch reminder settings.",
+          code: "SETTINGS_FETCH_FAILED",
+        },
+      },
       { status: 500 },
     );
   }
 
   const dueSettings = (settings ?? []) as ReminderSetting[];
   if (dueSettings.length === 0) {
-    return Response.json({ ok: true, notifyTimes, due: 0, sent: 0, skipped: 0, failed: 0 });
+    return Response.json({
+      ok: true,
+      notifyTimes,
+      due: 0,
+      sent: 0,
+      skipped: 0,
+      failed: 0,
+    });
   }
 
   const userIds = [...new Set(dueSettings.map((setting) => setting.user_id))];
@@ -125,7 +143,10 @@ async function handleMealReminderCron(request: Request) {
     .in("user_id", userIds);
 
   if (subscriptionsError) {
-    console.error("[meal-reminder-cron] subscriptions fetch failed", subscriptionsError);
+    console.error(
+      "[meal-reminder-cron] subscriptions fetch failed",
+      subscriptionsError,
+    );
     return Response.json(
       {
         error: {
@@ -162,12 +183,14 @@ async function handleMealReminderCron(request: Request) {
     }
 
     const nowIso = new Date().toISOString();
-    const { error: logError } = await supabase.from("meal_reminder_logs").insert({
-      user_id: setting.user_id,
-      meal_reminder_setting_id: setting.id,
-      target_date: targetDate,
-      first_sent_at: nowIso,
-    });
+    const { error: logError } = await supabase
+      .from("meal_reminder_logs")
+      .insert({
+        user_id: setting.user_id,
+        meal_reminder_setting_id: setting.id,
+        target_date: targetDate,
+        first_sent_at: nowIso,
+      });
 
     if (logError) {
       if (logError.code === "23505") {
@@ -208,11 +231,16 @@ async function handleMealReminderCron(request: Request) {
       } catch (caught) {
         failed += 1;
         const statusCode =
-          typeof caught === "object" && caught !== null && "statusCode" in caught
+          typeof caught === "object" &&
+          caught !== null &&
+          "statusCode" in caught
             ? Number((caught as { statusCode?: unknown }).statusCode)
             : 0;
         if (statusCode === 404 || statusCode === 410) {
-          await supabase.from("push_subscriptions").delete().eq("id", subscription.id);
+          await supabase
+            .from("push_subscriptions")
+            .delete()
+            .eq("id", subscription.id);
         } else {
           console.error("[meal-reminder-cron] push failed", caught);
         }

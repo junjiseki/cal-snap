@@ -11,7 +11,10 @@ import {
 } from "@/lib/meal-analysis";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
-import { forbiddenOriginResponse, isAllowedOrigin } from "@/lib/security/request";
+import {
+  forbiddenOriginResponse,
+  isAllowedOrigin,
+} from "@/lib/security/request";
 import type { Plan } from "@/lib/supabase/database.types";
 
 export const runtime = "nodejs";
@@ -71,11 +74,13 @@ function errorResponse(message: string, status: number, code: string) {
 /** Gemini が 429 / クレジット枯渇などで拒否した場合（アプリの1日上限とは別） */
 function isGeminiProviderQuotaError(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
-  const status = "status" in error ? Number((error as { status: unknown }).status) : NaN;
+  const status =
+    "status" in error ? Number((error as { status: unknown }).status) : NaN;
   if (status === 429) return true;
 
   const raw =
-    "message" in error && typeof (error as { message: unknown }).message === "string"
+    "message" in error &&
+    typeof (error as { message: unknown }).message === "string"
       ? (error as { message: string }).message
       : error instanceof Error
         ? error.message
@@ -136,10 +141,17 @@ function summarizeGeminiClientError(error: unknown): Record<string, unknown> {
 
 function hasExpectedImageSignature(type: string, bytes: Buffer) {
   if (type === "image/jpeg") {
-    return bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+    return (
+      bytes.length >= 3 &&
+      bytes[0] === 0xff &&
+      bytes[1] === 0xd8 &&
+      bytes[2] === 0xff
+    );
   }
   if (type === "image/png") {
-    return bytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+    return bytes
+      .subarray(0, 8)
+      .equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
   }
   if (type === "image/webp") {
     return (
@@ -220,7 +232,10 @@ export async function GET() {
       .rpc("get_daily_meal_summary", { p_start: start, p_end: endExclusive })
       .single();
     if (summaryError) {
-      console.error("[meals/analyze GET] get_daily_meal_summary failed", summaryError);
+      console.error(
+        "[meals/analyze GET] get_daily_meal_summary failed",
+        summaryError,
+      );
     }
     const goalCalories = profile.daily_calorie_goal ?? 2000;
     if (summaryError) {
@@ -239,7 +254,11 @@ export async function GET() {
       todayCalories: Number(summary?.calories ?? 0),
     });
   } catch {
-    return errorResponse("利用状況を取得できません。", 500, "USAGE_FETCH_FAILED");
+    return errorResponse(
+      "利用状況を取得できません。",
+      500,
+      "USAGE_FETCH_FAILED",
+    );
   }
 }
 
@@ -280,7 +299,11 @@ export async function POST(request: Request) {
     const maybeFile = formData.get("image");
     file = maybeFile instanceof File ? maybeFile : null;
   } catch {
-    return errorResponse("画像フォームを読み取れません。", 400, "BAD_FORM_DATA");
+    return errorResponse(
+      "画像フォームを読み取れません。",
+      400,
+      "BAD_FORM_DATA",
+    );
   }
 
   if (!file) {
@@ -288,19 +311,31 @@ export async function POST(request: Request) {
   }
 
   if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
-    return errorResponse("JPEG、PNG、WebP の画像を選択してください。", 400, "INVALID_IMAGE");
+    return errorResponse(
+      "JPEG、PNG、WebP の画像を選択してください。",
+      400,
+      "INVALID_IMAGE",
+    );
   }
 
   if (file.size > MAX_IMAGE_BYTES) {
-    return errorResponse("画像サイズは5MB以下にしてください。", 413, "IMAGE_TOO_LARGE");
+    return errorResponse(
+      "画像サイズは5MB以下にしてください。",
+      413,
+      "IMAGE_TOO_LARGE",
+    );
   }
 
   const plan = (await getOrCreateProfile(user.id)).plan as Plan;
-  let usage;
+  let usage: Awaited<ReturnType<typeof getTodayUsage>>;
   try {
     usage = await getTodayUsage(user.id, plan);
   } catch {
-    return errorResponse("解析回数を確認できません。", 500, "LIMIT_CHECK_FAILED");
+    return errorResponse(
+      "解析回数を確認できません。",
+      500,
+      "LIMIT_CHECK_FAILED",
+    );
   }
 
   if (usage.used >= usage.limit) {
@@ -351,7 +386,11 @@ export async function POST(request: Request) {
       .eq("id", logId)
       .eq("user_id", user.id);
     if (releaseSlotError) {
-      return errorResponse("解析枠の解放に失敗しました。", 500, "LOG_RELEASE_FAILED");
+      return errorResponse(
+        "解析枠の解放に失敗しました。",
+        500,
+        "LOG_RELEASE_FAILED",
+      );
     }
     return errorResponse("画像を読み取れません。", 400, "BAD_IMAGE_READ");
   }
@@ -363,7 +402,11 @@ export async function POST(request: Request) {
       .eq("id", logId)
       .eq("user_id", user.id);
     if (releaseSlotError) {
-      return errorResponse("解析枠の解放に失敗しました。", 500, "LOG_RELEASE_FAILED");
+      return errorResponse(
+        "解析枠の解放に失敗しました。",
+        500,
+        "LOG_RELEASE_FAILED",
+      );
     }
     return errorResponse(
       "画像の内容が形式と一致しません。JPEG・PNG・WebP の実データを選択してください。",
@@ -437,7 +480,11 @@ export async function POST(request: Request) {
       .eq("id", logId)
       .eq("user_id", user.id);
     if (markSuccessError) {
-      return errorResponse("解析結果の記録に失敗しました。", 500, "LOG_UPDATE_FAILED");
+      return errorResponse(
+        "解析結果の記録に失敗しました。",
+        500,
+        "LOG_UPDATE_FAILED",
+      );
     }
 
     return Response.json({
@@ -455,7 +502,11 @@ export async function POST(request: Request) {
       .eq("id", logId)
       .eq("user_id", user.id);
     if (releaseSlotError) {
-      return errorResponse("解析枠の解放に失敗しました。", 500, "LOG_RELEASE_FAILED");
+      return errorResponse(
+        "解析枠の解放に失敗しました。",
+        500,
+        "LOG_RELEASE_FAILED",
+      );
     }
 
     if (isGeminiProviderQuotaError(error)) {

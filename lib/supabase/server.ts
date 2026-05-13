@@ -9,7 +9,10 @@ export type SupabaseCookieStore = Awaited<ReturnType<typeof cookies>>;
 function hasSupabaseAuthCookie(cookieStore: SupabaseCookieStore) {
   return cookieStore
     .getAll()
-    .some((cookie) => cookie.name.startsWith("sb-") && cookie.name.includes("-auth-token"));
+    .some(
+      (cookie) =>
+        cookie.name.startsWith("sb-") && cookie.name.includes("-auth-token"),
+    );
 }
 
 /**
@@ -21,7 +24,9 @@ export async function createClient(cookieStore?: SupabaseCookieStore) {
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!url || !anonKey) {
-    throw new Error("Supabase public environment variables are not configured.");
+    throw new Error(
+      "Supabase public environment variables are not configured.",
+    );
   }
 
   return createServerClient<Database>(url, anonKey, {
@@ -84,7 +89,10 @@ export async function getAuthenticatedUser() {
     .maybeSingle();
 
   if (error) {
-    console.error("[getAuthenticatedUser] profile deleted_at fetch failed", error);
+    console.error(
+      "[getAuthenticatedUser] profile deleted_at fetch failed",
+      error,
+    );
     return { supabase, user };
   }
 
@@ -110,7 +118,10 @@ export async function getAuthenticatedUserWithProfile() {
     .maybeSingle();
 
   if (error) {
-    console.error("[getAuthenticatedUserWithProfile] profile fetch failed", error);
+    console.error(
+      "[getAuthenticatedUserWithProfile] profile fetch failed",
+      error,
+    );
     return { supabase, user, profile: null };
   }
 
@@ -127,4 +138,6 @@ export async function getAuthenticatedUserWithProfile() {
  * Route Handler では副作用やリクエスト境界を明確にするため、通常の getAuthenticatedUser を使う。
  */
 export const getAuthenticatedUserCached = cache(getAuthenticatedUser);
-export const getAuthenticatedUserWithProfileCached = cache(getAuthenticatedUserWithProfile);
+export const getAuthenticatedUserWithProfileCached = cache(
+  getAuthenticatedUserWithProfile,
+);

@@ -21,7 +21,9 @@ export async function GET(request: NextRequest) {
     if (!error) {
       const fin = await finalizeAuthSession(supabase, next);
       if (!fin.ok) {
-        responseRef.current = authRouteRedirect(new URL(fin.redirectPath, url.origin));
+        responseRef.current = authRouteRedirect(
+          new URL(fin.redirectPath, url.origin),
+        );
         await supabase.auth.signOut();
       }
       return responseRef.current;
@@ -39,7 +41,9 @@ export async function GET(request: NextRequest) {
     if (!error) {
       const fin = await finalizeAuthSession(supabase, next);
       if (!fin.ok) {
-        responseRef.current = authRouteRedirect(new URL(fin.redirectPath, url.origin));
+        responseRef.current = authRouteRedirect(
+          new URL(fin.redirectPath, url.origin),
+        );
         await supabase.auth.signOut();
       }
       return responseRef.current;

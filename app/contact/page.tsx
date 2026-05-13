@@ -43,7 +43,10 @@ export default function ContactPage() {
             <p className="mt-3 text-sm leading-7 text-muted-foreground">
               お問い合わせ内容の取り扱いは
               <br />
-              <Link href="/privacy" className="font-semibold text-primary hover:underline">
+              <Link
+                href="/privacy"
+                className="font-semibold text-primary hover:underline"
+              >
                 プライバシーポリシー
               </Link>
               <br />

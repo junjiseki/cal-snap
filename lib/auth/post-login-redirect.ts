@@ -25,7 +25,10 @@ export async function finalizeAuthSession(
     .maybeSingle();
 
   if (profileError) {
-    console.error("[finalizeAuthSession] profile deleted_at fetch failed", profileError);
+    console.error(
+      "[finalizeAuthSession] profile deleted_at fetch failed",
+      profileError,
+    );
     return {
       ok: false,
       redirectPath: `/login?error=profile_fetch&next=${encodeURIComponent(nextPath)}`,

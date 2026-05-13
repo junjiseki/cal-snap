@@ -86,7 +86,9 @@ describe("MealAnalysisSchema", () => {
   });
 
   it("rejects total_calories above max", () => {
-    const result = MealAnalysisSchema.safeParse(validAnalysis({ total_calories: 100_001 }));
+    const result = MealAnalysisSchema.safeParse(
+      validAnalysis({ total_calories: 100_001 }),
+    );
     expect(result.success).toBe(false);
   });
 
@@ -98,17 +100,23 @@ describe("MealAnalysisSchema", () => {
   });
 
   it("rejects item name longer than 80 chars", () => {
-    const result = MealAnalysisSchema.safeParse(validAnalysis({ items: [validItem({ name: "x".repeat(81) })] }));
+    const result = MealAnalysisSchema.safeParse(
+      validAnalysis({ items: [validItem({ name: "x".repeat(81) })] }),
+    );
     expect(result.success).toBe(false);
   });
 
   it("rejects memo longer than 1000 chars", () => {
-    const result = MealAnalysisSchema.safeParse(validAnalysis({ memo: "m".repeat(1001) }));
+    const result = MealAnalysisSchema.safeParse(
+      validAnalysis({ memo: "m".repeat(1001) }),
+    );
     expect(result.success).toBe(false);
   });
 
   it("rejects ai_confidence above 1", () => {
-    const result = MealAnalysisSchema.safeParse(validAnalysis({ ai_confidence: 1.01 }));
+    const result = MealAnalysisSchema.safeParse(
+      validAnalysis({ ai_confidence: 1.01 }),
+    );
     expect(result.success).toBe(false);
   });
 });
@@ -148,7 +156,9 @@ describe("getDayRangeInJapan", () => {
     expect(r.start).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(r.end).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(r.endExclusive).toMatch(/^\d{4}-\d{2}-\d{2}T/);
-    expect(new Date(r.endExclusive).getTime() - new Date(r.start).getTime()).toBe(86_400_000);
+    expect(
+      new Date(r.endExclusive).getTime() - new Date(r.start).getTime(),
+    ).toBe(86_400_000);
   });
 
   it("falls back to today when date string is invalid", () => {
@@ -180,11 +190,14 @@ describe("getCalorieOverLevel", () => {
 
   it("returns warn when over by threshold kcal or less", () => {
     expect(getCalorieOverLevel(2001, goal)).toBe("warn");
-    expect(getCalorieOverLevel(2000 + CALORIE_OVER_WARN_THRESHOLD_KCAL, goal)).toBe("warn");
+    expect(
+      getCalorieOverLevel(2000 + CALORIE_OVER_WARN_THRESHOLD_KCAL, goal),
+    ).toBe("warn");
   });
 
   it("returns severe when over by more than threshold kcal", () => {
-    expect(getCalorieOverLevel(2000 + CALORIE_OVER_WARN_THRESHOLD_KCAL + 1, goal)).toBe("severe");
+    expect(
+      getCalorieOverLevel(2000 + CALORIE_OVER_WARN_THRESHOLD_KCAL + 1, goal),
+    ).toBe("severe");
   });
 });
-

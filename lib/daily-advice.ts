@@ -57,7 +57,9 @@ export type DailyAdviceResult =
   | { status: "insufficient_data"; message: string }
   | { status: "ok"; advice: DailyAdvice; summary?: DailyAdviceSummary };
 
-export type DailyAdviceGenerator = (summary: DailyAdviceSummary) => Promise<DailyAdvice>;
+export type DailyAdviceGenerator = (
+  summary: DailyAdviceSummary,
+) => Promise<DailyAdvice>;
 
 export const INSUFFICIENT_DAILY_ADVICE_MESSAGE =
   "まずは3日分記録すると、あなたに合ったアドバイスを表示できます。";
@@ -110,7 +112,9 @@ function average(values: number[]) {
 }
 
 export function hasEnoughDailyAdviceData(meals: DailyAdviceMeal[]) {
-  const recordedDays = new Set(meals.map((meal) => toJstDate(new Date(meal.eaten_at)))).size;
+  const recordedDays = new Set(
+    meals.map((meal) => toJstDate(new Date(meal.eaten_at))),
+  ).size;
   return recordedDays >= 3 && meals.length >= 5;
 }
 
@@ -131,9 +135,17 @@ export function summarizeDailyAdviceMeals(
   const sortedDays = [...mealsByDay.keys()].sort();
   const recent3DayCalories = sortedDays
     .slice(-3)
-    .map((day) => (mealsByDay.get(day) ?? []).reduce((sum, meal) => sum + meal.total_calories, 0));
+    .map((day) =>
+      (mealsByDay.get(day) ?? []).reduce(
+        (sum, meal) => sum + meal.total_calories,
+        0,
+      ),
+    );
 
-  const totalCalories = meals.reduce((sum, meal) => sum + meal.total_calories, 0);
+  const totalCalories = meals.reduce(
+    (sum, meal) => sum + meal.total_calories,
+    0,
+  );
   const totalProtein = meals.reduce((sum, meal) => sum + meal.protein, 0);
   const totalFat = meals.reduce((sum, meal) => sum + meal.fat, 0);
   const totalCarbs = meals.reduce((sum, meal) => sum + meal.carbs, 0);
@@ -165,7 +177,9 @@ export function summarizeDailyAdviceMeals(
     avg_fat: round(totalFat / Math.max(meals.length, 1)),
     avg_carbs: round(totalCarbs / Math.max(meals.length, 1)),
     recent_3_day_avg_calories: round(average(recent3DayCalories)),
-    calorie_diff_from_7_day_avg: round(average(recent3DayCalories) - average(dayCalories)),
+    calorie_diff_from_7_day_avg: round(
+      average(recent3DayCalories) - average(dayCalories),
+    ),
     pfc_ratio: {
       protein: ratio(totalProtein * 4, pfcCalories),
       fat: ratio(totalFat * 9, pfcCalories),

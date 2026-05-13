@@ -1,4 +1,7 @@
-import { forbiddenOriginResponse, isAllowedOrigin } from "@/lib/security/request";
+import {
+  forbiddenOriginResponse,
+  isAllowedOrigin,
+} from "@/lib/security/request";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 import { getStripeServer } from "@/lib/stripe/server";
 
@@ -8,7 +11,9 @@ function errorResponse(message: string, status: number, code: string) {
   return Response.json({ error: { message, code } }, { status });
 }
 
-function subscriptionCustomerId(subscription: { customer: string | { id: string } }) {
+function subscriptionCustomerId(subscription: {
+  customer: string | { id: string };
+}) {
   return typeof subscription.customer === "string"
     ? subscription.customer
     : subscription.customer.id;
@@ -25,7 +30,10 @@ export async function POST(request: Request) {
   }
 
   const stripe = getStripeServer();
-  const origin = request.headers.get("origin") ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const origin =
+    request.headers.get("origin") ??
+    process.env.NEXT_PUBLIC_APP_URL ??
+    "http://localhost:3000";
 
   let searchResult: Awaited<ReturnType<typeof stripe.subscriptions.search>>;
   try {
@@ -51,9 +59,18 @@ export async function POST(request: Request) {
     );
   }
 
-  const preferredOrder = ["active", "trialing", "past_due", "unpaid", "canceled", "incomplete", "incomplete_expired"];
+  const preferredOrder = [
+    "active",
+    "trialing",
+    "past_due",
+    "unpaid",
+    "canceled",
+    "incomplete",
+    "incomplete_expired",
+  ];
   const subscription = [...subscriptions].sort(
-    (a, b) => preferredOrder.indexOf(a.status) - preferredOrder.indexOf(b.status),
+    (a, b) =>
+      preferredOrder.indexOf(a.status) - preferredOrder.indexOf(b.status),
   )[0];
 
   const customerId = subscriptionCustomerId(subscription);
@@ -65,7 +82,10 @@ export async function POST(request: Request) {
     });
     return Response.json({ url: portalSession.url });
   } catch (error) {
-    console.error("[stripe-portal] billingPortal.sessions.create failed", error);
+    console.error(
+      "[stripe-portal] billingPortal.sessions.create failed",
+      error,
+    );
     return errorResponse(
       "お客様ポータルを開けませんでした。Stripe ダッシュボードで Customer portal を有効化しているか確認してください。",
       502,

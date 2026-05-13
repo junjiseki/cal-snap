@@ -22,7 +22,11 @@ function validMenu(overrides: Record<string, unknown> = {}) {
 function validResponse(overrides: Record<string, unknown> = {}) {
   return {
     summary: "今日の残りカロリーに合わせた外食候補です。",
-    suggestions: [validMenu(), validMenu({ title: "定食B" }), validMenu({ title: "定食C" })],
+    suggestions: [
+      validMenu(),
+      validMenu({ title: "定食B" }),
+      validMenu({ title: "定食C" }),
+    ],
     ...overrides,
   };
 }
@@ -61,12 +65,16 @@ describe("MealSuggestionMenuSchema", () => {
   });
 
   it("rejects empty title", () => {
-    const result = MealSuggestionMenuSchema.safeParse(validMenu({ title: "   " }));
+    const result = MealSuggestionMenuSchema.safeParse(
+      validMenu({ title: "   " }),
+    );
     expect(result.success).toBe(false);
   });
 
   it("rejects title longer than 80 chars", () => {
-    const result = MealSuggestionMenuSchema.safeParse(validMenu({ title: "x".repeat(81) }));
+    const result = MealSuggestionMenuSchema.safeParse(
+      validMenu({ title: "x".repeat(81) }),
+    );
     expect(result.success).toBe(false);
   });
 
@@ -82,7 +90,9 @@ describe("MealSuggestionMenuSchema", () => {
   });
 
   it("rejects negative macros", () => {
-    const result = MealSuggestionMenuSchema.safeParse(validMenu({ protein: -1 }));
+    const result = MealSuggestionMenuSchema.safeParse(
+      validMenu({ protein: -1 }),
+    );
     expect(result.success).toBe(false);
   });
 
@@ -114,7 +124,9 @@ describe("MealSuggestionResponseSchema", () => {
       validMenu({ title: "C" }),
       validMenu({ title: "D" }),
     ];
-    const result = MealSuggestionResponseSchema.safeParse(validResponse({ suggestions }));
+    const result = MealSuggestionResponseSchema.safeParse(
+      validResponse({ suggestions }),
+    );
     expect(result.success).toBe(false);
   });
 

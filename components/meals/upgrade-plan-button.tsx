@@ -14,13 +14,22 @@ export function UpgradePlanButton() {
       const response = await fetch("/api/stripe/checkout", {
         method: "POST",
       });
-      const body = (await response.json()) as { url?: string; error?: { message?: string } };
+      const body = (await response.json()) as {
+        url?: string;
+        error?: { message?: string };
+      };
       if (!response.ok || !body.url) {
-        throw new Error(body.error?.message || "決済ページを開けませんでした。");
+        throw new Error(
+          body.error?.message || "決済ページを開けませんでした。",
+        );
       }
       window.location.href = body.url;
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "決済ページの作成に失敗しました。");
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "決済ページの作成に失敗しました。",
+      );
       setIsLoading(false);
     }
   }

@@ -83,12 +83,13 @@ self.addEventListener("fetch", (event) => {
         return cached;
       }
 
-      return fetch(request)
-        .then((response) => {
-          updateCache(response);
-          return response;
-        })
-        .catch(() => cached);
+      try {
+        const response = await fetch(request);
+        updateCache(response);
+        return response;
+      } catch {
+        return Response.error();
+      }
     })(),
   );
 });

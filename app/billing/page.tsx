@@ -26,6 +26,12 @@ export const dynamic = "force-dynamic";
 const PAID_PLAN_PRICE_LABEL = "550円";
 const PAID_PLAN_TRIAL_LABEL = "14日間無料";
 
+const premiumPlanHighlights = [
+  ["高精度AI", "写真解析と提案の品質を高めます"],
+  ["1日3回", `AI写真解析を${PAID_DAILY_ANALYSIS_LIMIT}回まで`],
+  ["14日無料", "合わなければ期間中に解約できます"],
+] as const;
+
 const paidBenefitGroups = [
   {
     id: "record",
@@ -257,6 +263,14 @@ export default async function BillingPage() {
               <span className="shrink-0 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                 14日間無料
               </span>
+            </div>
+            <div className="mt-5 grid gap-2 sm:grid-cols-3">
+              {premiumPlanHighlights.map(([label, body]) => (
+                <div key={label} className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2.5">
+                  <p className="text-sm font-semibold text-primary">{label}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{body}</p>
+                </div>
+              ))}
             </div>
             <ul className="mt-5 space-y-2 text-sm leading-relaxed text-muted-foreground">
               <li className="flex gap-2">

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, Camera, CheckCircle2, ShieldCheck } from "lucide-react";
 import { safeInternalPath } from "@/lib/auth/safe-redirect";
 import { LazyMealPhotoAnalyzer } from "@/components/meals/lazy-meal-photo-analyzer";
 import {
@@ -60,15 +60,16 @@ export default async function NewMealPage({
 
   return (
     <main className="min-h-0 flex-1 bg-background">
-      <section className="border-b border-border bg-card">
+      <section className="border-b border-border bg-gradient-to-br from-primary/5 via-card to-background">
         <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-8 sm:py-6">
           <div>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-sm font-semibold text-primary">
+                <p className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
+                  <Camera className="size-4" />
                   写真で3秒記録
                 </p>
-                <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-4xl">
+                <h1 className="mt-3 text-2xl font-semibold tracking-tight sm:text-4xl">
                   食事写真を解析して記録
                 </h1>
               </div>
@@ -80,11 +81,35 @@ export default async function NewMealPage({
                 ダッシュボード
               </Link>
             </div>
-            <p className="mt-2 text-xs text-muted-foreground/75">
-              有料プランは食事時間を指定して1日最大{MAX_MEALS_PER_DAY}
-              回まで記録できます。 1食あたり料理{MAX_MEAL_ITEMS_PER_MEAL}
-              件まで登録できます。
-            </p>
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+                <p className="flex items-center gap-2 text-sm font-semibold">
+                  <Camera className="size-4 text-primary" />
+                  写真を選ぶ
+                </p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  AI推定後に修正して保存できます。
+                </p>
+              </div>
+              <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+                <p className="flex items-center gap-2 text-sm font-semibold">
+                  <ShieldCheck className="size-4 text-primary" />
+                  写真は保存しない
+                </p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  DBには解析結果と食事データだけ保存します。
+                </p>
+              </div>
+              <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+                <p className="flex items-center gap-2 text-sm font-semibold">
+                  <CheckCircle2 className="size-4 text-primary" />
+                  登録上限
+                </p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  有料は1日{MAX_MEALS_PER_DAY}件、1食あたり料理{MAX_MEAL_ITEMS_PER_MEAL}件まで。
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>

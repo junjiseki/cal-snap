@@ -7,7 +7,6 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   BarChart3,
   Camera,
-  ImageUp,
   LogIn,
   Menu,
   Sparkles,
@@ -38,12 +37,11 @@ export function AppHeaderClient({
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const bottomCameraInputRef = useRef<HTMLInputElement>(null);
+  const bottomPhotoInputRef = useRef<HTMLInputElement>(null);
   const mobileNavId = useId();
   const pathname = usePathname();
   const router = useRouter();
   const isDashboardPage = pathname === "/dashboard";
-  const isMealAnalyzerPage = pathname === "/meals/new";
   const isSuggestionsPage = pathname === "/suggestions";
   const closeMobileMenuSoon = () => {
     window.setTimeout(
@@ -57,7 +55,7 @@ export function AppHeaderClient({
     setOpen(false);
   }, [pathname]);
 
-  function handleBottomCameraFileChange(event: ChangeEvent<HTMLInputElement>) {
+  function handleBottomPhotoChange(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0] ?? null;
     event.target.value = "";
     if (!selected) return;
@@ -220,48 +218,23 @@ export function AppHeaderClient({
               <BarChart3 className="size-5" />
               ダッシュボード
             </Link>
-            <div
-              className={cn(
-                "flex min-h-14 min-w-0 overflow-hidden rounded-xl text-xs font-semibold transition active:scale-[0.98]",
-                isMealAnalyzerPage
-                  ? "bg-card text-primary shadow-sm ring-1 ring-border"
-                  : "text-muted-foreground",
-              )}
+            <button
+              type="button"
+              onClick={() => bottomPhotoInputRef.current?.click()}
+              className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-xs font-semibold text-muted-foreground transition active:scale-[0.98] active:bg-muted"
+              aria-label="写真を選択"
             >
-              <Link
-                href="/meals/new"
-                aria-current={isMealAnalyzerPage ? "page" : undefined}
-                className={cn(
-                  "flex min-w-0 flex-1 flex-col items-center justify-center gap-1 px-0.5 py-1 active:scale-[0.98]",
-                  !isMealAnalyzerPage && "active:bg-muted",
-                )}
-              >
-                <Camera className="size-5 shrink-0" />
-                <span className="leading-none">記録</span>
-              </Link>
-              <button
-                type="button"
-                onClick={() => bottomCameraInputRef.current?.click()}
-                className={cn(
-                  "flex w-[42%] max-w-21 shrink-0 flex-col items-center justify-center gap-0.5 border-l border-border/70 px-0.5 py-1 active:scale-[0.98]",
-                  !isMealAnalyzerPage && "active:bg-muted",
-                )}
-                aria-label="写真を選んで記録へ"
-              >
-                <ImageUp className="size-4 shrink-0" />
-                <span className="text-[10px] font-semibold leading-none">
-                  写真
-                </span>
-              </button>
-            </div>
+              <Camera className="size-5" />
+              写真
+            </button>
             <input
-              ref={bottomCameraInputRef}
+              ref={bottomPhotoInputRef}
               type="file"
               accept="image/jpeg,image/png,image/webp"
               className="sr-only"
               tabIndex={-1}
               aria-hidden
-              onChange={handleBottomCameraFileChange}
+              onChange={handleBottomPhotoChange}
             />
             <Link
               href="/suggestions"

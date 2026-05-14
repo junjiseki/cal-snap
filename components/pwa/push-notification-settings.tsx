@@ -69,11 +69,20 @@ async function ensureServiceWorkerRegistration() {
     existing?.active?.scriptURL ??
     existing?.waiting?.scriptURL ??
     existing?.installing?.scriptURL;
-  const isExpectedWorker = scriptUrl
-    ? new URL(scriptUrl).pathname === PUSH_SW_PATH
-    : false;
+  let pathname: string | null = null;
+  if (scriptUrl) {
+    try {
+      pathname = new URL(scriptUrl).pathname;
+    } catch {
+      pathname = null;
+    }
+  }
+  // pathname が取れない間は誤登録解除しない（デプロイ直後などで一瞬 scriptURL が空になると
+  // 以前は常に「想定外 SW」とみなして unregister し、プッシュ購読が消えていた）
+  const isDefinitelyWrongWorker =
+    pathname !== null && pathname !== PUSH_SW_PATH;
 
-  if (existing && !isExpectedWorker) {
+  if (existing && isDefinitelyWrongWorker) {
     await withTimeLimit(
       existing.unregister(),
       PUSH_STEP_TIMEOUT_MS,
@@ -174,9 +183,61 @@ export function PushNotificationSettings({
     if (!supported) return;
 
     setPermission(Notification.permission);
-    void getCurrentSubscription()
-      .then((subscription) => setIsSubscribed(Boolean(subscription)))
-      .catch(() => setIsSubscribed(false));
+
+    let cancelled = false;
+    const waitsBetweenProbesMs = [400, 800, 1300];
+    const maxAttempts = waitsBetweenProbesMs.length + 1;
+
+    void (async () => {
+      for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+        if (cancelled) return;
+        if (attempt > 0) {
+          const waitMs = waitsBetweenProbesMs[attempt - 1] ?? 0;
+          await new Promise((r) => {
+            setTimeout(r, waitMs);
+          });
+        }
+        if (cancelled) return;
+        try {
+          const subscription = await getCurrentSubscription();
+          if (cancelled) return;
+          setIsSubscribed(Boolean(subscription));
+          if (subscription) return;
+        } catch {
+          if (cancelled) return;
+          if (attempt === maxAttempts - 1) {
+            setIsSubscribed(false);
+          }
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [vapidPublicKey]);
+
+  useEffect(() => {
+    if (
+      typeof window === "undefined" ||
+      !vapidPublicKey ||
+      !("serviceWorker" in navigator)
+    ) {
+      return;
+    }
+
+    function refresh() {
+      void getCurrentSubscription()
+        .then((subscription) => setIsSubscribed(Boolean(subscription)))
+        .catch(() => {
+          /* 新 SW 切替直後の一時失敗は上記リトライ／次回操作に任せる */
+        });
+    }
+
+    navigator.serviceWorker.addEventListener("controllerchange", refresh);
+    return () => {
+      navigator.serviceWorker.removeEventListener("controllerchange", refresh);
+    };
   }, [vapidPublicKey]);
 
   useEffect(() => {

@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState, type ChangeEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   BarChart3,
   Camera,
+  ImageUp,
   LogIn,
   Menu,
   Sparkles,
@@ -14,6 +15,10 @@ import {
   X,
 } from "lucide-react";
 import { DashboardAccountMenu } from "@/components/meals/dashboard-account-menu";
+import {
+  PENDING_MEAL_PHOTO_EVENT,
+  setPendingMealPhoto,
+} from "@/lib/pending-meal-photo";
 import { APP_HEADER_MOBILE_MENU_CLOSE_DELAY_MS } from "@/lib/ui-timing";
 import { cn } from "@/lib/utils";
 
@@ -33,8 +38,10 @@ export function AppHeaderClient({
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const bottomCameraInputRef = useRef<HTMLInputElement>(null);
   const mobileNavId = useId();
   const pathname = usePathname();
+  const router = useRouter();
   const isDashboardPage = pathname === "/dashboard";
   const isMealAnalyzerPage = pathname === "/meals/new";
   const isSuggestionsPage = pathname === "/suggestions";
@@ -49,6 +56,18 @@ export function AppHeaderClient({
     void pathname;
     setOpen(false);
   }, [pathname]);
+
+  function handleBottomCameraFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const selected = event.target.files?.[0] ?? null;
+    event.target.value = "";
+    if (!selected) return;
+
+    setPendingMealPhoto(selected);
+    window.dispatchEvent(new Event(PENDING_MEAL_PHOTO_EVENT));
+    if (pathname !== "/meals/new") {
+      router.push("/meals/new");
+    }
+  }
 
   return (
     <>
@@ -201,19 +220,49 @@ export function AppHeaderClient({
               <BarChart3 className="size-5" />
               ダッシュボード
             </Link>
-            <Link
-              href="/meals/new"
-              aria-current={isMealAnalyzerPage ? "page" : undefined}
+            <div
               className={cn(
-                "flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-xs font-semibold transition active:scale-[0.98]",
+                "flex min-h-14 min-w-0 overflow-hidden rounded-xl text-xs font-semibold transition active:scale-[0.98]",
                 isMealAnalyzerPage
                   ? "bg-card text-primary shadow-sm ring-1 ring-border"
-                  : "text-muted-foreground active:bg-muted",
+                  : "text-muted-foreground",
               )}
             >
-              <Camera className="size-5" />
-              記録
-            </Link>
+              <Link
+                href="/meals/new"
+                aria-current={isMealAnalyzerPage ? "page" : undefined}
+                className={cn(
+                  "flex min-w-0 flex-1 flex-col items-center justify-center gap-1 px-0.5 py-1 active:scale-[0.98]",
+                  !isMealAnalyzerPage && "active:bg-muted",
+                )}
+              >
+                <Camera className="size-5 shrink-0" />
+                <span className="leading-none">記録</span>
+              </Link>
+              <button
+                type="button"
+                onClick={() => bottomCameraInputRef.current?.click()}
+                className={cn(
+                  "flex w-[42%] max-w-21 shrink-0 flex-col items-center justify-center gap-0.5 border-l border-border/70 px-0.5 py-1 active:scale-[0.98]",
+                  !isMealAnalyzerPage && "active:bg-muted",
+                )}
+                aria-label="写真を選んで記録へ"
+              >
+                <ImageUp className="size-4 shrink-0" />
+                <span className="text-[10px] font-semibold leading-none">
+                  写真
+                </span>
+              </button>
+            </div>
+            <input
+              ref={bottomCameraInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="sr-only"
+              tabIndex={-1}
+              aria-hidden
+              onChange={handleBottomCameraFileChange}
+            />
             <Link
               href="/suggestions"
               aria-current={isSuggestionsPage ? "page" : undefined}

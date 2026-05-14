@@ -644,9 +644,11 @@ export function MealPhotoAnalyzer({
     if (resolvedPlan !== "paid") return;
     if (initialEntryMode !== "manual") return;
     if (entryMode !== "photo" || analysis) return;
+    // 手動URLから写真を選んだ直後は file あり・analysis なし。ここで手動に戻すと画像が消える。
+    if (file) return;
     setEntryMode("manual");
     setAnalysis(createManualMealDraft());
-  }, [resolvedPlan, initialEntryMode, entryMode, analysis]);
+  }, [resolvedPlan, initialEntryMode, entryMode, analysis, file]);
 
   const applySelectedFile = useCallback((selected: File | null) => {
     setError(null);

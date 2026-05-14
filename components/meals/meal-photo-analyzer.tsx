@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -37,6 +38,10 @@ import {
   toConfidence,
   toInteger,
 } from "@/lib/meal-analysis";
+import {
+  PENDING_MEAL_PHOTO_EVENT,
+  takePendingMealPhoto,
+} from "@/lib/pending-meal-photo";
 
 type MacroInput = number | "";
 
@@ -565,10 +570,10 @@ export function MealPhotoAnalyzer({
   const limitBlocked = (usage?.remaining ?? 1) <= 0;
   const activeStep = analysis ? 3 : file ? 2 : 1;
 
-  function clearFileInputs() {
+  const clearFileInputs = useCallback(() => {
     if (cameraFileInputRef.current) cameraFileInputRef.current.value = "";
     if (galleryFileInputRef.current) galleryFileInputRef.current.value = "";
-  }
+  }, []);
 
   function selectEntryMode(mode: EntryMode) {
     if (mode === "manual" && !canUseManualEntry) {
@@ -643,8 +648,7 @@ export function MealPhotoAnalyzer({
     setAnalysis(createManualMealDraft());
   }, [resolvedPlan, initialEntryMode, entryMode, analysis]);
 
-  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
-    const selected = event.target.files?.[0] ?? null;
+  const applySelectedFile = useCallback((selected: File | null) => {
     setError(null);
     setNotice(null);
     setAnalysis(null);
@@ -661,7 +665,26 @@ export function MealPhotoAnalyzer({
       return;
     }
     setFile(selected);
+  }, [clearFileInputs]);
+
+  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    applySelectedFile(event.target.files?.[0] ?? null);
   }
+
+  useEffect(() => {
+    function consumePendingPhoto() {
+      const pendingFile = takePendingMealPhoto();
+      if (!pendingFile) return;
+      setEntryMode("photo");
+      applySelectedFile(pendingFile);
+    }
+
+    consumePendingPhoto();
+    window.addEventListener(PENDING_MEAL_PHOTO_EVENT, consumePendingPhoto);
+    return () => {
+      window.removeEventListener(PENDING_MEAL_PHOTO_EVENT, consumePendingPhoto);
+    };
+  }, [applySelectedFile]);
 
   function clearSelectedImage() {
     setFile(null);

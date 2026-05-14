@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState, type ChangeEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   BarChart3,
   Camera,
@@ -14,6 +14,10 @@ import {
   X,
 } from "lucide-react";
 import { DashboardAccountMenu } from "@/components/meals/dashboard-account-menu";
+import {
+  PENDING_MEAL_PHOTO_EVENT,
+  setPendingMealPhoto,
+} from "@/lib/pending-meal-photo";
 import { APP_HEADER_MOBILE_MENU_CLOSE_DELAY_MS } from "@/lib/ui-timing";
 import { cn } from "@/lib/utils";
 
@@ -33,8 +37,10 @@ export function AppHeaderClient({
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const bottomCameraInputRef = useRef<HTMLInputElement>(null);
   const mobileNavId = useId();
   const pathname = usePathname();
+  const router = useRouter();
   const isDashboardPage = pathname === "/dashboard";
   const isMealAnalyzerPage = pathname === "/meals/new";
   const isSuggestionsPage = pathname === "/suggestions";
@@ -49,6 +55,18 @@ export function AppHeaderClient({
     void pathname;
     setOpen(false);
   }, [pathname]);
+
+  function handleBottomCameraFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const selected = event.target.files?.[0] ?? null;
+    event.target.value = "";
+    if (!selected) return;
+
+    setPendingMealPhoto(selected);
+    window.dispatchEvent(new Event(PENDING_MEAL_PHOTO_EVENT));
+    if (pathname !== "/meals/new") {
+      router.push("/meals/new");
+    }
+  }
 
   return (
     <>
@@ -201,8 +219,9 @@ export function AppHeaderClient({
               <BarChart3 className="size-5" />
               ダッシュボード
             </Link>
-            <Link
-              href="/meals/new"
+            <button
+              type="button"
+              onClick={() => bottomCameraInputRef.current?.click()}
               aria-current={isMealAnalyzerPage ? "page" : undefined}
               className={cn(
                 "flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-xs font-semibold transition active:scale-[0.98]",
@@ -213,7 +232,16 @@ export function AppHeaderClient({
             >
               <Camera className="size-5" />
               記録
-            </Link>
+            </button>
+            <input
+              ref={bottomCameraInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="sr-only"
+              tabIndex={-1}
+              aria-hidden
+              onChange={handleBottomCameraFileChange}
+            />
             <Link
               href="/suggestions"
               aria-current={isSuggestionsPage ? "page" : undefined}

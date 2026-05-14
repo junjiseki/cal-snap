@@ -1,11 +1,7 @@
 import Link from "next/link";
-import { BarChart3, Camera, CheckCircle2, ShieldCheck } from "lucide-react";
+import { BarChart3, Camera } from "lucide-react";
 import { safeInternalPath } from "@/lib/auth/safe-redirect";
 import { LazyMealPhotoAnalyzer } from "@/components/meals/lazy-meal-photo-analyzer";
-import {
-  MAX_MEAL_ITEMS_PER_MEAL,
-  MAX_MEALS_PER_DAY,
-} from "@/lib/meal-analysis";
 import { getAuthenticatedUserWithProfileCached } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -80,35 +76,6 @@ export default async function NewMealPage({
                 <BarChart3 className="size-4" />
                 ダッシュボード
               </Link>
-            </div>
-            <div className="mt-5 grid gap-3 sm:grid-cols-3">
-              <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-                <p className="flex items-center gap-2 text-sm font-semibold">
-                  <Camera className="size-4 text-primary" />
-                  写真を選ぶ
-                </p>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  AI推定後に修正して保存できます。
-                </p>
-              </div>
-              <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-                <p className="flex items-center gap-2 text-sm font-semibold">
-                  <ShieldCheck className="size-4 text-primary" />
-                  写真は保存しない
-                </p>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  DBには解析結果と食事データだけ保存します。
-                </p>
-              </div>
-              <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-                <p className="flex items-center gap-2 text-sm font-semibold">
-                  <CheckCircle2 className="size-4 text-primary" />
-                  登録上限
-                </p>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  有料は1日{MAX_MEALS_PER_DAY}件、1食あたり料理{MAX_MEAL_ITEMS_PER_MEAL}件まで。
-                </p>
-              </div>
             </div>
           </div>
         </div>

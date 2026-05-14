@@ -262,7 +262,7 @@ export default async function DashboardPage({
                 目安 {goalCalories} kcal / {calorieProgress}%
               </p>
             </div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <div className="mt-4 hidden gap-3 sm:grid sm:grid-cols-3">
               <Link
                 href="/meals/new"
                 className="group rounded-xl border border-border bg-card p-4 shadow-sm transition hover:border-primary/40 hover:bg-primary/5"

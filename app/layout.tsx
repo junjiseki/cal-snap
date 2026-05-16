@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Geist } from "next/font/google";
+import Image from "next/image";
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import "./globals.css";
@@ -44,6 +45,46 @@ const FOOTER_LINKS = [
   { href: "/privacy", label: "プライバシーポリシー" },
   { href: "/commerce-disclosure", label: "特商法表記" },
 ] as const;
+
+function AppHeaderFallback() {
+  return (
+    <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-8">
+        <div className="flex items-center justify-between gap-3 py-3 sm:py-4">
+          <Link href="/" className="flex min-w-0 items-center gap-2 sm:gap-3">
+            <Image
+              src="/logo.webp"
+              alt="カロスナ AI ロゴ"
+              width={48}
+              height={48}
+              className="size-10 shrink-0 rounded-md sm:size-12"
+              sizes="(min-width: 640px) 48px, 40px"
+              priority
+            />
+            <span className="truncate text-base font-semibold sm:text-lg">
+              カロスナ
+            </span>
+          </Link>
+          <div className="hidden items-center gap-2 md:flex">
+            <Link
+              href="/login"
+              className="rounded-md px-2 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              ログイン
+            </Link>
+            <Link
+              href="/signup"
+              className="rounded-md px-2 py-2 text-sm font-semibold text-primary hover:bg-muted/50"
+            >
+              新規登録
+            </Link>
+          </div>
+          <div className="size-10 rounded-md border border-border bg-background shadow-sm md:hidden" />
+        </div>
+      </div>
+    </header>
+  );
+}
 
 /** OGP / Twitter / LINE 用（実ファイルと寸法を一致。url はリクエストオリジン基準の絶対 URL） */
 function socialShareLogo(alt: string, origin: string) {
@@ -150,7 +191,9 @@ export default function RootLayout({
           <ServiceWorkerLegacyCleanup />
           <PassiveServiceWorkerRegister />
           <PwaOfflineNotice />
-          <AppHeader />
+          <Suspense fallback={<AppHeaderFallback />}>
+            <AppHeader />
+          </Suspense>
           <div className="flex flex-1 flex-col">{children}</div>
           <Suspense fallback={null}>
             <DailyAdvice />

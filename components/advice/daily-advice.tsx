@@ -1,60 +1,24 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import { DailyAdviceBanner } from "@/components/advice/daily-advice-banner";
-import { createClient } from "@/lib/supabase/client";
+import { getAuthenticatedUserWithProfileCached } from "@/lib/supabase/server";
 
 type AdviceAccount = {
   userId: string;
   plan: "free" | "paid";
 };
 
-export function DailyAdvice() {
-  const [account, setAccount] = useState<AdviceAccount | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadAccount() {
-      try {
-        const supabase = createClient();
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        if (!user) {
-          if (!cancelled) setAccount(null);
-          return;
+export async function DailyAdvice() {
+  const { user, profile } = await getAuthenticatedUserWithProfileCached();
+  const account: AdviceAccount | null =
+    user && profile?.plan === "paid"
+      ? {
+          userId: user.id,
+          plan: "paid",
         }
+      : null;
 
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("plan")
-          .eq("id", user.id)
-          .maybeSingle();
+  if (!account) {
+    return null;
+  }
 
-        if (!cancelled) {
-          setAccount({
-            userId: user.id,
-            plan: profile?.plan === "paid" ? "paid" : "free",
-          });
-        }
-      } catch {
-        if (!cancelled) setAccount(null);
-      }
-    }
-
-    void loadAccount();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  return (
-    <DailyAdviceBanner
-      userId={account?.userId ?? null}
-      plan={account?.plan ?? null}
-    />
-  );
+  return <DailyAdviceBanner userId={account.userId} plan={account.plan} />;
 }

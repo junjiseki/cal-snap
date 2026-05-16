@@ -37,12 +37,18 @@ export function AppHeaderClient({
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [pendingBottomPath, setPendingBottomPath] = useState<string | null>(
+    null,
+  );
   const bottomPhotoInputRef = useRef<HTMLInputElement>(null);
+  const pendingBottomResetRef = useRef<number | null>(null);
   const mobileNavId = useId();
   const pathname = usePathname();
   const router = useRouter();
-  const isDashboardPage = pathname === "/dashboard";
-  const isSuggestionsPage = pathname === "/suggestions";
+  const visibleBottomPath = pendingBottomPath ?? pathname;
+  const isDashboardPage = visibleBottomPath === "/dashboard";
+  const isMealNewPage = visibleBottomPath === "/meals/new";
+  const isSuggestionsPage = visibleBottomPath === "/suggestions";
   const closeMobileMenuSoon = () => {
     window.setTimeout(
       () => setOpen(false),
@@ -53,7 +59,33 @@ export function AppHeaderClient({
   useEffect(() => {
     void pathname;
     setOpen(false);
+    setPendingBottomPath(null);
   }, [pathname]);
+
+  useEffect(() => {
+    router.prefetch("/dashboard");
+    router.prefetch("/meals/new");
+    router.prefetch("/suggestions");
+  }, [router]);
+
+  useEffect(() => {
+    return () => {
+      if (pendingBottomResetRef.current) {
+        window.clearTimeout(pendingBottomResetRef.current);
+      }
+    };
+  }, []);
+
+  function markBottomPathPending(path: string) {
+    setPendingBottomPath(path);
+    if (pendingBottomResetRef.current) {
+      window.clearTimeout(pendingBottomResetRef.current);
+    }
+    pendingBottomResetRef.current = window.setTimeout(() => {
+      setPendingBottomPath(null);
+      pendingBottomResetRef.current = null;
+    }, 2500);
+  }
 
   function handleBottomPhotoChange(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0] ?? null;
@@ -63,6 +95,7 @@ export function AppHeaderClient({
     setPendingMealPhoto(selected);
     window.dispatchEvent(new Event(PENDING_MEAL_PHOTO_EVENT));
     if (pathname !== "/meals/new") {
+      markBottomPathPending("/meals/new");
       router.push("/meals/new");
     }
   }
@@ -207,9 +240,11 @@ export function AppHeaderClient({
           <div className="mx-auto grid max-w-md grid-cols-3 gap-1.5 rounded-2xl bg-muted/45 p-1">
             <Link
               href="/dashboard"
+              onPointerDown={() => markBottomPathPending("/dashboard")}
+              onClick={() => markBottomPathPending("/dashboard")}
               aria-current={isDashboardPage ? "page" : undefined}
               className={cn(
-                "flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-xs font-semibold transition active:scale-[0.98]",
+                "flex min-h-14 touch-manipulation select-none flex-col items-center justify-center gap-1 rounded-xl text-xs font-semibold transition active:scale-[0.98]",
                 isDashboardPage
                   ? "bg-card text-primary shadow-sm ring-1 ring-border"
                   : "text-muted-foreground active:bg-muted",
@@ -220,8 +255,15 @@ export function AppHeaderClient({
             </Link>
             <button
               type="button"
+              onPointerDown={() => markBottomPathPending("/meals/new")}
               onClick={() => bottomPhotoInputRef.current?.click()}
-              className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-xs font-semibold text-muted-foreground transition active:scale-[0.98] active:bg-muted"
+              className={cn(
+                "flex min-h-14 touch-manipulation select-none flex-col items-center justify-center gap-1 rounded-xl text-xs font-semibold transition active:scale-[0.98]",
+                isMealNewPage
+                  ? "bg-card text-primary shadow-sm ring-1 ring-border"
+                  : "text-muted-foreground active:bg-muted",
+              )}
+              aria-current={isMealNewPage ? "page" : undefined}
               aria-label="写真を選択"
             >
               <Camera className="size-5" />
@@ -238,9 +280,11 @@ export function AppHeaderClient({
             />
             <Link
               href="/suggestions"
+              onPointerDown={() => markBottomPathPending("/suggestions")}
+              onClick={() => markBottomPathPending("/suggestions")}
               aria-current={isSuggestionsPage ? "page" : undefined}
               className={cn(
-                "flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-xs font-semibold transition active:scale-[0.98]",
+                "flex min-h-14 touch-manipulation select-none flex-col items-center justify-center gap-1 rounded-xl text-xs font-semibold transition active:scale-[0.98]",
                 isSuggestionsPage
                   ? "bg-card text-primary shadow-sm ring-1 ring-border"
                   : "text-muted-foreground active:bg-muted",

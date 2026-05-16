@@ -70,7 +70,7 @@ export function AppHeaderClient({
 
   useEffect(() => {
     return () => {
-      if (pendingBottomResetRef.current) {
+      if (pendingBottomResetRef.current !== null) {
         window.clearTimeout(pendingBottomResetRef.current);
       }
     };
@@ -78,7 +78,7 @@ export function AppHeaderClient({
 
   function markBottomPathPending(path: string) {
     setPendingBottomPath(path);
-    if (pendingBottomResetRef.current) {
+    if (pendingBottomResetRef.current !== null) {
       window.clearTimeout(pendingBottomResetRef.current);
     }
     pendingBottomResetRef.current = window.setTimeout(() => {

@@ -19,6 +19,7 @@ export function FavoriteFoodSlideshow() {
           height={1080}
           sizes="(min-width: 1024px) 36rem, calc(100vw - 2rem)"
           priority={index === 0}
+          loading={index === 0 ? undefined : "lazy"}
           className="public-home-fade-slide absolute inset-0 h-full w-full object-cover"
           style={{ animationDelay: `${index * 4.5}s` }}
         />

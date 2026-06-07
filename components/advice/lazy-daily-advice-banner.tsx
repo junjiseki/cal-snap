@@ -15,22 +15,38 @@ const DailyAdviceBanner = dynamic(
   { ssr: false },
 );
 
-function scheduleAfterLoad(callback: () => void) {
+function scheduleAfterLoad(callback: () => void): () => void {
+  let idleId: number | undefined;
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
   const run = () => {
     if ("requestIdleCallback" in window) {
-      window.requestIdleCallback(callback, {
+      idleId = window.requestIdleCallback(callback, {
         timeout: DEFER_AFTER_LOAD_IDLE_TIMEOUT_MS,
       });
       return;
     }
-    globalThis.setTimeout(callback, DEFER_AFTER_LOAD_SETTIMEOUT_FALLBACK_MS);
+    timeoutId = globalThis.setTimeout(
+      callback,
+      DEFER_AFTER_LOAD_SETTIMEOUT_FALLBACK_MS,
+    );
   };
 
   if (document.readyState === "complete") {
     run();
-    return;
+  } else {
+    window.addEventListener("load", run, { once: true });
   }
-  window.addEventListener("load", run, { once: true });
+
+  return () => {
+    window.removeEventListener("load", run);
+    if (idleId !== undefined && "cancelIdleCallback" in window) {
+      window.cancelIdleCallback(idleId);
+    }
+    if (timeoutId !== undefined) {
+      globalThis.clearTimeout(timeoutId);
+    }
+  };
 }
 
 export function LazyDailyAdviceBanner({
@@ -43,7 +59,17 @@ export function LazyDailyAdviceBanner({
   const [shouldMount, setShouldMount] = useState(false);
 
   useEffect(() => {
-    scheduleAfterLoad(() => setShouldMount(true));
+    let cancelled = false;
+    const cancelSchedule = scheduleAfterLoad(() => {
+      if (!cancelled) {
+        setShouldMount(true);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      cancelSchedule();
+    };
   }, []);
 
   if (!shouldMount) {

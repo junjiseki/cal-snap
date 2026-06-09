@@ -1,6 +1,7 @@
 "use client";
 
-import { lazy, Suspense, useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
 import {
   DEFER_AFTER_LOAD_IDLE_TIMEOUT_MS,
   DEFER_AFTER_LOAD_SETTIMEOUT_FALLBACK_MS,
@@ -8,27 +9,18 @@ import {
 
 const INTERACTION_EVENTS = ["pointerdown", "keydown", "touchstart"] as const;
 
-const LazyVitalsBundle = lazy(() =>
-  Promise.all([
-    import("@vercel/analytics/next"),
-    import("@vercel/speed-insights/next"),
-  ]).then(([analyticsMod, speedInsightsMod]) => {
-    function VitalsBundle() {
-      return (
-        <>
-          <analyticsMod.Analytics />
-          <speedInsightsMod.SpeedInsights />
-        </>
-      );
-    }
-    return { default: VitalsBundle };
-  }),
+const DeferredVitalsInner = dynamic(
+  () =>
+    import("@/components/layout/deferred-vitals-inner").then((mod) => ({
+      default: mod.DeferredVitalsInner,
+    })),
+  { ssr: false },
 );
 
 /**
  * 初回ユーザー操作後にマウントする。操作がない場合は load 後の
  * requestIdleCallback（またはタイムアウト）でフォールバック読み込みし、
- * 計測の取りこぼしを防ぐ。チャンク取得は shouldMount 後の React.lazy で行う。
+ * 計測の取りこぼしを防ぐ。チャンク取得は shouldMount 後の next/dynamic で行う。
  */
 function scheduleVitalsMount(callback: () => void): () => void {
   let settled = false;
@@ -104,9 +96,5 @@ export function DeferredVitals() {
     return null;
   }
 
-  return (
-    <Suspense fallback={null}>
-      <LazyVitalsBundle />
-    </Suspense>
-  );
+  return <DeferredVitalsInner />;
 }

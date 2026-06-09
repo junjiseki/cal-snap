@@ -4,7 +4,7 @@
  * API・認証系レスポンスはキャッシュしない。
  * ヒット時はキャッシュを即返しつつバックグラウンドで再取得（stale-while-revalidate）。
  */
-const STATIC_CACHE = "cal-snap-static-v11";
+const STATIC_CACHE = "cal-snap-static-v12";
 /**
  * iOS「ホーム画面に追加」は apple-touch-icon を取る際、SW が fetch を横取りすると
  * キャッシュの空応答・古い失敗レスポンスで画像が取れず、サイト名の頭文字（例: カ）だけのアイコンになることがある。
@@ -83,13 +83,9 @@ self.addEventListener("fetch", (event) => {
         return cached;
       }
 
-      try {
-        const response = await fetch(request);
-        updateCache(response);
-        return response;
-      } catch {
-        return Response.error();
-      }
+      const response = await fetch(request);
+      updateCache(response);
+      return response;
     })(),
   );
 });

@@ -1,15 +1,18 @@
 "use client";
 
-import { lazy, Suspense } from "react";
+import dynamic from "next/dynamic";
 
-const LazyDeferredClientEffectsInner = lazy(
-  () => import("@/components/layout/deferred-client-effects-inner"),
+const DeferredClientEffectsInner = dynamic(
+  () =>
+    import("@/components/layout/deferred-client-effects-inner").catch(
+      (error) => {
+        console.error("[DeferredClientEffects] chunk load failed", error);
+        return { default: () => null };
+      },
+    ),
+  { ssr: false },
 );
 
 export function DeferredClientEffects() {
-  return (
-    <Suspense fallback={null}>
-      <LazyDeferredClientEffectsInner />
-    </Suspense>
-  );
+  return <DeferredClientEffectsInner />;
 }

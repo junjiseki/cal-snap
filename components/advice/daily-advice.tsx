@@ -1,4 +1,4 @@
-import { LazyDailyAdviceBanner } from "@/components/advice/lazy-daily-advice-banner";
+import { DailyAdviceBanner } from "@/components/advice/daily-advice-banner";
 import { getAuthenticatedUserWithProfileCached } from "@/lib/supabase/server";
 
 type AdviceAccount = {
@@ -20,5 +20,5 @@ export async function DailyAdvice() {
     return null;
   }
 
-  return <LazyDailyAdviceBanner userId={account.userId} plan="paid" />;
+  return <DailyAdviceBanner userId={account.userId} plan="paid" />;
 }

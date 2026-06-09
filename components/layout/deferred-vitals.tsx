@@ -1,31 +1,39 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import {
   DEFER_AFTER_LOAD_IDLE_TIMEOUT_MS,
   DEFER_AFTER_LOAD_SETTIMEOUT_FALLBACK_MS,
 } from "@/lib/ui-timing";
 
-const Analytics = dynamic(
-  () => import("@vercel/analytics/next").then((mod) => mod.Analytics),
-  { ssr: false },
-);
-
-const SpeedInsights = dynamic(
-  () => import("@vercel/speed-insights/next").then((mod) => mod.SpeedInsights),
-  { ssr: false },
-);
-
 const INTERACTION_EVENTS = ["pointerdown", "keydown", "touchstart"] as const;
+
+const LazyVitalsBundle = lazy(() =>
+  Promise.all([
+    import("@vercel/analytics/next"),
+    import("@vercel/speed-insights/next"),
+  ]).then(([analyticsMod, speedInsightsMod]) => {
+    function VitalsBundle() {
+      return (
+        <>
+          <analyticsMod.Analytics />
+          <speedInsightsMod.SpeedInsights />
+        </>
+      );
+    }
+    return { default: VitalsBundle };
+  }),
+);
 
 /**
  * 初回ユーザー操作後にマウントする。操作がない場合は load 後の
  * requestIdleCallback（またはタイムアウト）でフォールバック読み込みし、
- * 計測の取りこぼしを防ぐ。
+ * 計測の取りこぼしを防ぐ。チャンク取得は shouldMount 後の React.lazy で行う。
  */
-function scheduleVitalsMount(callback: () => void) {
+function scheduleVitalsMount(callback: () => void): () => void {
   let settled = false;
+  let idleId: number | undefined;
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
   const settle = () => {
     if (settled) return;
@@ -43,26 +51,53 @@ function scheduleVitalsMount(callback: () => void) {
 
   const scheduleFallback = () => {
     if ("requestIdleCallback" in window) {
-      window.requestIdleCallback(settle, {
+      idleId = window.requestIdleCallback(settle, {
         timeout: DEFER_AFTER_LOAD_IDLE_TIMEOUT_MS,
       });
       return;
     }
-    globalThis.setTimeout(settle, DEFER_AFTER_LOAD_SETTIMEOUT_FALLBACK_MS);
+    timeoutId = globalThis.setTimeout(
+      settle,
+      DEFER_AFTER_LOAD_SETTIMEOUT_FALLBACK_MS,
+    );
   };
 
   if (document.readyState === "complete") {
     scheduleFallback();
-    return;
+  } else {
+    window.addEventListener("load", scheduleFallback, { once: true });
   }
-  window.addEventListener("load", scheduleFallback, { once: true });
+
+  return () => {
+    settled = true;
+    for (const event of INTERACTION_EVENTS) {
+      window.removeEventListener(event, settle, true);
+    }
+    window.removeEventListener("load", scheduleFallback);
+    if (idleId !== undefined && "cancelIdleCallback" in window) {
+      window.cancelIdleCallback(idleId);
+    }
+    if (timeoutId !== undefined) {
+      globalThis.clearTimeout(timeoutId);
+    }
+  };
 }
 
 export function DeferredVitals() {
   const [shouldMount, setShouldMount] = useState(false);
 
   useEffect(() => {
-    scheduleVitalsMount(() => setShouldMount(true));
+    let cancelled = false;
+    const cancelSchedule = scheduleVitalsMount(() => {
+      if (!cancelled) {
+        setShouldMount(true);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      cancelSchedule();
+    };
   }, []);
 
   if (!shouldMount) {
@@ -70,9 +105,8 @@ export function DeferredVitals() {
   }
 
   return (
-    <>
-      <Analytics />
-      <SpeedInsights />
-    </>
+    <Suspense fallback={null}>
+      <LazyVitalsBundle />
+    </Suspense>
   );
 }

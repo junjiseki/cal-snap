@@ -1,12 +1,15 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import { lazy, Suspense } from "react";
 
-const DeferredClientEffectsInner = dynamic(
+const LazyDeferredClientEffectsInner = lazy(
   () => import("@/components/layout/deferred-client-effects-inner"),
-  { ssr: false },
 );
 
 export function DeferredClientEffects() {
-  return <DeferredClientEffectsInner />;
+  return (
+    <Suspense fallback={null}>
+      <LazyDeferredClientEffectsInner />
+    </Suspense>
+  );
 }

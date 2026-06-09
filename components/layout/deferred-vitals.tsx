@@ -1,21 +1,12 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import {
   DEFER_AFTER_LOAD_IDLE_TIMEOUT_MS,
   DEFER_AFTER_LOAD_SETTIMEOUT_FALLBACK_MS,
 } from "@/lib/ui-timing";
-
-const Analytics = dynamic(
-  () => import("@vercel/analytics/next").then((mod) => mod.Analytics),
-  { ssr: false },
-);
-
-const SpeedInsights = dynamic(
-  () => import("@vercel/speed-insights/next").then((mod) => mod.SpeedInsights),
-  { ssr: false },
-);
 
 const INTERACTION_EVENTS = ["pointerdown", "keydown", "touchstart"] as const;
 

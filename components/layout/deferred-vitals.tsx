@@ -1,21 +1,13 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
+import { DeferredVitalsInner } from "@/components/layout/deferred-vitals-inner";
 import {
   DEFER_AFTER_LOAD_IDLE_TIMEOUT_MS,
   DEFER_AFTER_LOAD_SETTIMEOUT_FALLBACK_MS,
 } from "@/lib/ui-timing";
 
 const INTERACTION_EVENTS = ["pointerdown", "keydown", "touchstart"] as const;
-
-const DeferredVitalsInner = dynamic(
-  () =>
-    import("@/components/layout/deferred-vitals-inner").then((mod) => ({
-      default: mod.DeferredVitalsInner,
-    })),
-  { ssr: false },
-);
 
 /**
  * 初回ユーザー操作後にマウントする。操作がない場合は load 後の

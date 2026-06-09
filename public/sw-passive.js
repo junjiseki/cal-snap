@@ -1,10 +1,9 @@
 /**
  * iPhone のホーム画面起動を速くするため、
- * 静的アセットのみ最小限キャッシュする。
- * API・認証系レスポンスはキャッシュしない。
- * ヒット時はキャッシュを即返しつつバックグラウンドで再取得（stale-while-revalidate）。
+ * public 配下の画像・フォントのみ最小限キャッシュする。
+ * `/_next/static/` の JS/CSS は横取りしない（デプロイ後の古いチャンク配信で白画面になるため）。
  */
-const STATIC_CACHE = "cal-snap-static-v12";
+const STATIC_CACHE = "cal-snap-static-v13";
 /**
  * iOS「ホーム画面に追加」は apple-touch-icon を取る際、SW が fetch を横取りすると
  * キャッシュの空応答・古い失敗レスポンスで画像が取れず、サイト名の頭文字（例: カ）だけのアイコンになることがある。
@@ -26,13 +25,11 @@ function isCacheableStaticRequest(request) {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return false;
   if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/auth/")) return false;
+  if (url.pathname.startsWith("/_next/")) return false;
   if (url.pathname === "/manifest.json" || PWA_SHORT_CACHE_PATHS.includes(url.pathname)) {
     return false;
   }
-  return (
-    url.pathname.startsWith("/_next/static/") ||
-    /\.(?:js|css|png|jpg|jpeg|webp|avif|svg|ico|woff2)$/i.test(url.pathname)
-  );
+  return /\.(?:png|jpg|jpeg|webp|avif|svg|ico|woff2)$/i.test(url.pathname);
 }
 
 self.addEventListener("install", (event) => {
@@ -75,7 +72,6 @@ self.addEventListener("fetch", (event) => {
         }
       };
 
-      // キャッシュがあれば即返しつつ、バックグラウンドで更新（stale-while-revalidate）
       if (cached) {
         void fetch(request)
           .then(updateCache)

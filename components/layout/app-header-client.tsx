@@ -63,9 +63,21 @@ export function AppHeaderClient({
   }, [pathname]);
 
   useEffect(() => {
-    router.prefetch("/dashboard");
-    router.prefetch("/meals/new");
-    router.prefetch("/suggestions");
+    const prefetchRoutes = () => {
+      router.prefetch("/dashboard");
+      router.prefetch("/meals/new");
+      router.prefetch("/suggestions");
+    };
+
+    if ("requestIdleCallback" in window) {
+      const idleId = window.requestIdleCallback(prefetchRoutes, {
+        timeout: 3000,
+      });
+      return () => window.cancelIdleCallback(idleId);
+    }
+
+    const timeoutId = globalThis.setTimeout(prefetchRoutes, 1200);
+    return () => globalThis.clearTimeout(timeoutId);
   }, [router]);
 
   useEffect(() => {

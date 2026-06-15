@@ -22,6 +22,7 @@ const APP_NAME = "カロスナ";
 const SITE_TITLE = `${APP_NAME} - 3秒で終わる食事管理`;
 const SITE_DESCRIPTION =
   "食事写真をAIで解析し、1日の摂取カロリーとPFCバランスを記録・可視化できる食事管理アプリです。";
+const PWA_SPLASH_IMAGE = "/splash.png";
 const KEYWORDS = [
   "カロリー管理",
   "食事管理",
@@ -135,6 +136,29 @@ export async function generateMetadata(): Promise<Metadata> {
     appleWebApp: {
       capable: true,
       title: APP_NAME,
+      startupImage: [
+        PWA_SPLASH_IMAGE,
+        {
+          url: PWA_SPLASH_IMAGE,
+          media:
+            "(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)",
+        },
+        {
+          url: PWA_SPLASH_IMAGE,
+          media:
+            "(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)",
+        },
+        {
+          url: PWA_SPLASH_IMAGE,
+          media:
+            "(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)",
+        },
+        {
+          url: PWA_SPLASH_IMAGE,
+          media:
+            "(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)",
+        },
+      ],
       statusBarStyle: "default",
     },
     formatDetection: {
@@ -166,6 +190,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
+  viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: PWA_THEME_COLOR_LIGHT },
     { media: "(prefers-color-scheme: dark)", color: PWA_THEME_COLOR_DARK },

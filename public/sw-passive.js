@@ -14,6 +14,8 @@ const APP_SHELL = [];
 /** lib/pwa-static-icon-paths.ts の PWA_SHORT_CACHE_PATHS と一致させること */
 const PWA_SHORT_CACHE_PATHS = [
   "/apple-touch-icon.png",
+  "/splash.png",
+  "/splash.webp",
   "/icon-192-maskable.png",
   "/icon-512-maskable.png",
   "/icon-192.png",

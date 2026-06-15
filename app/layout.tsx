@@ -23,6 +23,12 @@ const SITE_TITLE = `${APP_NAME} - 3秒で終わる食事管理`;
 const SITE_DESCRIPTION =
   "食事写真をAIで解析し、1日の摂取カロリーとPFCバランスを記録・可視化できる食事管理アプリです。";
 const PWA_SPLASH_IMAGE = "/splash.png";
+const PWA_SPLASH_IMAGES = {
+  iphone16ProMax: "/splash-1290x2796.png",
+  iphone15Pro: "/splash-1179x2556.png",
+  iphone15: "/splash-1170x2532.png",
+  iphoneX: "/splash-1125x2436.png",
+} as const;
 const KEYWORDS = [
   "カロリー管理",
   "食事管理",
@@ -139,22 +145,22 @@ export async function generateMetadata(): Promise<Metadata> {
       startupImage: [
         PWA_SPLASH_IMAGE,
         {
-          url: PWA_SPLASH_IMAGE,
+          url: PWA_SPLASH_IMAGES.iphone16ProMax,
           media:
             "(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)",
         },
         {
-          url: PWA_SPLASH_IMAGE,
+          url: PWA_SPLASH_IMAGES.iphone15Pro,
           media:
             "(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)",
         },
         {
-          url: PWA_SPLASH_IMAGE,
+          url: PWA_SPLASH_IMAGES.iphone15,
           media:
             "(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)",
         },
         {
-          url: PWA_SPLASH_IMAGE,
+          url: PWA_SPLASH_IMAGES.iphoneX,
           media:
             "(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)",
         },

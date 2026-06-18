@@ -11,7 +11,11 @@ const DOCUMENT_CACHE_CONTROL =
 const AUTH_CONTEXT_HEADER = "x-kalosna-auth-context";
 
 /** 旧 SW 解除済みマーカー（Clear-Site-Data は cookies には触れない） */
-const SW_CLEAR_COOKIE = "kalosna-sw-cleared-v17";
+const SW_CLEAR_COOKIE = "kalosna-sw-cleared-v18";
+
+function isDashboardPath(pathname: string) {
+  return pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+}
 
 function isMobileUserAgent(request: NextRequest) {
   const ua = request.headers.get("user-agent") ?? "";
@@ -34,6 +38,13 @@ function isHtmlNavigation(request: NextRequest) {
 function applyStaleServiceWorkerReset(res: NextResponse, request: NextRequest) {
   if (!isMobileUserAgent(request)) return;
   if (!isHtmlNavigation(request)) return;
+
+  // モバイルで /dashboard のみ落ちる報告があるため、当該パスは毎回 SW 関連ストレージを解除
+  if (isDashboardPath(request.nextUrl.pathname)) {
+    res.headers.set("Clear-Site-Data", '"cache", "storage"');
+    return;
+  }
+
   if (request.cookies.get(SW_CLEAR_COOKIE)?.value === "1") return;
 
   res.headers.set("Clear-Site-Data", '"cache", "storage"');

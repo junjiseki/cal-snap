@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Geist } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
@@ -11,6 +12,7 @@ import { DeferredVitals } from "@/components/layout/deferred-vitals";
 import { ThemeProvider } from "@/components/theme-provider";
 import { APPLE_TOUCH_ICON_METADATA } from "@/lib/pwa-static-icon-paths";
 import { PWA_THEME_COLOR_DARK, PWA_THEME_COLOR_LIGHT } from "@/lib/pwa-theme";
+import { PASSIVE_SW_MIGRATE_URL } from "@/lib/pwa-sw";
 import { getRequestOrigin } from "@/lib/request-origin";
 
 const geist = Geist({
@@ -212,6 +214,7 @@ export default function RootLayout({
   return (
     <html lang="ja" suppressHydrationWarning className="h-full antialiased">
       <body className={`${geist.className} flex min-h-full flex-col`}>
+        <Script src={PASSIVE_SW_MIGRATE_URL} strategy="beforeInteractive" />
         <ThemeProvider>
           <DeferredClientEffects />
           <Suspense fallback={<AppHeaderFallback />}>

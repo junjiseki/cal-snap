@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import {
   BellRing,
@@ -11,10 +10,12 @@ import {
 } from "lucide-react";
 import { getCalorieOverLevel, getDayRangeInJapan } from "@/lib/meal-analysis";
 import { getAuthenticatedUserWithProfileCached } from "@/lib/supabase/server";
-import { CalorieGoalOnboardingModal } from "@/components/account/calorie-goal-onboarding-modal";
-import { DashboardMealCalendar } from "@/components/meals/dashboard-meal-calendar";
-import { MealList } from "@/components/meals/meal-list";
-import { LazyCalorieChart } from "@/components/meals/lazy-calorie-chart";
+import {
+  DynamicCalorieChart,
+  DynamicCalorieGoalModal,
+  DynamicMealCalendar,
+  DynamicMealList,
+} from "@/components/meals/dashboard-client-dynamic";
 import {
   dashboardDateHref,
   dashboardMealsListHref,
@@ -260,10 +261,99 @@ export default async function DashboardPage({
   const shouldShowGoalPrompt =
     user.user_metadata?.calorie_goal_prompt_dismissed !== true;
 
+  const mealsRangeFrom = (mealsPage - 1) * DASHBOARD_DAY_MEALS_PAGE_SIZE;
+  const mealsRangeTo = mealsRangeFrom + DASHBOARD_DAY_MEALS_PAGE_SIZE - 1;
+  const [cy, cm] = date.split("-").map(Number);
+  const monthStartIso = new Date(
+    `${cy}-${pad2(cm)}-01T00:00:00.000+09:00`,
+  ).toISOString();
+  let nextMonthYear = cy;
+  let nextMonth = cm + 1;
+  if (nextMonth > 12) {
+    nextMonth = 1;
+    nextMonthYear += 1;
+  }
+  const monthEndExclusive = new Date(
+    `${nextMonthYear}-${pad2(nextMonth)}-01T00:00:00.000+09:00`,
+  ).toISOString();
+  const chart14Days = lastNJstDaysAsc(14, todayDate);
+  const last14DaysStart = new Date(
+    `${chart14Days[0]}T00:00:00.000+09:00`,
+  ).toISOString();
+
+  let chartMeals: MealRow[] | null = null;
+  let chartError: unknown = null;
+  let meals: MealRow[] = [];
+  let mealsError: unknown = null;
+  let datesWithMeals: string[] = [];
+
+  try {
+    const chartQuery = isPaid
+      ? supabase
+          .from("meals")
+          .select("id,eaten_at,total_calories,protein,fat,carbs")
+          .eq("user_id", user.id)
+          .gte("eaten_at", last14DaysStart)
+          .order("eaten_at", { ascending: true })
+      : Promise.resolve({
+          data: null as MealRow[] | null,
+          error: null as unknown,
+        });
+    const mealsQuery = supabase
+      .from("meals")
+      .select(
+        "id,eaten_at,total_calories,protein,fat,carbs,memo,meal_items(id,name,estimated_amount,calories)",
+      )
+      .eq("user_id", user.id)
+      .gte("eaten_at", start)
+      .lt("eaten_at", endExclusive)
+      .order("eaten_at", { ascending: false })
+      .range(mealsRangeFrom, mealsRangeTo);
+    const monthMealsQuery = isPaid
+      ? supabase
+          .from("meals")
+          .select("eaten_at")
+          .eq("user_id", user.id)
+          .gte("eaten_at", monthStartIso)
+          .lt("eaten_at", monthEndExclusive)
+      : Promise.resolve({
+          data: [] as { eaten_at: string }[] | null,
+          error: null as unknown,
+        });
+
+    const [chartResult, mealsResult, monthResult] = await Promise.all([
+      chartQuery,
+      mealsQuery,
+      monthMealsQuery,
+    ]);
+
+    if (chartResult.error) {
+      chartError = chartResult.error;
+    } else if (chartResult.data) {
+      chartMeals = chartResult.data as MealRow[];
+    }
+
+    if (mealsResult.error) {
+      mealsError = mealsResult.error;
+    } else {
+      meals = (mealsResult.data ?? []) as unknown as MealRow[];
+    }
+
+    datesWithMeals = [
+      ...new Set(
+        (monthResult.data ?? []).map((row) => toJapanYmd(row.eaten_at)),
+      ),
+    ];
+  } catch (error) {
+    if (isNextNavigationError(error)) throw error;
+    console.error("[dashboard] parallel fetch threw", error);
+    mealsError = error;
+  }
+
   return (
     <main className="min-h-0 flex-1 bg-background">
       {shouldShowGoalPrompt ? (
-        <CalorieGoalOnboardingModal
+        <DynamicCalorieGoalModal
           initialGoal={goalCalories}
           shouldShow={shouldShowGoalPrompt}
         />
@@ -468,15 +558,29 @@ export default async function DashboardPage({
             </p>
           </div>
           <div className="p-4 sm:p-5">
-            <Suspense fallback={<DashboardChartSkeleton />}>
-              <DashboardChartPanel
-                supabase={supabase}
-                userId={user.id}
-                isPaid={isPaid}
+            {!isPaid ? (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  チャート・過去日の履歴を見るには、有料プランへのアップグレードが必要です。
+                </p>
+                <Link
+                  href="/billing"
+                  className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm"
+                >
+                  料金・プランを見る
+                </Link>
+              </div>
+            ) : chartError ? (
+              <p className="border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                推移データを取得できません。
+              </p>
+            ) : (
+              <DynamicCalorieChart
+                meals={chartMeals ?? []}
                 goalCalories={goalCalories}
-                todayDate={todayDate}
+                chartEndDate={todayDate}
               />
-            </Suspense>
+            )}
           </div>
         </section>
 
@@ -498,231 +602,44 @@ export default async function DashboardPage({
               </Link>
             ) : null}
           </div>
-          <Suspense fallback={<DashboardMealHistorySkeleton isPaid={isPaid} />}>
-            <DashboardMealHistorySection
-              supabase={supabase}
-              userId={user.id}
-              date={date}
-              start={start}
-              endExclusive={endExclusive}
-              todayDate={todayDate}
-              isPaid={isPaid}
-              mealsPage={mealsPage}
-              mealCount={mealCount}
-              goalCalories={goalCalories}
-            />
-          </Suspense>
+          {mealsError ? (
+            <div className="p-4 sm:p-5">
+              <p className="border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                食事一覧を取得できません。
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,17.5rem)_1fr] lg:items-start">
+              <DynamicMealCalendar
+                selectedDate={date}
+                todayDate={todayDate}
+                isPaid={isPaid}
+                datesWithMeals={datesWithMeals}
+              />
+              <DynamicMealList
+                meals={meals}
+                mealsPage={mealsPage}
+                mealsPageSize={DASHBOARD_DAY_MEALS_PAGE_SIZE}
+                totalMealsForDay={mealCount}
+                nextPageHref={
+                  mealsRangeFrom + meals.length < mealCount
+                    ? dashboardMealsListHref(date, mealsPage + 1)
+                    : null
+                }
+                prevPageHref={
+                  mealsPage > 1
+                    ? dashboardMealsListHref(date, mealsPage - 1)
+                    : null
+                }
+                selectedDateYmd={date}
+                todayDateYmd={todayDate}
+                goalCalories={goalCalories}
+                isPaid={isPaid}
+              />
+            </div>
+          )}
         </section>
       </div>
     </main>
   );
-}
-
-function DashboardChartSkeleton() {
-  return <div className="min-h-112 animate-pulse rounded-md bg-muted/20" />;
-}
-
-async function DashboardChartPanel({
-  supabase,
-  userId,
-  isPaid,
-  goalCalories,
-  todayDate,
-}: {
-  supabase: DashboardSupabaseClient;
-  userId: string;
-  isPaid: boolean;
-  goalCalories: number;
-  todayDate: string;
-}) {
-  if (!isPaid) {
-    return (
-      <div className="space-y-3">
-        <p className="text-sm text-muted-foreground">
-          チャート・過去日の履歴を見るには、有料プランへのアップグレードが必要です。
-        </p>
-        <Link
-          href="/billing"
-          className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm"
-        >
-          料金・プランを見る
-        </Link>
-      </div>
-    );
-  }
-
-  try {
-    const chart14Days = lastNJstDaysAsc(14, todayDate);
-    const last14DaysStart = new Date(
-      `${chart14Days[0]}T00:00:00.000+09:00`,
-    ).toISOString();
-    const { data: chartMeals, error } = await supabase
-      .from("meals")
-      .select("id,eaten_at,total_calories,protein,fat,carbs")
-      .eq("user_id", userId)
-      .gte("eaten_at", last14DaysStart)
-      .order("eaten_at", { ascending: true });
-
-    if (error) {
-      return (
-        <p className="border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-          推移データを取得できません。
-        </p>
-      );
-    }
-
-    return (
-      <LazyCalorieChart
-        meals={(chartMeals ?? []) as MealRow[]}
-        goalCalories={goalCalories}
-        chartEndDate={todayDate}
-      />
-    );
-  } catch (error) {
-    if (isNextNavigationError(error)) throw error;
-    console.error("[dashboard] chart panel threw", error);
-    return (
-      <p className="border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-        推移データを読み込めませんでした。
-      </p>
-    );
-  }
-}
-
-function DashboardMealHistorySkeleton({ isPaid }: { isPaid: boolean }) {
-  return (
-    <div className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,17.5rem)_1fr] lg:items-start">
-      {isPaid ? (
-        <div className="hidden h-80 animate-pulse bg-muted/20 lg:block" />
-      ) : null}
-      <div className="space-y-3">
-        <div className="h-24 animate-pulse rounded-md bg-muted/20" />
-        <div className="h-24 animate-pulse rounded-md bg-muted/20" />
-      </div>
-    </div>
-  );
-}
-
-async function DashboardMealHistorySection({
-  supabase,
-  userId,
-  date,
-  start,
-  endExclusive,
-  todayDate,
-  isPaid,
-  mealsPage,
-  mealCount,
-  goalCalories,
-}: {
-  supabase: DashboardSupabaseClient;
-  userId: string;
-  date: string;
-  start: string;
-  endExclusive: string;
-  todayDate: string;
-  isPaid: boolean;
-  mealsPage: number;
-  mealCount: number;
-  goalCalories: number;
-}) {
-  const mealsRangeFrom = (mealsPage - 1) * DASHBOARD_DAY_MEALS_PAGE_SIZE;
-  const mealsRangeTo = mealsRangeFrom + DASHBOARD_DAY_MEALS_PAGE_SIZE - 1;
-  const [cy, cm] = date.split("-").map(Number);
-  const monthStartIso = new Date(
-    `${cy}-${pad2(cm)}-01T00:00:00.000+09:00`,
-  ).toISOString();
-  let nextMonthYear = cy;
-  let nextMonth = cm + 1;
-  if (nextMonth > 12) {
-    nextMonth = 1;
-    nextMonthYear += 1;
-  }
-  const monthEndExclusive = new Date(
-    `${nextMonthYear}-${pad2(nextMonth)}-01T00:00:00.000+09:00`,
-  ).toISOString();
-
-  try {
-    const mealsQuery = supabase
-      .from("meals")
-      .select(
-        "id,eaten_at,total_calories,protein,fat,carbs,memo,meal_items(id,name,estimated_amount,calories)",
-      )
-      .eq("user_id", userId)
-      .gte("eaten_at", start)
-      .lt("eaten_at", endExclusive)
-      .order("eaten_at", { ascending: false })
-      .range(mealsRangeFrom, mealsRangeTo);
-    const monthMealsQuery = isPaid
-      ? supabase
-          .from("meals")
-          .select("eaten_at")
-          .eq("user_id", userId)
-          .gte("eaten_at", monthStartIso)
-          .lt("eaten_at", monthEndExclusive)
-      : Promise.resolve({
-          data: [] as { eaten_at: string }[] | null,
-          error: null,
-        });
-
-    const [{ data, error }, monthResult] = await Promise.all([
-      mealsQuery,
-      monthMealsQuery,
-    ]);
-    const meals = (data ?? []) as unknown as MealRow[];
-    const datesWithMeals = [
-      ...new Set(
-        (monthResult.data ?? []).map((row) => toJapanYmd(row.eaten_at)),
-      ),
-    ];
-
-    if (error) {
-      return (
-        <div className="p-4 sm:p-5">
-          <p className="border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-            食事一覧を取得できません。
-          </p>
-        </div>
-      );
-    }
-
-    return (
-      <div className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,17.5rem)_1fr] lg:items-start">
-        <DashboardMealCalendar
-          selectedDate={date}
-          todayDate={todayDate}
-          isPaid={isPaid}
-          datesWithMeals={datesWithMeals}
-        />
-        <MealList
-          meals={meals}
-          mealsPage={mealsPage}
-          mealsPageSize={DASHBOARD_DAY_MEALS_PAGE_SIZE}
-          totalMealsForDay={mealCount}
-          nextPageHref={
-            mealsRangeFrom + meals.length < mealCount
-              ? dashboardMealsListHref(date, mealsPage + 1)
-              : null
-          }
-          prevPageHref={
-            mealsPage > 1 ? dashboardMealsListHref(date, mealsPage - 1) : null
-          }
-          selectedDateYmd={date}
-          todayDateYmd={todayDate}
-          goalCalories={goalCalories}
-          isPaid={isPaid}
-        />
-      </div>
-    );
-  } catch (error) {
-    if (isNextNavigationError(error)) throw error;
-    console.error("[dashboard] meal history threw", error);
-    return (
-      <div className="p-4 sm:p-5">
-        <p className="border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-          食事一覧を読み込めませんでした。
-        </p>
-      </div>
-    );
-  }
 }

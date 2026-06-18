@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
+import { PASSIVE_SW_PATH, PASSIVE_SW_URL } from "@/lib/pwa-sw";
 import {
   DEFER_AFTER_LOAD_IDLE_TIMEOUT_MS,
   DEFER_AFTER_LOAD_SETTIMEOUT_FALLBACK_MS,
 } from "@/lib/ui-timing";
-
-const PASSIVE_SW_PATH = "/sw-passive.js";
 
 async function registerPassiveServiceWorker() {
   if (!("serviceWorker" in navigator)) {
@@ -17,17 +16,40 @@ async function registerPassiveServiceWorker() {
     existing?.active?.scriptURL ??
     existing?.waiting?.scriptURL ??
     existing?.installing?.scriptURL;
-  if (scriptUrl && new URL(scriptUrl).pathname !== PASSIVE_SW_PATH) {
-    await existing?.unregister();
+  if (scriptUrl) {
+    const pathname = new URL(scriptUrl).pathname;
+    if (
+      pathname !== PASSIVE_SW_PATH &&
+      !pathname.startsWith(`${PASSIVE_SW_PATH}?`)
+    ) {
+      await existing?.unregister();
+    }
   }
-  await navigator.serviceWorker.register(PASSIVE_SW_PATH, { scope: "/" });
+
+  const registration = await navigator.serviceWorker.register(PASSIVE_SW_URL, {
+    scope: "/",
+  });
+
+  if (registration.waiting) {
+    registration.waiting.postMessage({ type: "SKIP_WAITING" });
+  }
+
+  registration.addEventListener("updatefound", () => {
+    const worker = registration.installing;
+    if (!worker) return;
+    worker.addEventListener("statechange", () => {
+      if (worker.state === "installed" && navigator.serviceWorker.controller) {
+        worker.postMessage({ type: "SKIP_WAITING" });
+      }
+    });
+  });
 }
 
 /**
  * `/sw-passive.js` のみ登録。レガシー `/sw.js` は `ServiceWorkerLegacyCleanup` が対象。
  * Chrome/Edge の beforeinstallprompt は manifest + SW（fetch あり）が前提になりやすい。
  *
- * 登録は `load` 後に `requestIdleCallback` で遅延し、初回ペイント・ハイドレーションを優先する。
+ * 初回は `load` 直後に update を試し、登録本体は `requestIdleCallback` で遅延する。
  */
 export function PassiveServiceWorkerRegister() {
   useEffect(() => {
@@ -40,6 +62,10 @@ export function PassiveServiceWorkerRegister() {
     if (!("serviceWorker" in navigator)) {
       return;
     }
+
+    void navigator.serviceWorker.getRegistration("/").then((registration) => {
+      void registration?.update();
+    });
 
     const scheduleRegister = () => {
       const run = () => {

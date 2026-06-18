@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
-import Script from "next/script";
 import { Suspense, type ReactNode } from "react";
 import "./globals.css";
 import { DailyAdvice } from "@/components/advice/daily-advice";
@@ -10,6 +9,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { DeferredClientEffects } from "@/components/layout/deferred-client-effects";
 import { DeferredVitals } from "@/components/layout/deferred-vitals";
 import { ThemeProvider } from "@/components/theme-provider";
+import { PASSIVE_SW_MIGRATE_URL } from "@/lib/pwa-sw";
 import { APPLE_TOUCH_ICON_METADATA } from "@/lib/pwa-static-icon-paths";
 import { PWA_THEME_COLOR_DARK, PWA_THEME_COLOR_LIGHT } from "@/lib/pwa-theme";
 import { getRequestOrigin } from "@/lib/request-origin";
@@ -212,8 +212,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja" suppressHydrationWarning className="h-full antialiased">
+      <head>
+        {/* 旧 SW が _next より先に走る前に解除（同期・最優先） */}
+        <script src={PASSIVE_SW_MIGRATE_URL} />
+      </head>
       <body className={`${geist.className} flex min-h-full flex-col`}>
-        <Script src="/sw-migrate.js" strategy="beforeInteractive" />
         <ThemeProvider>
           <DeferredClientEffects />
           <Suspense fallback={<AppHeaderFallback />}>

@@ -10,11 +10,7 @@ import {
 } from "lucide-react";
 import { getCalorieOverLevel, getDayRangeInJapan } from "@/lib/meal-analysis";
 import { getAuthenticatedUserWithProfileCached } from "@/lib/supabase/server";
-import {
-  DashboardChartBlock,
-  DashboardGoalModalBlock,
-  DashboardMealsBlock,
-} from "@/components/dashboard/dashboard-client-blocks";
+import { ChartDataShell } from "@/components/meals/chart-data-shell";
 import { DashboardMealCalendarShell } from "@/components/meals/dashboard-meal-calendar-shell";
 import { MealListShell } from "@/components/meals/meal-list-shell";
 import {
@@ -414,10 +410,19 @@ async function DashboardPageContent({
   return (
     <main className="min-h-0 flex-1 bg-background">
       {shouldShowGoalPrompt ? (
-        <DashboardGoalModalBlock
-          initialGoal={goalCalories}
-          shouldShow={shouldShowGoalPrompt}
-        />
+        <div className="border-b border-primary/20 bg-primary/5 px-4 py-3 sm:px-8">
+          <div className="mx-auto flex max-w-7xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-foreground">
+              1日の目安カロリー（{goalCalories} kcal）をプロフィールで確認・変更できます。
+            </p>
+            <Link
+              href="/profile#calorie-goal"
+              className="inline-flex h-9 shrink-0 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground"
+            >
+              目安を設定
+            </Link>
+          </div>
+        </div>
       ) : null}
       <section className="border-b border-border bg-linear-to-br from-primary/5 via-card to-background">
         <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-8 sm:py-6">
@@ -636,7 +641,7 @@ async function DashboardPageContent({
                 推移データを取得できません。
               </p>
             ) : (
-              <DashboardChartBlock
+              <ChartDataShell
                 meals={chartMeals ?? []}
                 goalCalories={goalCalories}
                 chartEndDate={todayDate}
@@ -670,55 +675,34 @@ async function DashboardPageContent({
               </p>
             </div>
           ) : (
-            <DashboardMealsBlock
-              calendarShell={
-                <DashboardMealCalendarShell
-                  selectedDate={date}
-                  todayDate={todayDate}
-                  isPaid={isPaid}
-                  datesWithMeals={datesWithMeals}
-                />
-              }
-              shell={
-                <MealListShell
-                  meals={meals}
-                  mealsPage={mealsPage}
-                  mealsPageSize={DASHBOARD_DAY_MEALS_PAGE_SIZE}
-                  totalMealsForDay={mealCount}
-                  nextPageHref={
-                    mealsRangeFrom + meals.length < mealCount
-                      ? dashboardMealsListHref(date, mealsPage + 1)
-                      : null
-                  }
-                  prevPageHref={
-                    mealsPage > 1
-                      ? dashboardMealsListHref(date, mealsPage - 1)
-                      : null
-                  }
-                  selectedDateYmd={date}
-                  todayDateYmd={todayDate}
-                  goalCalories={goalCalories}
-                  isPaid={isPaid}
-                />
-              }
-              datesWithMeals={datesWithMeals}
-              meals={meals}
-              mealsPage={mealsPage}
-              mealsPageSize={DASHBOARD_DAY_MEALS_PAGE_SIZE}
-              totalMealsForDay={mealCount}
-              nextPageHref={
-                mealsRangeFrom + meals.length < mealCount
-                  ? dashboardMealsListHref(date, mealsPage + 1)
-                  : null
-              }
-              prevPageHref={
-                mealsPage > 1 ? dashboardMealsListHref(date, mealsPage - 1) : null
-              }
-              selectedDateYmd={date}
-              todayDateYmd={todayDate}
-              goalCalories={goalCalories}
-              isPaid={isPaid}
-            />
+            <div className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,17.5rem)_1fr] lg:items-start">
+              <DashboardMealCalendarShell
+                selectedDate={date}
+                todayDate={todayDate}
+                isPaid={isPaid}
+                datesWithMeals={datesWithMeals}
+              />
+              <MealListShell
+                meals={meals}
+                mealsPage={mealsPage}
+                mealsPageSize={DASHBOARD_DAY_MEALS_PAGE_SIZE}
+                totalMealsForDay={mealCount}
+                nextPageHref={
+                  mealsRangeFrom + meals.length < mealCount
+                    ? dashboardMealsListHref(date, mealsPage + 1)
+                    : null
+                }
+                prevPageHref={
+                  mealsPage > 1
+                    ? dashboardMealsListHref(date, mealsPage - 1)
+                    : null
+                }
+                selectedDateYmd={date}
+                todayDateYmd={todayDate}
+                goalCalories={goalCalories}
+                isPaid={isPaid}
+              />
+            </div>
           )}
         </section>
       </div>

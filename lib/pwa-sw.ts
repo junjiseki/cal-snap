@@ -5,7 +5,7 @@ export const PASSIVE_SW_PATH = "/sw-passive.js";
 export const PASSIVE_SW_URL = `${PASSIVE_SW_PATH}?v=${PASSIVE_SW_CACHE_VERSION}`;
 
 /** `public/sw-migrate.js` のクエリと一致させ、デプロイ後に確実に再取得させる */
-export const PASSIVE_SW_MIGRATE_URL = "/sw-migrate.js?v=18";
+export const PASSIVE_SW_MIGRATE_URL = "/sw-migrate.js?v=19";
 
 /**
  * React / `/_next/static` より前に実行する SW 解除（旧 SW が JS を横取りする端末向け）。

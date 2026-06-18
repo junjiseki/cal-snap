@@ -10,6 +10,41 @@ const DOCUMENT_CACHE_CONTROL =
 
 const AUTH_CONTEXT_HEADER = "x-kalosna-auth-context";
 
+/** 旧 SW 解除済みマーカー（Clear-Site-Data は cookies には触れない） */
+const SW_CLEAR_COOKIE = "kalosna-sw-cleared-v16";
+
+function isMobileUserAgent(request: NextRequest) {
+  const ua = request.headers.get("user-agent") ?? "";
+  return /iPhone|iPad|iPod|Android|Mobile/i.test(ua);
+}
+
+/** HTML ナビゲーション向け（静的ファイル・API は除外） */
+function isHtmlNavigation(request: NextRequest) {
+  const p = request.nextUrl.pathname;
+  if (p.startsWith("/api/") || p.startsWith("/_next/")) return false;
+  const last = p.split("/").pop() ?? "";
+  if (last && /\.[\w.-]+$/.test(last)) return false;
+  return true;
+}
+
+/**
+ * モバイルで旧 SW が `/_next/static/` を横取りしている端末向け。
+ * JS より前にブラウザへ SW / Cache Storage 解除を指示する（200 でもクライアントが落ちる原因）。
+ */
+function applyStaleServiceWorkerReset(res: NextResponse, request: NextRequest) {
+  if (!isMobileUserAgent(request)) return;
+  if (!isHtmlNavigation(request)) return;
+  if (request.cookies.get(SW_CLEAR_COOKIE)?.value === "1") return;
+
+  res.headers.set("Clear-Site-Data", '"cache", "storage"');
+  res.cookies.set(SW_CLEAR_COOKIE, "1", {
+    path: "/",
+    maxAge: 60 * 60 * 24 * 400,
+    sameSite: "lax",
+    secure: request.nextUrl.protocol === "https:",
+  });
+}
+
 function hasSupabaseAuthCookie(request: NextRequest) {
   return request.cookies
     .getAll()
@@ -102,6 +137,7 @@ export async function proxy(request: NextRequest) {
   const finish = (res: NextResponse) => {
     applySecurityHeaders(res, request);
     applyCacheHeaders(res, request);
+    applyStaleServiceWorkerReset(res, request);
     return res;
   };
 

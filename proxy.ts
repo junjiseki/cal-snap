@@ -61,7 +61,7 @@ function shouldApplyDocumentCachePolicy(request: NextRequest): boolean {
     p === "/sitemap.xml" ||
     p === "/sw.js" ||
     p === "/sw-passive.js" ||
-    p === "/sw-migrate.js"
+    p.startsWith("/sw-migrate.js")
   ) {
     return false;
   }

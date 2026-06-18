@@ -1,14 +1,16 @@
 "use client";
 
-import type { ComponentProps, ReactNode } from "react";
+import type { ComponentProps } from "react";
 import { CalorieGoalOnboardingModal } from "@/components/account/calorie-goal-onboarding-modal";
+import { DashboardMealCalendarClient } from "@/components/dashboard/dashboard-meal-calendar-client";
 import { DashboardMealListClient } from "@/components/dashboard/dashboard-meal-list-client";
 import { DashboardSectionErrorBoundary } from "@/components/dashboard/section-error-boundary";
-import { DashboardMealCalendar } from "@/components/meals/dashboard-meal-calendar";
 import { LazyCalorieChart } from "@/components/meals/lazy-calorie-chart";
+import type { DashboardMealCalendarShell } from "@/components/meals/dashboard-meal-calendar-shell";
 import type { MealListShell } from "@/components/meals/meal-list-shell";
 
 type MealListShellProps = ComponentProps<typeof MealListShell>;
+type CalendarShellProps = ComponentProps<typeof DashboardMealCalendarShell>;
 
 function sectionFallback(message: string) {
   return (
@@ -71,29 +73,24 @@ export function DashboardChartBlock({
 
 export function DashboardMealsBlock({
   shell,
+  calendarShell,
   datesWithMeals,
   ...mealListProps
 }: MealListShellProps & {
   shell: React.ReactNode;
+  calendarShell: React.ReactNode;
   datesWithMeals: string[];
 }) {
+  const calendarProps: CalendarShellProps = {
+    selectedDate: mealListProps.selectedDateYmd,
+    todayDate: mealListProps.todayDateYmd,
+    isPaid: mealListProps.isPaid,
+    datesWithMeals,
+  };
+
   return (
     <div className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,17.5rem)_1fr] lg:items-start">
-      <DashboardSectionErrorBoundary
-        label="meal-calendar"
-        fallback={
-          <p className="text-sm text-muted-foreground">
-            カレンダーを読み込めませんでした。
-          </p>
-        }
-      >
-        <DashboardMealCalendar
-          selectedDate={mealListProps.selectedDateYmd}
-          todayDate={mealListProps.todayDateYmd}
-          isPaid={mealListProps.isPaid}
-          datesWithMeals={datesWithMeals}
-        />
-      </DashboardSectionErrorBoundary>
+      <DashboardMealCalendarClient shell={calendarShell} {...calendarProps} />
       <DashboardMealListClient shell={shell} {...mealListProps} />
     </div>
   );

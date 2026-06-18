@@ -15,6 +15,7 @@ import {
   DashboardGoalModalBlock,
   DashboardMealsBlock,
 } from "@/components/dashboard/dashboard-client-blocks";
+import { DashboardMealCalendarShell } from "@/components/meals/dashboard-meal-calendar-shell";
 import { MealListShell } from "@/components/meals/meal-list-shell";
 import {
   dashboardDateHref,
@@ -418,7 +419,7 @@ async function DashboardPageContent({
           shouldShow={shouldShowGoalPrompt}
         />
       ) : null}
-      <section className="border-b border-border bg-gradient-to-br from-primary/5 via-card to-background">
+      <section className="border-b border-border bg-linear-to-br from-primary/5 via-card to-background">
         <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-8 sm:py-6">
           <div>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -670,6 +671,14 @@ async function DashboardPageContent({
             </div>
           ) : (
             <DashboardMealsBlock
+              calendarShell={
+                <DashboardMealCalendarShell
+                  selectedDate={date}
+                  todayDate={todayDate}
+                  isPaid={isPaid}
+                  datesWithMeals={datesWithMeals}
+                />
+              }
               shell={
                 <MealListShell
                   meals={meals}

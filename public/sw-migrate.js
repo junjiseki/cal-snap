@@ -1,6 +1,6 @@
 /**
- * 古い Service Worker が `/_next/static/` を横取りしている端末向け。
- * localStorage フラグは使わず、controller がある限り毎回解除して再読込する。
+ * 旧 Service Worker が `/_next/static/` を横取りしている端末向け（外部 .js フォールバック）。
+ * 主処理は proxy.ts の Clear-Site-Data。HTML インライン版は lib/pwa-sw.ts。
  */
 (function () {
   try {
@@ -31,7 +31,7 @@
         });
       })
       .then(function () {
-        location.replace(location.href);
+        location.replace(location.href.split("#")[0]);
       });
   } catch (e) {}
 })();

@@ -18,7 +18,6 @@ import { LazyCalorieChart } from "@/components/meals/lazy-calorie-chart";
 import {
   dashboardDateHref,
   dashboardMealsListHref,
-  daysInJapanMonth,
   lastNJstDaysAsc,
   pad2,
   toJapanYmd,
@@ -51,6 +50,83 @@ type MealRow = {
 type DashboardSupabaseClient = Awaited<
   ReturnType<typeof getAuthenticatedUserWithProfileCached>
 >["supabase"];
+
+type DailySummaryRow = {
+  meal_count: number;
+  calories: number;
+  protein: number;
+  fat: number;
+  carbs: number;
+};
+
+function isNextNavigationError(error: unknown): boolean {
+  if (!error || typeof error !== "object" || !("digest" in error)) {
+    return false;
+  }
+  const digest = (error as { digest: unknown }).digest;
+  return (
+    typeof digest === "string" &&
+    (digest.startsWith("NEXT_REDIRECT") || digest.startsWith("NEXT_NOT_FOUND"))
+  );
+}
+
+async function fetchDailySummary(
+  supabase: DashboardSupabaseClient,
+  start: string,
+  endExclusive: string,
+): Promise<{ data: DailySummaryRow | null; error: unknown | null }> {
+  try {
+    const { data, error } = await supabase
+      .rpc("get_daily_meal_summary", {
+        p_start: start,
+        p_end: endExclusive,
+      })
+      .single();
+
+    if (!error && data) {
+      return {
+        data: {
+          meal_count: Number(data.meal_count ?? 0),
+          calories: Number(data.calories ?? 0),
+          protein: Number(data.protein ?? 0),
+          fat: Number(data.fat ?? 0),
+          carbs: Number(data.carbs ?? 0),
+        },
+        error: null,
+      };
+    }
+
+    console.warn(
+      "[dashboard] get_daily_meal_summary failed, falling back",
+      error,
+    );
+
+    const { data: meals, error: mealsError } = await supabase
+      .from("meals")
+      .select("total_calories, protein, fat, carbs")
+      .gte("eaten_at", start)
+      .lt("eaten_at", endExclusive);
+
+    if (mealsError) {
+      return { data: null, error: mealsError };
+    }
+
+    const rows = meals ?? [];
+    return {
+      data: {
+        meal_count: rows.length,
+        calories: rows.reduce((sum, row) => sum + row.total_calories, 0),
+        protein: rows.reduce((sum, row) => sum + Number(row.protein), 0),
+        fat: rows.reduce((sum, row) => sum + Number(row.fat), 0),
+        carbs: rows.reduce((sum, row) => sum + Number(row.carbs), 0),
+      },
+      error: null,
+    };
+  } catch (error) {
+    console.error("[dashboard] fetchDailySummary threw", error);
+    return { data: null, error };
+  }
+}
 
 /** YYYY-MM-DD を日本語の日付表記に（その日の表示用。正午 JST で解釈） */
 function formatJapanDateHeading(ymd: string) {
@@ -131,6 +207,7 @@ export default async function DashboardPage({
       // 同期直後の RSC 内 profile とズレないよう、クエリなしで再読込させる
       redirect("/dashboard");
     } catch (error) {
+      if (isNextNavigationError(error)) throw error;
       console.error("[dashboard] billing success sync failed", error);
     }
   }
@@ -144,13 +221,11 @@ export default async function DashboardPage({
     redirect("/dashboard");
   }
 
-  const summaryQuery = supabase
-    .rpc("get_daily_meal_summary", {
-      p_start: start,
-      p_end: endExclusive,
-    })
-    .single();
-  const { data: summary, error: summaryError } = await summaryQuery;
+  const { data: summary, error: summaryError } = await fetchDailySummary(
+    supabase,
+    start,
+    endExclusive,
+  );
 
   const mealCount = Number(summary?.meal_count ?? 0);
   const totalMealsPages = Math.max(
@@ -367,10 +442,14 @@ export default async function DashboardPage({
                   tone,
                 ].join(" ")}
               >
-                <p className="text-xs text-muted-foreground sm:text-sm">{label}</p>
+                <p className="text-xs text-muted-foreground sm:text-sm">
+                  {label}
+                </p>
                 <p className="mt-2 text-xl font-semibold sm:text-3xl">
                   {value}
-                  <span className="ml-0.5 text-sm text-muted-foreground">g</span>
+                  <span className="ml-0.5 text-sm text-muted-foreground">
+                    g
+                  </span>
                 </p>
               </div>
             ))}
@@ -472,32 +551,42 @@ async function DashboardChartPanel({
     );
   }
 
-  const chart14Days = lastNJstDaysAsc(14, todayDate);
-  const last14DaysStart = new Date(
-    `${chart14Days[0]}T00:00:00.000+09:00`,
-  ).toISOString();
-  const { data: chartMeals, error } = await supabase
-    .from("meals")
-    .select("id,eaten_at,total_calories,protein,fat,carbs")
-    .eq("user_id", userId)
-    .gte("eaten_at", last14DaysStart)
-    .order("eaten_at", { ascending: true });
+  try {
+    const chart14Days = lastNJstDaysAsc(14, todayDate);
+    const last14DaysStart = new Date(
+      `${chart14Days[0]}T00:00:00.000+09:00`,
+    ).toISOString();
+    const { data: chartMeals, error } = await supabase
+      .from("meals")
+      .select("id,eaten_at,total_calories,protein,fat,carbs")
+      .eq("user_id", userId)
+      .gte("eaten_at", last14DaysStart)
+      .order("eaten_at", { ascending: true });
 
-  if (error) {
+    if (error) {
+      return (
+        <p className="border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+          推移データを取得できません。
+        </p>
+      );
+    }
+
+    return (
+      <LazyCalorieChart
+        meals={(chartMeals ?? []) as MealRow[]}
+        goalCalories={goalCalories}
+        chartEndDate={todayDate}
+      />
+    );
+  } catch (error) {
+    if (isNextNavigationError(error)) throw error;
+    console.error("[dashboard] chart panel threw", error);
     return (
       <p className="border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-        推移データを取得できません。
+        推移データを読み込めませんでした。
       </p>
     );
   }
-
-  return (
-    <LazyCalorieChart
-      meals={(chartMeals ?? []) as MealRow[]}
-      goalCalories={goalCalories}
-      chartEndDate={todayDate}
-    />
-  );
 }
 
 function DashboardMealHistorySkeleton({ isPaid }: { isPaid: boolean }) {
@@ -543,78 +632,97 @@ async function DashboardMealHistorySection({
   const monthStartIso = new Date(
     `${cy}-${pad2(cm)}-01T00:00:00.000+09:00`,
   ).toISOString();
-  const dimMonth = daysInJapanMonth(cy, cm);
-  const monthEndIso = new Date(
-    `${cy}-${pad2(cm)}-${pad2(dimMonth)}T23:59:59.999+09:00`,
+  let nextMonthYear = cy;
+  let nextMonth = cm + 1;
+  if (nextMonth > 12) {
+    nextMonth = 1;
+    nextMonthYear += 1;
+  }
+  const monthEndExclusive = new Date(
+    `${nextMonthYear}-${pad2(nextMonth)}-01T00:00:00.000+09:00`,
   ).toISOString();
 
-  const mealsQuery = supabase
-    .from("meals")
-    .select(
-      "id,eaten_at,total_calories,protein,fat,carbs,memo,meal_items(id,name,estimated_amount,calories)",
-    )
-    .eq("user_id", userId)
-    .gte("eaten_at", start)
-    .lt("eaten_at", endExclusive)
-    .order("eaten_at", { ascending: false })
-    .range(mealsRangeFrom, mealsRangeTo);
-  const monthMealsQuery = isPaid
-    ? supabase
-        .from("meals")
-        .select("eaten_at")
-        .eq("user_id", userId)
-        .gte("eaten_at", monthStartIso)
-        .lte("eaten_at", monthEndIso)
-    : Promise.resolve({
-        data: [] as { eaten_at: string }[] | null,
-        error: null,
-      });
+  try {
+    const mealsQuery = supabase
+      .from("meals")
+      .select(
+        "id,eaten_at,total_calories,protein,fat,carbs,memo,meal_items(id,name,estimated_amount,calories)",
+      )
+      .eq("user_id", userId)
+      .gte("eaten_at", start)
+      .lt("eaten_at", endExclusive)
+      .order("eaten_at", { ascending: false })
+      .range(mealsRangeFrom, mealsRangeTo);
+    const monthMealsQuery = isPaid
+      ? supabase
+          .from("meals")
+          .select("eaten_at")
+          .eq("user_id", userId)
+          .gte("eaten_at", monthStartIso)
+          .lt("eaten_at", monthEndExclusive)
+      : Promise.resolve({
+          data: [] as { eaten_at: string }[] | null,
+          error: null,
+        });
 
-  const [{ data, error }, { data: monthMealRows }] = await Promise.all([
-    mealsQuery,
-    monthMealsQuery,
-  ]);
-  const meals = (data ?? []) as unknown as MealRow[];
-  const datesWithMeals = [
-    ...new Set((monthMealRows ?? []).map((row) => toJapanYmd(row.eaten_at))),
-  ];
+    const [{ data, error }, monthResult] = await Promise.all([
+      mealsQuery,
+      monthMealsQuery,
+    ]);
+    const meals = (data ?? []) as unknown as MealRow[];
+    const datesWithMeals = [
+      ...new Set(
+        (monthResult.data ?? []).map((row) => toJapanYmd(row.eaten_at)),
+      ),
+    ];
 
-  if (error) {
+    if (error) {
+      return (
+        <div className="p-4 sm:p-5">
+          <p className="border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+            食事一覧を取得できません。
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,17.5rem)_1fr] lg:items-start">
+        <DashboardMealCalendar
+          selectedDate={date}
+          todayDate={todayDate}
+          isPaid={isPaid}
+          datesWithMeals={datesWithMeals}
+        />
+        <MealList
+          meals={meals}
+          mealsPage={mealsPage}
+          mealsPageSize={DASHBOARD_DAY_MEALS_PAGE_SIZE}
+          totalMealsForDay={mealCount}
+          nextPageHref={
+            mealsRangeFrom + meals.length < mealCount
+              ? dashboardMealsListHref(date, mealsPage + 1)
+              : null
+          }
+          prevPageHref={
+            mealsPage > 1 ? dashboardMealsListHref(date, mealsPage - 1) : null
+          }
+          selectedDateYmd={date}
+          todayDateYmd={todayDate}
+          goalCalories={goalCalories}
+          isPaid={isPaid}
+        />
+      </div>
+    );
+  } catch (error) {
+    if (isNextNavigationError(error)) throw error;
+    console.error("[dashboard] meal history threw", error);
     return (
       <div className="p-4 sm:p-5">
         <p className="border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-          食事一覧を取得できません。
+          食事一覧を読み込めませんでした。
         </p>
       </div>
     );
   }
-
-  return (
-    <div className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,17.5rem)_1fr] lg:items-start">
-      <DashboardMealCalendar
-        selectedDate={date}
-        todayDate={todayDate}
-        isPaid={isPaid}
-        datesWithMeals={datesWithMeals}
-      />
-      <MealList
-        meals={meals}
-        mealsPage={mealsPage}
-        mealsPageSize={DASHBOARD_DAY_MEALS_PAGE_SIZE}
-        totalMealsForDay={mealCount}
-        nextPageHref={
-          mealsRangeFrom + meals.length < mealCount
-            ? dashboardMealsListHref(date, mealsPage + 1)
-            : null
-        }
-        prevPageHref={
-          mealsPage > 1 ? dashboardMealsListHref(date, mealsPage - 1) : null
-        }
-        selectedDateYmd={date}
-        todayDateYmd={todayDate}
-        goalCalories={goalCalories}
-        isPaid={isPaid}
-      />
-    </div>
-  );
 }

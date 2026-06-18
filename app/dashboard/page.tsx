@@ -15,6 +15,7 @@ import {
   DashboardGoalModalBlock,
   DashboardMealsBlock,
 } from "@/components/dashboard/dashboard-client-blocks";
+import { MealListShell } from "@/components/meals/meal-list-shell";
 import {
   dashboardDateHref,
   dashboardMealsListHref,
@@ -383,6 +384,26 @@ async function DashboardPageContent({
         (monthResult.data ?? []).map((row) => toJapanYmd(row.eaten_at)),
       ),
     ];
+
+    meals = meals.map((meal) => ({
+      ...meal,
+      total_calories: Number(meal.total_calories) || 0,
+      protein: Number(meal.protein) || 0,
+      fat: Number(meal.fat) || 0,
+      carbs: Number(meal.carbs) || 0,
+      memo: meal.memo ?? null,
+      meal_items: (meal.meal_items ?? [])
+        .filter(
+          (item): item is NonNullable<typeof item> =>
+            Boolean(item?.id && item?.name),
+        )
+        .map((item) => ({
+          id: item.id,
+          name: item.name,
+          estimated_amount: item.estimated_amount ?? "",
+          calories: Number(item.calories) || 0,
+        })),
+    }));
   } catch (error) {
     if (isNextNavigationError(error)) throw error;
     console.error("[dashboard] parallel fetch threw", error);
@@ -649,9 +670,28 @@ async function DashboardPageContent({
             </div>
           ) : (
             <DashboardMealsBlock
-              selectedDate={date}
-              todayDate={todayDate}
-              isPaid={isPaid}
+              shell={
+                <MealListShell
+                  meals={meals}
+                  mealsPage={mealsPage}
+                  mealsPageSize={DASHBOARD_DAY_MEALS_PAGE_SIZE}
+                  totalMealsForDay={mealCount}
+                  nextPageHref={
+                    mealsRangeFrom + meals.length < mealCount
+                      ? dashboardMealsListHref(date, mealsPage + 1)
+                      : null
+                  }
+                  prevPageHref={
+                    mealsPage > 1
+                      ? dashboardMealsListHref(date, mealsPage - 1)
+                      : null
+                  }
+                  selectedDateYmd={date}
+                  todayDateYmd={todayDate}
+                  goalCalories={goalCalories}
+                  isPaid={isPaid}
+                />
+              }
               datesWithMeals={datesWithMeals}
               meals={meals}
               mealsPage={mealsPage}
@@ -665,7 +705,10 @@ async function DashboardPageContent({
               prevPageHref={
                 mealsPage > 1 ? dashboardMealsListHref(date, mealsPage - 1) : null
               }
+              selectedDateYmd={date}
+              todayDateYmd={todayDate}
               goalCalories={goalCalories}
+              isPaid={isPaid}
             />
           )}
         </section>

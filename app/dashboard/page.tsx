@@ -11,11 +11,10 @@ import {
 import { getCalorieOverLevel, getDayRangeInJapan } from "@/lib/meal-analysis";
 import { getAuthenticatedUserWithProfileCached } from "@/lib/supabase/server";
 import {
-  DynamicCalorieChart,
-  DynamicCalorieGoalModal,
-  DynamicMealCalendar,
-  DynamicMealList,
-} from "@/components/meals/dashboard-client-dynamic";
+  DashboardChartBlock,
+  DashboardGoalModalBlock,
+  DashboardMealsBlock,
+} from "@/components/dashboard/dashboard-client-blocks";
 import {
   dashboardDateHref,
   dashboardMealsListHref,
@@ -169,7 +168,47 @@ async function syncPlanOnBillingSuccess(sessionId: string, userId: string) {
   if (error) throw error;
 }
 
+function DashboardServerFailure() {
+  return (
+    <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:px-5">
+      <div className="border border-border bg-card p-6">
+        <h1 className="text-2xl font-semibold">
+          ダッシュボードを表示できません
+        </h1>
+        <p className="mt-2 text-sm leading-7 text-muted-foreground">
+          データの取得中に問題が発生しました。ページを再読み込みしてください。
+        </p>
+        <Link
+          href="/meals/new"
+          className="mt-5 inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground"
+        >
+          食事記録へ
+        </Link>
+      </div>
+    </main>
+  );
+}
+
 export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    billing?: string;
+    session_id?: string;
+    date?: string;
+    meals_page?: string;
+  }>;
+}) {
+  try {
+    return await DashboardPageContent({ searchParams });
+  } catch (error) {
+    if (isNextNavigationError(error)) throw error;
+    console.error("[dashboard] page threw", error);
+    return <DashboardServerFailure />;
+  }
+}
+
+async function DashboardPageContent({
   searchParams,
 }: {
   searchParams: Promise<{
@@ -353,7 +392,7 @@ export default async function DashboardPage({
   return (
     <main className="min-h-0 flex-1 bg-background">
       {shouldShowGoalPrompt ? (
-        <DynamicCalorieGoalModal
+        <DashboardGoalModalBlock
           initialGoal={goalCalories}
           shouldShow={shouldShowGoalPrompt}
         />
@@ -575,7 +614,7 @@ export default async function DashboardPage({
                 推移データを取得できません。
               </p>
             ) : (
-              <DynamicCalorieChart
+              <DashboardChartBlock
                 meals={chartMeals ?? []}
                 goalCalories={goalCalories}
                 chartEndDate={todayDate}
@@ -609,34 +648,25 @@ export default async function DashboardPage({
               </p>
             </div>
           ) : (
-            <div className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,17.5rem)_1fr] lg:items-start">
-              <DynamicMealCalendar
-                selectedDate={date}
-                todayDate={todayDate}
-                isPaid={isPaid}
-                datesWithMeals={datesWithMeals}
-              />
-              <DynamicMealList
-                meals={meals}
-                mealsPage={mealsPage}
-                mealsPageSize={DASHBOARD_DAY_MEALS_PAGE_SIZE}
-                totalMealsForDay={mealCount}
-                nextPageHref={
-                  mealsRangeFrom + meals.length < mealCount
-                    ? dashboardMealsListHref(date, mealsPage + 1)
-                    : null
-                }
-                prevPageHref={
-                  mealsPage > 1
-                    ? dashboardMealsListHref(date, mealsPage - 1)
-                    : null
-                }
-                selectedDateYmd={date}
-                todayDateYmd={todayDate}
-                goalCalories={goalCalories}
-                isPaid={isPaid}
-              />
-            </div>
+            <DashboardMealsBlock
+              selectedDate={date}
+              todayDate={todayDate}
+              isPaid={isPaid}
+              datesWithMeals={datesWithMeals}
+              meals={meals}
+              mealsPage={mealsPage}
+              mealsPageSize={DASHBOARD_DAY_MEALS_PAGE_SIZE}
+              totalMealsForDay={mealCount}
+              nextPageHref={
+                mealsRangeFrom + meals.length < mealCount
+                  ? dashboardMealsListHref(date, mealsPage + 1)
+                  : null
+              }
+              prevPageHref={
+                mealsPage > 1 ? dashboardMealsListHref(date, mealsPage - 1) : null
+              }
+              goalCalories={goalCalories}
+            />
           )}
         </section>
       </div>

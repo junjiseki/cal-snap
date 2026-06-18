@@ -10,7 +10,11 @@ import { PWA_SHORT_CACHE_PATHS } from "./lib/pwa-static-icon-paths";
  * `/_next/static`、`/sw.js` 等も含む）。HTML の Cache-Control と HSTS（HTTPS 時）は `proxy.ts`。
  * Permissions-Policy 等の共有値は `lib/http-security.ts`。
  */
-const SERVICE_WORKER_HEADER_SOURCES = ["/sw.js", "/sw-passive.js"] as const;
+const SERVICE_WORKER_HEADER_SOURCES = [
+  "/sw.js",
+  "/sw-passive.js",
+  "/sw-migrate.js",
+] as const;
 
 const nextConfig: NextConfig = {
   experimental: {

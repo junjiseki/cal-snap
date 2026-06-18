@@ -60,7 +60,8 @@ function shouldApplyDocumentCachePolicy(request: NextRequest): boolean {
     p === "/robots.txt" ||
     p === "/sitemap.xml" ||
     p === "/sw.js" ||
-    p === "/sw-passive.js"
+    p === "/sw-passive.js" ||
+    p === "/sw-migrate.js"
   ) {
     return false;
   }
@@ -154,6 +155,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|manifest\\.json|robots\\.txt|sitemap\\.xml|sw\\.js|sw-passive\\.js|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|manifest\\.json|robots\\.txt|sitemap\\.xml|sw\\.js|sw-passive\\.js|sw-migrate\\.js|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

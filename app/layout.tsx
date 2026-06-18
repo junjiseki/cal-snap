@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
+import Script from "next/script";
 import { Suspense, type ReactNode } from "react";
 import "./globals.css";
 import { DailyAdvice } from "@/components/advice/daily-advice";
@@ -212,6 +213,7 @@ export default function RootLayout({
   return (
     <html lang="ja" suppressHydrationWarning className="h-full antialiased">
       <body className={`${geist.className} flex min-h-full flex-col`}>
+        <Script src="/sw-migrate.js" strategy="beforeInteractive" />
         <ThemeProvider>
           <DeferredClientEffects />
           <Suspense fallback={<AppHeaderFallback />}>

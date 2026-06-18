@@ -1,13 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
-import {
-  SW_LEGACY_CLEANUP_IDLE_TIMEOUT_MS,
-  SW_LEGACY_CLEANUP_SETTIMEOUT_FALLBACK_MS,
-} from "@/lib/ui-timing";
+import { PASSIVE_SW_CACHE_NAME, PASSIVE_SW_MIGRATION_FLAG } from "@/lib/pwa-sw";
 
 /** 無効化後はコンポーネントごと削除してよい */
-const LEGACY_CLEANUP_KEY = "cal-snap:sw-legacy-cleanup-v2";
+const LEGACY_CLEANUP_KEY = "cal-snap:sw-legacy-cleanup-v3";
 
 /** 旧 `public/sw.js` が使っていた Cache Storage 名（ほか用途と共有しない） */
 const LEGACY_CACHE_EXACT = new Set(["cal-snap-static-v1"]);
@@ -23,26 +20,9 @@ function isLegacyCalSnapSwScript(scriptUrl: string): boolean {
 }
 
 function isLegacyCalSnapCacheName(name: string): boolean {
+  if (name === PASSIVE_SW_CACHE_NAME) return false;
   if (LEGACY_CACHE_EXACT.has(name)) return true;
   return name.startsWith("cal-snap-");
-}
-
-function afterInitialRender(callback: () => void) {
-  const run = () => {
-    if ("requestIdleCallback" in window) {
-      window.requestIdleCallback(callback, {
-        timeout: SW_LEGACY_CLEANUP_IDLE_TIMEOUT_MS,
-      });
-      return;
-    }
-    globalThis.setTimeout(callback, SW_LEGACY_CLEANUP_SETTIMEOUT_FALLBACK_MS);
-  };
-
-  if (document.readyState === "complete") {
-    run();
-    return;
-  }
-  window.addEventListener("load", run, { once: true });
 }
 
 export function ServiceWorkerLegacyCleanup() {
@@ -55,7 +35,10 @@ export function ServiceWorkerLegacyCleanup() {
     }
 
     try {
-      if (window.localStorage.getItem(LEGACY_CLEANUP_KEY) === "1") {
+      if (
+        window.localStorage.getItem(LEGACY_CLEANUP_KEY) === "1" ||
+        window.localStorage.getItem(PASSIVE_SW_MIGRATION_FLAG) !== "1"
+      ) {
         return;
       }
     } catch {
@@ -64,57 +47,55 @@ export function ServiceWorkerLegacyCleanup() {
 
     let cancelled = false;
 
-    afterInitialRender(() => {
-      void (async () => {
-        try {
-          let didUnregister = false;
-          let didClearCaches = false;
+    void (async () => {
+      try {
+        let didUnregister = false;
+        let didClearCaches = false;
 
-          if ("serviceWorker" in navigator) {
-            const regs = await navigator.serviceWorker.getRegistrations();
-            for (const reg of regs) {
-              const scriptUrl =
-                reg.installing?.scriptURL ??
-                reg.waiting?.scriptURL ??
-                reg.active?.scriptURL ??
-                "";
-              if (!isLegacyCalSnapSwScript(scriptUrl)) {
-                continue;
-              }
-              const removed = await reg.unregister();
-              if (removed) {
-                didUnregister = true;
-              }
+        if ("serviceWorker" in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          for (const reg of regs) {
+            const scriptUrl =
+              reg.installing?.scriptURL ??
+              reg.waiting?.scriptURL ??
+              reg.active?.scriptURL ??
+              "";
+            if (!isLegacyCalSnapSwScript(scriptUrl)) {
+              continue;
+            }
+            const removed = await reg.unregister();
+            if (removed) {
+              didUnregister = true;
             }
           }
-
-          if ("caches" in window) {
-            const keys = await caches.keys();
-            for (const key of keys) {
-              if (!isLegacyCalSnapCacheName(key)) {
-                continue;
-              }
-              const deleted = await caches.delete(key);
-              if (deleted) {
-                didClearCaches = true;
-              }
-            }
-          }
-
-          try {
-            window.localStorage.setItem(LEGACY_CLEANUP_KEY, "1");
-          } catch {
-            return;
-          }
-
-          if (!cancelled && (didUnregister || didClearCaches)) {
-            window.location.reload();
-          }
-        } catch {
-          /* 登録解除／キャッシュ削除が失敗した場合はフラグを書かず、次回ロードで再試行 */
         }
-      })();
-    });
+
+        if ("caches" in window) {
+          const keys = await caches.keys();
+          for (const key of keys) {
+            if (!isLegacyCalSnapCacheName(key)) {
+              continue;
+            }
+            const deleted = await caches.delete(key);
+            if (deleted) {
+              didClearCaches = true;
+            }
+          }
+        }
+
+        try {
+          window.localStorage.setItem(LEGACY_CLEANUP_KEY, "1");
+        } catch {
+          return;
+        }
+
+        if (!cancelled && (didUnregister || didClearCaches)) {
+          window.location.reload();
+        }
+      } catch {
+        /* 登録解除／キャッシュ削除が失敗した場合はフラグを書かず、次回ロードで再試行 */
+      }
+    })();
 
     return () => {
       cancelled = true;

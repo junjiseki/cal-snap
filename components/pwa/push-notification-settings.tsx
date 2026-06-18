@@ -2,10 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { BellRing, Loader2 } from "lucide-react";
+import { PASSIVE_SW_PATH, PASSIVE_SW_URL } from "@/lib/pwa-sw";
 
 const PUSH_ACTION_TIMEOUT_MS = 20_000;
 const PUSH_STEP_TIMEOUT_MS = 15_000;
-const PUSH_SW_PATH = "/sw-passive.js";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -80,7 +80,9 @@ async function ensureServiceWorkerRegistration() {
   // pathname が取れない間は誤登録解除しない（デプロイ直後などで一瞬 scriptURL が空になると
   // 以前は常に「想定外 SW」とみなして unregister し、プッシュ購読が消えていた）
   const isDefinitelyWrongWorker =
-    pathname !== null && pathname !== PUSH_SW_PATH;
+    pathname !== null &&
+    pathname !== PASSIVE_SW_PATH &&
+    !pathname.startsWith(`${PASSIVE_SW_PATH}?`);
 
   if (existing && isDefinitelyWrongWorker) {
     await withTimeLimit(
@@ -93,7 +95,7 @@ async function ensureServiceWorkerRegistration() {
 
   if (!existing) {
     await withTimeLimit(
-      navigator.serviceWorker.register(PUSH_SW_PATH, { scope: "/" }),
+      navigator.serviceWorker.register(PASSIVE_SW_URL, { scope: "/" }),
       PUSH_STEP_TIMEOUT_MS,
       "通知の準備がタイムアウトしました。ページを再読み込みしてから再度お試しください。",
     );

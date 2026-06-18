@@ -3,7 +3,7 @@
  * public 配下の画像・フォントのみ最小限キャッシュする。
  * `/_next/static/` の JS/CSS は横取りしない（デプロイ後の古いチャンク配信で白画面になるため）。
  */
-const STATIC_CACHE = "cal-snap-static-v13";
+const STATIC_CACHE = "cal-snap-static-v14";
 /**
  * iOS「ホーム画面に追加」は apple-touch-icon を取る際、SW が fetch を横取りすると
  * キャッシュの空応答・古い失敗レスポンスで画像が取れず、サイト名の頭文字（例: カ）だけのアイコンになることがある。
@@ -37,6 +37,12 @@ function isCacheableStaticRequest(request) {
   }
   return /\.(?:png|jpg|jpeg|webp|avif|svg|ico|woff2)$/i.test(url.pathname);
 }
+
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
+});
 
 self.addEventListener("install", (event) => {
   if (APP_SHELL.length > 0) {

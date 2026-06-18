@@ -11,7 +11,7 @@ const DOCUMENT_CACHE_CONTROL =
 const AUTH_CONTEXT_HEADER = "x-kalosna-auth-context";
 
 /** 旧 SW 解除済みマーカー（Clear-Site-Data は cookies には触れない） */
-const SW_CLEAR_COOKIE = "kalosna-sw-cleared-v16";
+const SW_CLEAR_COOKIE = "kalosna-sw-cleared-v17";
 
 function isMobileUserAgent(request: NextRequest) {
   const ua = request.headers.get("user-agent") ?? "";

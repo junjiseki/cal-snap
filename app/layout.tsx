@@ -61,6 +61,7 @@ function AppHeaderFallback() {
               className="size-10 shrink-0 rounded-md sm:size-12"
               sizes="(min-width: 640px) 48px, 40px"
               priority
+              loading="eager"
             />
             <span className="truncate text-base font-semibold sm:text-lg">
               カロスナ

@@ -1,30 +1,14 @@
 "use client";
 
-import Link from "next/link";
+import type { ComponentProps, ReactNode } from "react";
 import { CalorieGoalOnboardingModal } from "@/components/account/calorie-goal-onboarding-modal";
+import { DashboardMealListClient } from "@/components/dashboard/dashboard-meal-list-client";
 import { DashboardSectionErrorBoundary } from "@/components/dashboard/section-error-boundary";
 import { DashboardMealCalendar } from "@/components/meals/dashboard-meal-calendar";
 import { LazyCalorieChart } from "@/components/meals/lazy-calorie-chart";
-import { MealList } from "@/components/meals/meal-list";
+import type { MealListShell } from "@/components/meals/meal-list-shell";
 
-type ChartMeal = {
-  id: string;
-  eaten_at: string;
-  total_calories: number;
-  protein: number;
-  fat: number;
-  carbs: number;
-};
-
-type MealRow = ChartMeal & {
-  memo: string | null;
-  meal_items?: {
-    id: string;
-    name: string;
-    estimated_amount: string;
-    calories: number;
-  }[];
-};
+type MealListShellProps = ComponentProps<typeof MealListShell>;
 
 function sectionFallback(message: string) {
   return (
@@ -53,6 +37,15 @@ export function DashboardGoalModalBlock({
   );
 }
 
+type ChartMeal = {
+  id: string;
+  eaten_at: string;
+  total_calories: number;
+  protein: number;
+  fat: number;
+  carbs: number;
+};
+
 export function DashboardChartBlock({
   meals,
   goalCalories,
@@ -77,65 +70,31 @@ export function DashboardChartBlock({
 }
 
 export function DashboardMealsBlock({
-  selectedDate,
-  todayDate,
-  isPaid,
+  shell,
   datesWithMeals,
-  meals,
-  mealsPage,
-  mealsPageSize,
-  totalMealsForDay,
-  nextPageHref,
-  prevPageHref,
-  goalCalories,
-}: {
-  selectedDate: string;
-  todayDate: string;
-  isPaid: boolean;
+  ...mealListProps
+}: MealListShellProps & {
+  shell: React.ReactNode;
   datesWithMeals: string[];
-  meals: MealRow[];
-  mealsPage: number;
-  mealsPageSize: number;
-  totalMealsForDay: number;
-  nextPageHref: string | null;
-  prevPageHref: string | null;
-  goalCalories: number;
 }) {
   return (
-    <DashboardSectionErrorBoundary
-      label="meal-list"
-      fallback={
-        <div className="p-4 sm:p-5">
-          {sectionFallback("食事一覧を読み込めませんでした。")}
-          <Link
-            href="/meals/new"
-            className="mt-3 inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground"
-          >
-            食事を記録する
-          </Link>
-        </div>
-      }
-    >
-      <div className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,17.5rem)_1fr] lg:items-start">
+    <div className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,17.5rem)_1fr] lg:items-start">
+      <DashboardSectionErrorBoundary
+        label="meal-calendar"
+        fallback={
+          <p className="text-sm text-muted-foreground">
+            カレンダーを読み込めませんでした。
+          </p>
+        }
+      >
         <DashboardMealCalendar
-          selectedDate={selectedDate}
-          todayDate={todayDate}
-          isPaid={isPaid}
+          selectedDate={mealListProps.selectedDateYmd}
+          todayDate={mealListProps.todayDateYmd}
+          isPaid={mealListProps.isPaid}
           datesWithMeals={datesWithMeals}
         />
-        <MealList
-          meals={meals}
-          mealsPage={mealsPage}
-          mealsPageSize={mealsPageSize}
-          totalMealsForDay={totalMealsForDay}
-          nextPageHref={nextPageHref}
-          prevPageHref={prevPageHref}
-          selectedDateYmd={selectedDate}
-          todayDateYmd={todayDate}
-          goalCalories={goalCalories}
-          isPaid={isPaid}
-        />
-      </div>
-    </DashboardSectionErrorBoundary>
+      </DashboardSectionErrorBoundary>
+      <DashboardMealListClient shell={shell} {...mealListProps} />
+    </div>
   );
 }

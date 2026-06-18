@@ -199,7 +199,7 @@ export function PublicHome() {
                 alt="食事写真をAI解析して確認・修正している画面"
                 width={1357}
                 height={1281}
-                loading="lazy"
+                priority
                 sizes="(min-width: 1024px) 44rem, (min-width: 640px) calc(100vw - 16rem), 0px"
                 className="h-auto w-full rounded-sm"
               />

@@ -31,6 +31,8 @@ export function PageLoadingSkeleton({
         height={80}
         className="size-20 shrink-0 rounded-md"
         sizes="80px"
+        priority
+        loading="eager"
       />
       <div className="flex flex-col items-center gap-3">
         <Loader2

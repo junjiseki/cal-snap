@@ -2,7 +2,7 @@ name: Meal Reminder Cron
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "*/200 * * * *"
   workflow_dispatch:
 
 concurrency:

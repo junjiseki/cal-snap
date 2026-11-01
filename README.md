@@ -1,91 +1,94 @@
-# カロスナ AI
+# カロスナ
 
-食事写真から AI が総カロリーと PFC を推定し、ユーザーが確認・修正してから食事として登録する MVP です。
+食事写真を AI で解析し、確認・修正してから 1 日のカロリーと PFC（たんぱく質・脂質・炭水化物）を記録する食事管理アプリです。
+
+| 写真解析と確認 | ダッシュボード | 食事提案 |
+| --- | --- | --- |
+| ![食事写真の解析結果を確認して保存する画面](public/home-preview.webp) | ![摂取カロリーの推移と PFC を表示するダッシュボード](public/home-mobile-preview.webp) | ![過去の記録をもとに食事メニューを提案する画面](public/1.webp) |
+
+## できること
+
+- 食事写真からカロリーと PFC、料理ごとの内訳を推定する。画像は保存せず、解析時だけ扱う。
+- 推定値は保存前に直せる。日時、合計、PFC、メモ、料理ごとの内訳を確認してから登録する。
+- ダッシュボードで当日の合計と食事一覧を見る。有料プランでは過去日のカレンダーと直近 14 日の推移も見られる。
+- メールとパスワード、または Google でログインする。
+- Stripe のサブスクリプションで有料プランに切り替える。Webhook が `profiles.plan` を `free` / `paid` に更新する。
+- 有料プランでは、手入力の食事登録、食事メニュー提案、今日のアドバイス、食事時間のプッシュ通知を使える。
+- お問い合わせは Cloudflare Turnstile で検証してから保存する。
+
+食事画像は Storage にも DB にも残さない。DB に残るのは、AI の推定結果とユーザーが直した食事データだけです。
 
 ## 技術構成
 
-- Next.js App Router
-- TypeScript
-- Supabase Auth
-- Supabase PostgreSQL
-- Tailwind CSS
+- Next.js（App Router）/ TypeScript
+- Supabase Auth / Supabase PostgreSQL（RLS）
 - Gemini API
+- Stripe（Checkout、Customer Portal、Webhook）
+- Cloudflare Turnstile
+- Web Push / PWA
+- Tailwind CSS
+- Prisma は型生成と seed のみ。スキーマ変更は Supabase migration
+- Biome、Vitest、GitHub Actions
 
-画像は Storage や DB に保存しません。フロントで選択した画像を API Route に送信し、API 内で一時的に base64 化して Gemini Flash に渡します。DB には AI 解析結果とユーザー修正後の食事データのみ保存します。
+## プラン
 
-## DB スキーマ
+既定の上限です。`FREE_DAILY_ANALYSIS_LIMIT` と `PAID_DAILY_ANALYSIS_LIMIT` に正の整数を入れると上書きできます。1 日の区切りは日本時間です。
 
-Supabase migration:
+| | 無料 | 有料 |
+| --- | --- | --- |
+| AI 写真解析 | 1 日 1 回（標準モデル） | 1 日 3 回（高精度モデル） |
+| 手入力の食事登録 | なし | あり |
+| 食事メニュー提案 | なし | 1 日 3 回 |
+| ダッシュボード | 当日 | 過去日、直近 14 日のグラフ |
+| 今日のアドバイス、食事リマインダー | なし | あり |
 
-- [supabase/migrations/202604300001_ai_meal_mvp.sql](/supabase/migrations/202604300001_ai_meal_mvp.sql)
-- [supabase/migrations/20260430195000_add_daily_calorie_goal_to_profiles.sql](/supabase/migrations/20260430195000_add_daily_calorie_goal_to_profiles.sql)
-- [supabase/migrations/20260501061000_fix_atomic_meal_workflows.sql](/supabase/migrations/20260501061000_fix_atomic_meal_workflows.sql)
-- [supabase/migrations/20260501072000_create_contact_messages.sql](/supabase/migrations/20260501072000_create_contact_messages.sql)
+有料プランの購入と解約は `/billing` から Stripe に渡します。`checkout.session.completed` と `customer.subscription.created` / `updated` / `deleted` を受け、契約状態が `active` / `trialing` / `past_due` のとき `profiles.plan` を `paid` に、それ以外は `free` にします。
+
+## データ
+
+スキーマの実体は [supabase/migrations](supabase/migrations) です。`pnpm run sb:start` でローカル DB に順に適用されます。
 
 主なテーブル:
 
-- `profiles`
-  - `id`
-  - `plan`: `free | paid`
-  - `created_at`
-- `meals`
-  - `id`
-  - `user_id`
-  - `eaten_at`
-  - `total_calories`
-  - `protein`
-  - `fat`
-  - `carbs`
-  - `ai_confidence`
-  - `memo`
-  - `created_at`
-- `meal_items`
-  - `id`
-  - `meal_id`
-  - `name`
-  - `estimated_amount`
-  - `calories`
-  - `protein`
-  - `fat`
-  - `carbs`
-  - `confidence`
-- `ai_analysis_logs`
-  - `id`
-  - `user_id`
-  - `analyzed_at`
-  - `model`
-  - `success`
-- `contact_messages`
-  - `id`
-  - `user_id`
-  - `name`
-  - `email`
-  - `category`
-  - `message`
-  - `status`
-  - `created_at`
+- `profiles` … プラン、目標カロリー、論理削除
+- `meals` / `meal_items` … 食事と料理ごとの内訳
+- `ai_analysis_logs` … 解析の成否とモデル
+- `meal_suggestion_logs` … 食事提案の利用回数
+- `meal_reminder_settings` / `meal_reminder_logs` … 通知時刻と送信履歴
+- `push_subscriptions` … Web Push の購読
+- `contact_messages` … お問い合わせ
 
-RLS は有効化済みで、自分のデータだけ参照・更新できます。
+RLS は有効で、ユーザーは自分の行だけを参照・更新できます。プラン更新などサーバー権限が必要な処理は `SUPABASE_SECRET_KEY` を使います。
 
 ## 必要な環境変数
 
-`.env` に設定します。
+プロジェクト直下の `.env` に置きます。`.env*` は Git に含まれません。
 
 ```bash
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
 NEXT_PUBLIC_SUPABASE_URL="https://<project-ref>.supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="<supabase-anon-key>"
+SUPABASE_SECRET_KEY="<supabase-secret-key>"
+DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+
 GEMINI_API_KEY="<gemini-api-key>"
 GEMINI_FREE_MODEL="gemini-2.5-flash-lite"
 GEMINI_PAID_MODEL="gemini-2.5-flash"
 FREE_DAILY_ANALYSIS_LIMIT="1"
 PAID_DAILY_ANALYSIS_LIMIT="3"
+
 STRIPE_SECRET_KEY="<stripe-secret-key>"
 STRIPE_PRICE_ID="<stripe-price-id>"
 STRIPE_WEBHOOK_SECRET="<stripe-webhook-secret>"
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-SUPABASE_SECRET_KEY="<supabase-secret-key>"
+
 NEXT_PUBLIC_TURNSTILE_SITE_KEY="<cloudflare-turnstile-site-key>"
 TURNSTILE_SECRET_KEY="<cloudflare-turnstile-secret-key>"
+
+NEXT_PUBLIC_VAPID_PUBLIC_KEY="<vapid-public-key>"
+VAPID_PRIVATE_KEY="<vapid-private-key>"
+VAPID_SUBJECT="mailto:<contact-email>"
+CRON_SECRET="<cron-secret>"
+
 LEGAL_SELLER_NAME="<販売事業者名>"
 LEGAL_REPRESENTATIVE_NAME="<運営責任者名>"
 LEGAL_BUSINESS_ADDRESS="<事業者所在地>"
@@ -93,235 +96,98 @@ LEGAL_BUSINESS_PHONE="<電話番号>"
 LEGAL_CONTACT_EMAIL="<問い合わせメールアドレス>"
 ```
 
-`GEMINI_FREE_MODEL` は未設定の場合 `gemini-2.5-flash-lite`、`GEMINI_PAID_MODEL` は未設定の場合 `gemini-2.5-flash` を使用します。互換用に `GEMINI_MODEL` を設定すると、個別設定がないプランのフォールバックとして使われます。
+`GEMINI_FREE_MODEL` の未設定時は `gemini-2.5-flash-lite`、`GEMINI_PAID_MODEL` の未設定時は `gemini-2.5-flash` です。`GEMINI_MODEL` を置くと、個別設定がないプランのフォールバックになります。`SUPABASE_SERVICE_ROLE_KEY` も読めますが、`SUPABASE_SECRET_KEY` を使ってください。
 
 ### Cloudflare Turnstile
 
-お問い合わせフォームのスパム対策に Turnstile を使います。
+サイトキーとシークレットは Cloudflare の Turnstile で別々に発行します。同じ文字列を入れるとチャレンジが失敗します。
 
-サイトキーとシークレットキーは Cloudflare ダッシュボードの **Turnstile → Add widget** で発行します。
+- `NEXT_PUBLIC_TURNSTILE_SITE_KEY` … フロントに出す公開キー
+- `TURNSTILE_SECRET_KEY` … Siteverify 用の秘密キー
 
-- `NEXT_PUBLIC_TURNSTILE_SITE_KEY`: フロントに埋め込む公開キー
-- `TURNSTILE_SECRET_KEY`: API側で Siteverify に使う秘密キー
-
-ローカル開発では、未設定の場合に Cloudflare 公式のテストキーを使います。
+ローカルで未設定のときは、Cloudflare のテストキーを使います。
 
 ```bash
 NEXT_PUBLIC_TURNSTILE_SITE_KEY="1x00000000000000000000AA"
 TURNSTILE_SECRET_KEY="1x0000000000000000000000000000000AA"
 ```
 
-本番では必ずCloudflareで発行した実キーを設定してください。
-
 ### 特定商取引法に基づく表記
 
-本番環境では `/commerce-disclosure` に販売者情報を表示するため、次の環境変数を必ず設定してください。
+`/commerce-disclosure` は `LEGAL_*` を表示します。決済審査では、所在地・電話番号・メールアドレスがページ上で確認できることを求められることがあります。
 
-- `LEGAL_SELLER_NAME`: 販売事業者名
-- `LEGAL_REPRESENTATIVE_NAME`: 運営責任者名
-- `LEGAL_BUSINESS_ADDRESS`: 所在地
-- `LEGAL_BUSINESS_PHONE`: 電話番号
-- `LEGAL_CONTACT_EMAIL`: 問い合わせメールアドレス
+### Google ログイン
 
-決済審査では、所在地・電話番号・メールアドレスがページ上で確認できることを求められる場合があります。
-
-### ローカル Supabase で Google ログインを使う場合
-
-`supabase start` が読み込む **プロジェクトルートの `.env`**（`.env.local` だけでは足りないことがあります）に、次を追加してください。
+ローカルでは、`supabase start` が読むプロジェクト直下の `.env` に次を追加します。
 
 ```bash
 SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID="<google-oauth-client-id>"
 SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET="<google-oauth-client-secret>"
 ```
 
-- Google Cloud Console の OAuth クライアント（ウェブ）の **承認済みリダイレクト URI** に  
-  `http://127.0.0.1:54321/auth/v1/callback` を登録します。  
-- 値を変えたら **`pnpm run sb:stop` → `pnpm run sb:start`** で Auth を再起動します。
+Google Cloud の承認済みリダイレクト URI に `http://127.0.0.1:54321/auth/v1/callback` を登録し、値を変えたら `pnpm run sb:stop` のあと `pnpm run sb:start` します。
 
-### Supabase Cloud で Google ログインを使う場合
-
-ダッシュボードの **Authentication → Providers → Google** で有効化し、Client ID / Secret を設定します。  
-Google 側のリダイレクト URI には次を登録します（`<project-ref>` はご自身のプロジェクト）。
-
-```text
-https://<project-ref>.supabase.co/auth/v1/callback
-```
-
-「`Unsupported provider: provider is not enabled`」は、**上記が未設定または Google が OFF** のときに返ります。
-
-「`Unsupported provider: missing redirect URI`」は多くの場合、**ローカルで `[auth.external.google].redirect_uri` が空**、または **Google Cloud の「承認済みリダイレクト URI」に Supabase のコールバックが無い**ときです。ローカルでは `supabase/config.toml` で `http://127.0.0.1:54321/auth/v1/callback` を明示済みです。**`pnpm run sb:stop` → `pnpm run sb:start`** で反映し、Google 側にも同じ URI を登録してください。Cloud 利用時はダッシュボード **Authentication → Providers → Google** に表示されるコールバック URL（`https://<project-ref>.supabase.co/auth/v1/callback`）を Google に登録します。
-
-Stripe を使う場合は、Webhook エンドポイントを `POST /api/stripe/webhook` に設定してください。  
-また、`profiles.plan` と AI 解析ログの更新はサーバー権限で行うため `SUPABASE_SECRET_KEY` が必要です。  
-（互換のため `SUPABASE_SERVICE_ROLE_KEY` も読めますが、非推奨です）
+Supabase Cloud では Authentication → Providers → Google を有効化し、リダイレクト URI に `https://<project-ref>.supabase.co/auth/v1/callback` を登録します。
 
 ## セットアップ
 
-依存関係をインストールします。
-
 ```bash
 pnpm install
-```
-
-ローカル Supabase を起動します。
-
-```bash
 pnpm run sb:start
-pnpm run sb:status
+pnpm dev
 ```
 
-### ローカルサーバー一覧（開発時）
+ブラウザで http://localhost:3000 を開きます。
 
-- アプリ: `http://localhost:3000`
-- Supabase API: `http://127.0.0.1:54321`
-- Supabase Studio: `http://127.0.0.1:54323`
-- ローカルメールサーバー（Mailpit）: `http://127.0.0.1:54324`
-- ローカル Postgres: `postgresql://postgres:postgres@127.0.0.1:54322/postgres`
+ローカルの待ち受け:
 
-Supabase Studio:
+- アプリ: http://localhost:3000
+- Supabase API: http://127.0.0.1:54321
+- Supabase Studio: http://127.0.0.1:54323
+- Mailpit: http://127.0.0.1:54324
+- Postgres: `postgresql://postgres:postgres@127.0.0.1:54322/postgres`
 
-- `http://127.0.0.1:54323`
-
-メールリンクログインや新規登録確認メールは Mailpit で確認できます。
-
-Supabase SQL Editor または migration SQL でスキーマを適用します。
-
-```txt
-supabase/migrations/202604300001_ai_meal_mvp.sql
-supabase/migrations/20260430195000_add_daily_calorie_goal_to_profiles.sql
-supabase/migrations/20260501061000_fix_atomic_meal_workflows.sql
-supabase/migrations/20260501072000_create_contact_messages.sql
-```
-
-Supabase 構成では `prisma db push` は使用しません。スキーマ変更は migration SQL を適用し、Prisma は `prisma generate` と `prisma db seed` のみ実行してください。
-
-マイグレーション運用コマンド:
+確認メールは Mailpit で見られます。スキーマ変更は `prisma db push` を使わず、次で migration を作ります。
 
 ```bash
 pnpm run db:migrate:new -- <migration_name>
 pnpm run db:migrate:push
 ```
 
-開発サーバーを起動します。
+Prisma は `pnpm run db:types`（`prisma generate`）と `pnpm run db:seed` だけを使います。
 
-```bash
-pnpm dev
-```
-
-ブラウザで [http://localhost:3000](http://localhost:3000) を開きます。
-
-## 操作方法
-
-### 1. ログイン
-
-`/login` では次の2つの方法でログインできます。
-
-- メール + パスワードログイン
-- Google OAuth ログイン
-- メール + パスワードで新規登録（確認メール経由）
-
-Supabase 側では Email Auth を有効化し、Google ログインは上記「Google ログイン（ローカル / Cloud）」を設定してください。
-
-### 2. 食事写真をAI解析
-
-`/meals/new` で画像を選択し、「AI解析」を押します。
-
-エラーハンドリング:
-
-- 画像未選択
-- 画像以外のファイル
-- 5MB 超過
-- 未ログイン
-- AI 解析失敗
-- 解析回数上限超過
-
-解析回数制限:
-
-- 無料プラン: 1日1回
-- 有料プラン: 1日3回
-
-課金状態は `profiles.plan` で判定します。Stripe 連携は未実装で、MVP では DB の `profiles.plan` を `free` / `paid` に更新してモックします。
-
-### 3. AI 推定結果を確認・修正
-
-AI の推定結果はすぐには DB 保存されません。画面上の確認フォームで以下を修正できます。
-
-- 食事日時
-- 総カロリー
-- PFC
-- メモ
-- 料理ごとの内訳
-
-「登録」を押すと、修正後の値が `meals` と `meal_items` に保存されます。
-
-### 4. 今日の合計を見る
-
-`/dashboard` で今日の合計を表示します。
-
-- 今日の総摂取カロリー
-- PFC 合計
-- 食事一覧
-- 料理ごとの内訳
-
-## API Routes
-
-- `POST /api/meals/analyze`
-  - multipart form data の `image` を受け取る
-  - Gemini Flash に画像を渡す
-  - Zod で JSON 形式のレスポンスを検証
-  - 成功時のみ `ai_analysis_logs.success = true`
-
-- `POST /api/meals`
-  - ユーザー修正後の JSON を受け取る
-  - `meals` と `meal_items` に保存
-
-- `POST /api/contact`
-  - お問い合わせフォームの JSON を受け取る
-  - Cloudflare Turnstile のトークンを Siteverify で検証
-  - Zod で入力値を検証
-  - `contact_messages` に保存
-
-## 動作確認手順
-
-1. Supabase で migration SQL を実行する
-2. `.env` を設定する
-3. `pnpm dev` を起動する
-4. `/login` からログインする
-5. `/meals/new` で画像を選択して AI 解析する
-6. 推定値を修正して登録する
-7. `/dashboard` で合計カロリーと PFC を確認する
-8. 無料プランのまま同日に2回目の解析を実行し、上限エラーを確認する
-9. Supabase SQL Editor で `profiles.plan = 'paid'` に変更し、1日3回まで解析できることを確認する
-
-## 他開発者向けメモ
-
-- `main` 取り込み後は `pnpm install` と `pnpm run sb:start` を先に実行する
-- DB 変更時は `pnpm run db:migrate:new -- <name>` で SQL を作成し、`pnpm run db:migrate:push` で適用する
-- Prisma は `pnpm run db:types` と `pnpm run db:seed` のみ利用し、`prisma db push` は実行しない
-- Auth メール確認が必要なテストは Mailpit（`http://127.0.0.1:54324`）で行う
-- 環境変数は `.env.local` を使用し、秘密情報はコミットしない
-
-## 検証コマンド
-
-```bash
-pnpm exec tsc --noEmit
-pnpm lint
-pnpm build
-pnpm run db:types
-pnpm run db:seed
-pnpm run db:migrate:new -- add_example_change
-pnpm run db:migrate:push
-```
-## Local Stripe Webhook
+Stripe の Webhook をローカルへ転送する場合:
 
 ```bash
 stripe listen --forward-to localhost:3000/api/stripe/webhook
 ```
 
-## TODO
-- TODO: Stripe Webhook と連携して `profiles.plan` を自動更新する
-- TODO: 解析回数制限の同時実行テストを追加する
-- TODO: ユーザーのタイムゾーン設定を `profiles` に持たせる
-- TODO: AI 解析失敗時のリトライ UI を追加する
-- TODO: Supabase CLI を導入して migration 適用をコマンド化する
-# cal-snap
+表示された `whsec_...` を `STRIPE_WEBHOOK_SECRET` に入れます。
+
+## 操作
+
+1. `/signup` または `/login` でメール、もしくは Google で入る。
+2. `/meals/new` で画像を選び、解析する。未選択、画像以外、5MB 超過、未ログイン、解析失敗、回数上限でエラーになる。
+3. 推定値を直して登録する。`meals` と `meal_items` に保存される。
+4. `/dashboard` で当日のカロリーと PFC を確認する。
+5. `/billing` から有料プランを購入する。Webhook がプランを更新する。
+6. 有料プランでは `/suggestions` の食事提案と、`/meal-reminders` の通知設定が使える。
+
+## API
+
+- `POST /api/meals/analyze` … 画像を Gemini に渡し、Zod で検証する。成功時だけ解析回数を消費する。
+- `POST /api/meals` / `PATCH /api/meals/[mealId]` … 確認後の食事を保存・更新する。
+- `POST /api/meal-suggestions` … 有料プラン向けの食事提案。
+- `POST /api/daily-advice` … 当日の記録に対するアドバイス。
+- `POST /api/stripe/checkout` / `POST /api/stripe/portal` / `POST /api/stripe/webhook` … 購入、請求管理、プラン同期。
+- `POST /api/contact` … Turnstile を検証し、`contact_messages` に保存する。
+- `POST /api/cron/meal-reminders` … `Authorization: Bearer <CRON_SECRET>` で食事リマインダーを送る。
+
+## 検証
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+```
